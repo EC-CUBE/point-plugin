@@ -49,6 +49,13 @@ class PointServiceProvider implements ServiceProviderInterface
             }
         );
 
+        /** ポイントステータステーブル用リポジトリ */
+        $app['eccube.plugin.point.repository.pointstatus'] = $app->share(
+            function () use ($app) {
+                return $app['orm.em']->getRepository('Plugin\Point\Entity\PointStatus');
+            }
+        );
+
         /** ポイント機能基本情報テーブル用リポジトリ */
         $app['eccube.plugin.point.repository.pointinfo'] = $app->share(
             function () use ($app) {

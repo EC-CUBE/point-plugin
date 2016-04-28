@@ -11,13 +11,5 @@ use Doctrine\ORM\EntityRepository;
  */
 class PointStatusRepository extends EntityRepository
 {
-    /**
-     * PointSnapshotRepository constructor.
-     * @param EntityManager $em
-     * @param Mapping\ClassMetadata $class
-     */
-    public function __construct(EntityManager $em, Mapping\ClassMetadata $class)
-    {
-        parent::__construct($em, $class);
-    }
+
 }

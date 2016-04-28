@@ -7,6 +7,7 @@ use Doctrine\DBAL\Exception\DatabaseObjectNotFoundException;
 use Plugin\Point\Entity\PointSnapshot;
 use Plugin\Point\Entity\Point;
 use Plugin\Point\Entity\PointStatus;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * ポイント履歴ヘルパー
@@ -125,7 +126,6 @@ class PointHistoryHelper
         $this->historyActionType = self::HISTORY_MESSAGE_TYPE_PRE_ADD;
         $this->historyType = self::STATE_PRE_ADD;
         $this->saveHistoryPoint($point);
-        $this->savePointStatus();
     }
 
     /**
@@ -135,6 +135,9 @@ class PointHistoryHelper
      */
     public function saveFixProvisionalAddPoint($point)
     {
+        //ポイントステータスの更新
+        $this->fixPointStatus();
+
         $this->currentActionName = self::HISTORY_MESSAGE_ORDER_EDIT;
         $this->historyActionType = self::HISTORY_MESSAGE_TYPE_ADD;
         $this->historyType = self::STATE_ADD;
@@ -331,7 +334,7 @@ class PointHistoryHelper
      * 付与ポイントのステータスレコードを追加する
      * @return bool
      */
-    private function savePointStatus()
+    public function savePointStatus()
     {
         $this->entities['PointStatus'] = new PointStatus();
         if (isset($this->entities['Order'])) {
@@ -347,5 +350,23 @@ class PointHistoryHelper
         } catch (DatabaseObjectNotFoundException $e) {
             return false;
         }
+    }
+
+    /**
+     *  ポイントステータスを確定状態にする
+     */
+    private function fixPointStatus()
+    {
+        $orderId = $this->entities['Order']->getId();
+        $pointStatus = $this->app['eccube.plugin.point.repository.pointstatus']->findOneBy(
+            array('order_id' => $orderId)
+        );
+        if (!$pointStatus) {
+            throw new NotFoundHttpException();
+        }
+        /** @var PointStatus $pointStatus */
+        $pointStatus->setStatus(1);
+        $this->app['orm.em']->persist($pointStatus);
+        $this->app['orm.em']->flush();
     }
 }
