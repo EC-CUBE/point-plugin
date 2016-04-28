@@ -340,6 +340,9 @@ class PointHistoryHelper
         if (isset($this->entities['Order'])) {
             $this->entities['PointStatus']->setOrderId($this->entities['Order']->getId());
         }
+        if (isset($this->entities['Customer'])) {
+            $this->entities['PointStatus']->setCustomerId($this->entities['Customer']->getId());
+        }
         $this->entities['PointStatus']->setStatus(0);
         $this->entities['PointStatus']->setDelFlg(0);
         $this->entities['PointStatus']->setPointFixDate(null);

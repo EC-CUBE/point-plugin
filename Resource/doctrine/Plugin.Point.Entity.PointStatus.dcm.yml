@@ -17,6 +17,12 @@ Plugin\Point\Entity\PointStatus:
             unsigned: false
             options:
                 default: 0
+        customer_id:
+            type: integer
+            nullable: false
+            unsigned: false
+            options:
+                default: 0
         status:
             type: smallint
             nullable: false

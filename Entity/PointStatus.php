@@ -22,6 +22,10 @@ class PointStatus extends \Eccube\Entity\AbstractEntity
     /**
      * @var integer
      */
+    private $customer_id;
+    /**
+     * @var integer
+     */
     private $status;
     /**
      * @var integer
@@ -76,6 +80,29 @@ class PointStatus extends \Eccube\Entity\AbstractEntity
     public function getOrderId()
     {
         return $this->order_id;
+    }
+
+    /**
+     * Set customer_id
+     *
+     * @param integer $customer_id
+     * @return Point
+     */
+    public function setCustomerId($customer_id)
+    {
+        $this->customer_id = $customer_id;
+
+        return $this;
+    }
+
+    /**
+     * Get customer_id
+     *
+     * @return integer
+     */
+    public function getCustomerId()
+    {
+        return $this->customer_id;
     }
 
     /**
