@@ -1,0 +1,75 @@
+# 管理画面
+## 管理画面 > 商品登録( 編集 ) > ポイント付与率設定
+admin.product.edit.initialize:
+    - [onAdminProductEditInitialize, NORMAL]
+admin.product.edit.complete:
+    - [onAdminProductEditComplete, NORMAL]
+
+## 管理画面 > 会員登録( 編集 ) > 保有ポイント設定
+admin.customer.edit.index.initialize:
+    - [onAdminCustomerEditIndexInitialize, NORMAL]
+admin.customer.edit.index.complete:
+    - [onAdminCustomerEditIndexComplete, NORMAL]
+
+## 管理画面 > 受注登録 (編集) > 利用ポイントフォーム生成
+admin.order.edit.index.initialize:
+    - [onAdminOrderEditIndexInitialize, NORMAL]
+admin.order.edit.index.progress:
+    - [onAdminOrderEditIndexProgress, NORMAL]
+admin.order.edit.index.complete:
+    - [onAdminOrderEditIndexComplete, NORMAL]
+
+# フロント画面
+## フロント画面 > 商品購入確認完了(ポイント利用処理)
+front.shopping.confirm.processing:
+    - [onFrontShoppingConfirmProcessing, NORMAL]
+## フロント画面 > 商品購入完了(ポイント登録)
+service.shopping.notify.complete:
+    - [onServiceShoppingNotifyComplete, NORMAL]
+
+## 配送先関連
+front.mypage.delivery.edit.complete:
+    - [Delivery, NORMAL]
+
+front.shopping.delivery.complete:
+    - [Delivery, NORMAL]
+
+## 支払い方法判定
+front.shopping.payment.complete:
+    - [Payment, NORMAL]
+
+## 配送方法設定
+front.shopping.shipping.complete:
+    - [Shipping, NORMAL]
+front.shopping.shipping.edit.complete:
+    - [Shipping, NORMAL]
+
+
+# 画面レンダリング
+## 管理画面 > 受注編集
+Admin/Order/edit.twig:
+    - [onRenderAdminOrderEdit, NORMAL]
+## マイページ
+Mypage/index.twig:
+    - [onRenderMyPageIndex, NORMAL]
+
+## フロント画面 > 商品購入確認画面
+Shopping/index.twig:
+    - [onRenderShoppingIndex, NORMAL]
+
+## フロント画面 > 商品詳細画面
+Product/detail.twig:
+    - [onRenderProductDetail, NORMAL]
+
+## フロント画面 > カート
+Cart/index.twig:
+    - [onRenderCart, NORMAL]
+
+## フロント画面 > マイページ > 履歴
+Mypage/history.twig:
+    - [onRenderHistory, NORMAL]
+
+# メール
+## 受注メール
+mail.order:
+    - [onMailOrderComplete, NORMAL]
