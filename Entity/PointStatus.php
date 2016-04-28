@@ -1,0 +1,149 @@
+<?php
+
+
+namespace Plugin\Point\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+
+/**
+ * Class PointStatus
+ * @package Plugin\Point\Entity
+ */
+class PointStatus extends \Eccube\Entity\AbstractEntity
+{
+    /**
+     * @var integer
+     */
+    private $plg_point_status_id;
+    /**
+     * @var integer
+     */
+    private $order_id;
+    /**
+     * @var integer
+     */
+    private $status;
+    /**
+     * @var integer
+     */
+    private $del_flg;
+    /**
+     * @var timestamp
+     */
+    private $point_fix_date;
+
+    /**
+     * Set plg_point_status_id
+     *
+     * @param integer $plg_point_status_id
+     * @return PointStatus
+     */
+    public function setPlgPointStatusId($plg_point_status_id)
+    {
+        $this->plg_point_status_id = $plg_point_status_id;
+
+        return $this;
+    }
+
+    /**
+     * Get plg_point_status_id
+     *
+     * @return integer
+     */
+    public function getPlgPointStatusId()
+    {
+        return $this->plg_point_status_id;
+    }
+
+    /**
+     * Set order_id
+     *
+     * @param integer $order_id
+     * @return PointStatus
+     */
+    public function setOrderId($order_id)
+    {
+        $this->order_id = $order_id;
+
+        return $this;
+    }
+
+    /**
+     * Get order_id
+     *
+     * @return integer
+     */
+    public function getOrderId()
+    {
+        return $this->order_id;
+    }
+
+    /**
+     * Set status
+     *
+     * @param integer $status
+     * @return PointStatus
+     */
+    public function setStatus($status)
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    /**
+     * Get status
+     *
+     * @return integer
+     */
+    public function getStatus()
+    {
+        return $this->status;
+    }
+
+    /**
+     * Set del_flg
+     *
+     * @param integer $del_flg
+     * @return PointStatus
+     */
+    public function setDelFlg($del_flg)
+    {
+        $this->del_flg = $del_flg;
+
+        return $this;
+    }
+
+    /**
+     * Get del_flg
+     *
+     * @return integer
+     */
+    public function getDelFlg()
+    {
+        return $this->del_flg;
+    }
+
+    /**
+     * Set point_fix_date
+     *
+     * @param datetime $point_fix_date
+     * @return PointStatus
+     */
+    public function setPointFixDate($point_fix_date)
+    {
+        $this->point_fix_date = $point_fix_date;
+
+        return $this;
+    }
+
+    /**
+     * Get point_fix_date
+     *
+     * @return datetime
+     */
+    public function getPointFixDate()
+    {
+        return $this->point_fix_date;
+    }
+}
