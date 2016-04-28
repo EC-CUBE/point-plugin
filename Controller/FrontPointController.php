@@ -173,8 +173,11 @@ class FrontPointController
                     $this->app['eccube.plugin.point.history.service']->savePreUsePoint(abs($usePoint) * -1);
 
                     // 現在ポイントを履歴から計算
-                    $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->getCalculateCurrentPointByCustomerId(
+                    $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
                         $Order->getCustomer()->getId()
+                    );
+                    $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->getCalculateCurrentPointByCustomerId(
+                        $orderIds
                     );
 
                     // 会員ポイント更新

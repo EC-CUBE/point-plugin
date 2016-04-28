@@ -623,8 +623,11 @@ class  AdminOrder extends AbstractWorkPlace
      */
     protected function refreshCurrentPoint()
     {
-        $this->calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->getCalculateCurrentPointByCustomerId(
+        $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
             $this->customer->getId()
+        );
+        $this->calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->getCalculateCurrentPointByCustomerId(
+            $orderIds
         );
     }
 }

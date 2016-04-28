@@ -17,16 +17,20 @@ class PointRepository extends EntityRepository
 {
     /**
      * カスタマーIDを基準にポイントの合計を計算
-     * @param $customerId
+     * @param array $orderIds
      * @return bool|null
      */
-    public function getCalculateCurrentPointByCustomerId($customerId)
+    public function getCalculateCurrentPointByCustomerId(array $orderIds)
     {
         // ログテーブルから抽出するステータス
         $needStatus = array();
         $needStatus[] = PointHistoryHelper::STATE_ADD;      // 加算ポイント
         $needStatus[] = PointHistoryHelper::STATE_CURRENT;  // 手動ポイント
         $needStatus[] = PointHistoryHelper::STATE_USE;      // 利用ポイント
+
+        if (count($orderIds) < 1) {
+            return 0;
+        }
 
         try {
             $orderStatus = new OrderStatus();
@@ -35,10 +39,10 @@ class PointRepository extends EntityRepository
             // ログテーブルからポイントを計算
             $qb = $this->createQueryBuilder('p');
             $qb->select('SUM(p.plg_dynamic_point) as point_sum')
-                ->add('where', $qb->expr()->in('p.plg_point_type', $needStatus))
-                ->andWhere('p.customer_id = :customer_id')
-                ->setParameter('customer_id', $customerId);
-
+                ->where($qb->expr()->in('p.order_id', $orderIds))
+                ->expr()->orX(
+                    $qb->expr()->isNull('p.order_id')
+                );
             // 合計ポイント
             $sum_point = $qb->getQuery()->getScalarResult();
 
@@ -61,19 +65,19 @@ class PointRepository extends EntityRepository
     /**
      * 仮ポイントを会員IDを基に返却
      *  - 合計値
-     * @param $customer_id
+     * @param array $orderIds
      * @return array|bool|null
      */
-    public function getAllProvisionalAddPoint($customer_id)
+    public function getAllProvisionalAddPoint(array $orderIds)
     {
+        if (count($orderIds) < 1) {
+            return 0;
+        }
+
         try {
-            // 会員IDをもとに仮付与ポイントを計算
-            $qb = $this->createQueryBuilder('p')
-                ->select('SUM(p.plg_dynamic_point) as point_sum')
-                ->andWhere('p.plg_point_type = :pointType')
-                ->andWhere('p.customer_id = :customer_id')
-                ->setParameter('pointType', PointHistoryHelper::STATE_PRE_ADD)
-                ->setParameter('customer_id', $customer_id);
+            $qb = $this->createQueryBuilder('p');
+            $qb->select('SUM(p.plg_dynamic_point) as point_sum')
+                ->where($qb->expr()->in('p.order_id', $orderIds));
 
             $provisionalAddPoint = $qb->getQuery()->getScalarResult();
 

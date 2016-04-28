@@ -210,7 +210,8 @@ class PointCalculateHelper
         }
 
         $customer_id = $this->entities['Customer']->getId();
-        $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getAllProvisionalAddPoint($customer_id);
+        $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithUnfixedByCustomer($customer_id);
+        $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getAllProvisionalAddPoint($orderIds);
 
         if (!empty($provisionalPoint)) {
             return $provisionalPoint;
@@ -627,8 +628,11 @@ class PointCalculateHelper
         $this->app['eccube.plugin.point.history.service']->savePreUsePoint(0);
 
         // 現在ポイントを履歴から計算
-        $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->getCalculateCurrentPointByCustomerId(
+        $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
             $order->getCustomer()->getId()
+        );
+        $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->getCalculateCurrentPointByCustomerId(
+            $orderIds
         );
 
         // 会員ポイント更新
