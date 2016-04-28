@@ -627,6 +627,7 @@ class  AdminOrder extends AbstractWorkPlace
             $this->customer->getId()
         );
         $this->calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->getCalculateCurrentPointByCustomerId(
+            $this->customer->getId(),
             $orderIds
         );
     }

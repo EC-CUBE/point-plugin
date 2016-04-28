@@ -632,6 +632,7 @@ class PointCalculateHelper
             $order->getCustomer()->getId()
         );
         $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->getCalculateCurrentPointByCustomerId(
+            $order->getCustomer()->getId(),
             $orderIds
         );
 

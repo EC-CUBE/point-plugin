@@ -177,6 +177,7 @@ class FrontPointController
                         $Order->getCustomer()->getId()
                     );
                     $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->getCalculateCurrentPointByCustomerId(
+                        $Order->getCustomer()->getId(),
                         $orderIds
                     );
 

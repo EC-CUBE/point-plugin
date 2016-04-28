@@ -17,10 +17,11 @@ class PointRepository extends EntityRepository
 {
     /**
      * カスタマーIDを基準にポイントの合計を計算
+     * @param int $customer_id
      * @param array $orderIds
      * @return bool|null
      */
-    public function getCalculateCurrentPointByCustomerId(array $orderIds)
+    public function getCalculateCurrentPointByCustomerId($customer_id, array $orderIds)
     {
         // ログテーブルから抽出するステータス
         $needStatus = array();
@@ -40,8 +41,9 @@ class PointRepository extends EntityRepository
             $qb = $this->createQueryBuilder('p');
             $qb->select('SUM(p.plg_dynamic_point) as point_sum')
                 ->where($qb->expr()->in('p.order_id', $orderIds))
-                ->expr()->orX(
-                    $qb->expr()->isNull('p.order_id')
+                ->orWhere($qb->expr()->andX(
+                    $qb->expr()->isNull('p.order_id'),
+                    $qb->expr()->eq('p.customer_id', $customer_id))
                 );
             // 合計ポイント
             $sum_point = $qb->getQuery()->getScalarResult();
