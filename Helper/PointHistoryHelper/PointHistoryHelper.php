@@ -151,6 +151,9 @@ class PointHistoryHelper
      */
     public function saveShoppingFixProvisionalAddPoint($point)
     {
+        //ポイントステータスの更新
+        $this->fixPointStatus();
+
         $this->currentActionName = self::HISTORY_MESSAGE_EDIT;
         $this->historyActionType = self::HISTORY_MESSAGE_TYPE_ADD;
         $this->historyType = self::STATE_ADD;
