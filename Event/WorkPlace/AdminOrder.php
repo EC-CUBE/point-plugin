@@ -378,8 +378,8 @@ class  AdminOrder extends AbstractWorkPlace
      */
     protected function pointFixEvent($event)
     {
-        // 本受注最終受注ポイントの種類を判定する
-        $fixFlg = $this->app['eccube.plugin.point.repository.point']->isLastProvisionalFix($this->targetOrder);
+        // ポイントが確定状態か？
+        $fixFlg = $this->app['eccube.plugin.point.repository.pointstatus']->isFixedStatus($this->targetOrder);
 
         // 最終ポイントの種別が確定ポイントの場合は処理キャンセル
         if ($fixFlg) {
@@ -536,11 +536,9 @@ class  AdminOrder extends AbstractWorkPlace
         }
 
         // 履歴情報登録
-        // ポイント付与
-        $this->history->refreshEntity();
+        // ポイントを確定状態にする
         $this->history->addEntity($this->targetOrder);
-        $this->history->addEntity($this->customer);
-        $this->history->saveFixProvisionalAddPoint($provisionalPoint);
+        $this->history->fixPointStatus();
 
         // 会員ポイント更新
         // 現在ポイントを履歴から計算

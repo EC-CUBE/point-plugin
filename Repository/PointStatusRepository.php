@@ -4,6 +4,8 @@
 namespace Plugin\Point\Repository;
 
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Plugin\Point\Entity\PointStatus;
 
 /**
  * Class PointStatusRepository
@@ -59,5 +61,36 @@ class PointStatusRepository extends EntityRepository
         }
 
         return $orderIds;
+    }
+
+    /**
+     * 受注情報をもとに、ポイントが確定かどうか判定
+     * @param $order
+     * @return bool|null
+     */
+    public function isFixedStatus($order)
+    {
+        // 必要エンティティ判定
+        if (empty($order)) {
+            return false;
+        }
+
+        try {
+            // 受注をもとに仮付与ポイントを計算
+            $qb = $this->createQueryBuilder('p');
+            $qb->where('p.order_id = :order_id')
+                ->setParameter('order_id', $order->getId())
+                ->orderBy('p.plg_point_status_id', 'desc')
+                ->setMaxResults(1);
+
+            $result = $qb->getQuery()->getResult();
+            if (count($result) < 1) {
+                return false;
+            }
+
+            return ($result[0]->getStatus() == 1);
+        } catch (NoResultException $e) {
+            return null;
+        }
     }
 }

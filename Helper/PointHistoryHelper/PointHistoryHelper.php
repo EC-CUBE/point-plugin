@@ -109,9 +109,6 @@ class PointHistoryHelper
      */
     public function saveFixProvisionalAddPoint($point)
     {
-        //ポイントステータスの更新
-        $this->fixPointStatus();
-
         $this->currentActionName = self::HISTORY_MESSAGE_ORDER_EDIT;
         $this->historyActionType = self::HISTORY_MESSAGE_TYPE_ADD;
         $this->historyType = self::STATE_ADD;
@@ -125,9 +122,6 @@ class PointHistoryHelper
      */
     public function saveShoppingFixProvisionalAddPoint($point)
     {
-        //ポイントステータスの更新
-        $this->fixPointStatus();
-
         $this->currentActionName = self::HISTORY_MESSAGE_EDIT;
         $this->historyActionType = self::HISTORY_MESSAGE_TYPE_ADD;
         $this->historyType = self::STATE_ADD;
@@ -297,7 +291,7 @@ class PointHistoryHelper
     /**
      *  ポイントステータスを確定状態にする
      */
-    private function fixPointStatus()
+    public function fixPointStatus()
     {
         $orderId = $this->entities['Order']->getId();
         $pointStatus = $this->app['eccube.plugin.point.repository.pointstatus']->findOneBy(

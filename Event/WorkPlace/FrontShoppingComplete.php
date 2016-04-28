@@ -99,15 +99,18 @@ class FrontShoppingComplete extends AbstractWorkPlace
         $this->app['eccube.plugin.point.history.service']->addEntity($order->getCustomer());
         $this->app['eccube.plugin.point.history.service']->saveUsePoint(abs($usePoint) * -1);
 
+        // ポイントの付与
+        $this->app['eccube.plugin.point.history.service']->refreshEntity();
+        $this->app['eccube.plugin.point.history.service']->addEntity($order);
+        $this->app['eccube.plugin.point.history.service']->addEntity($order->getCustomer());
+        $this->app['eccube.plugin.point.history.service']->saveShoppingFixProvisionalAddPoint($addPoint);
+
 		// ポイントステータスのレコードを生成
         $this->app['eccube.plugin.point.history.service']->savePointStatus();
 
-        // 付与ポイント受注ステータスが新規であれば、ポイント付与
+        // 付与ポイント受注ステータスが新規であれば、ポイントを確定状態にする
         if ($add_point_flg) {
-            $this->app['eccube.plugin.point.history.service']->refreshEntity();
-            $this->app['eccube.plugin.point.history.service']->addEntity($order);
-            $this->app['eccube.plugin.point.history.service']->addEntity($order->getCustomer());
-            $this->app['eccube.plugin.point.history.service']->saveShoppingFixProvisionalAddPoint($addPoint);
+            $this->app['eccube.plugin.point.history.service']->fixPointStatus();
         }
 
         // 現在ポイントを履歴から計算
