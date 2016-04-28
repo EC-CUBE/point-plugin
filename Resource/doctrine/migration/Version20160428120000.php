@@ -40,7 +40,7 @@ class Version20160428120000 extends AbstractMigration
             $t->addColumn('order_id', 'integer', array('NotNull' => true, 'Default' => 0));
             $t->addColumn('status', 'smallint', array('NotNull' => true, 'Default' => 0));
             $t->addColumn('del_flg', 'smallint', array('NotNull' => true, 'Default' => 0));
-            $t->addColumn('point_fix_date', 'datetime', array('NotNull' => true));
+            $t->addColumn('point_fix_date', 'datetime', array('NotNull' => false));
             $t->setPrimaryKey(array('plg_point_status_id'));
         }
     }
