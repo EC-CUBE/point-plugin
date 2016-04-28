@@ -6,6 +6,7 @@ namespace Plugin\Point\Helper\PointHistoryHelper;
 use Doctrine\DBAL\Exception\DatabaseObjectNotFoundException;
 use Plugin\Point\Entity\PointSnapshot;
 use Plugin\Point\Entity\Point;
+use Plugin\Point\Entity\PointStatus;
 
 /**
  * ポイント履歴ヘルパー
@@ -124,6 +125,7 @@ class PointHistoryHelper
         $this->historyActionType = self::HISTORY_MESSAGE_TYPE_PRE_ADD;
         $this->historyType = self::STATE_PRE_ADD;
         $this->saveHistoryPoint($point);
+        $this->savePointStatus();
     }
 
     /**
@@ -323,5 +325,27 @@ class PointHistoryHelper
         }
 
         return false;
+    }
+
+    /**
+     * 付与ポイントのステータスレコードを追加する
+     * @return bool
+     */
+    private function savePointStatus()
+    {
+        $this->entities['PointStatus'] = new PointStatus();
+        if (isset($this->entities['Order'])) {
+            $this->entities['PointStatus']->setOrderId($this->entities['Order']->getId());
+        }
+        $this->entities['PointStatus']->setStatus(0);
+        $this->entities['PointStatus']->setDelFlg(0);
+        $this->entities['PointStatus']->setPointFixDate(null);
+        try {
+            $this->app['orm.em']->persist($this->entities['PointStatus']);
+            $this->app['orm.em']->flush($this->entities['PointStatus']);
+            $this->app['orm.em']->clear($this->entities['PointStatus']);
+        } catch (DatabaseObjectNotFoundException $e) {
+            return false;
+        }
     }
 }
