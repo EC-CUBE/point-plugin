@@ -103,32 +103,6 @@ class PointHistoryHelper
     }
 
     /**
-     * 仮加算ポイント情報を履歴登録
-     *  - 会員管理
-     * @param $point
-     */
-    public function saveManualProvisionalAddPoint($point)
-    {
-        $this->currentActionName = self::HISTORY_MESSAGE_MANUAL_EDIT;
-        $this->historyActionType = self::HISTORY_MESSAGE_TYPE_PRE_ADD;
-        $this->historyType = self::STATE_PRE_ADD;
-        //$this->saveHistoryPoint($point);
-    }
-
-    /**
-     * 仮加算ポイント情報を履歴登録
-     *  - 受注管理画面
-     * @param $point
-     */
-    public function saveProvisionalAddPoint($point)
-    {
-        $this->currentActionName = self::HISTORY_MESSAGE_ORDER_EDIT;
-        $this->historyActionType = self::HISTORY_MESSAGE_TYPE_PRE_ADD;
-        $this->historyType = self::STATE_PRE_ADD;
-        //$this->saveHistoryPoint($point);
-    }
-
-    /**
      * 加算ポイントの履歴登録
      *  - 受注管理画面
      * @param $point
@@ -170,44 +144,6 @@ class PointHistoryHelper
         $this->historyActionType = self::HISTORY_MESSAGE_TYPE_ADD;
         $this->historyType = self::STATE_ADD;
         $this->saveHistoryPoint($point);
-    }
-
-    /**
-     * 仮加算ポイント確定処理
-     *  - 管理画面
-     * @param $point
-     * @return bool
-     */
-    public function fixProvisionalAddPoint($point)
-    {
-        // 引数判定
-        if (empty($point)) {
-            return false;
-        }
-
-        $this->currentActionName = self::HISTORY_MESSAGE_ORDER_EDIT;
-        $this->historyActionType = self::HISTORY_MESSAGE_TYPE_PRE_ADD;
-        $this->historyType = self::STATE_PRE_ADD;
-        //$this->saveHistoryPoint(abs($point) * -1);
-    }
-
-    /**
-     * 仮加算ポイント確定処理
-     *  - フロント画面
-     * @param $point
-     * @return bool
-     */
-    public function fixShoppingProvisionalAddPoint($point)
-    {
-        // 引数判定
-        if (empty($point)) {
-            return false;
-        }
-
-        $this->currentActionName = self::HISTORY_MESSAGE_ORDER_EDIT;
-        $this->historyActionType = self::HISTORY_MESSAGE_TYPE_PRE_ADD;
-        $this->historyType = self::STATE_PRE_ADD;
-        //$this->saveHistoryPoint(abs($point) * -1);
     }
 
     /**

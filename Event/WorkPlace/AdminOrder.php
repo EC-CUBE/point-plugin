@@ -536,10 +536,6 @@ class  AdminOrder extends AbstractWorkPlace
         }
 
         // 履歴情報登録
-        // 仮付与ポイント打ち消し
-        $this->history->addEntity($this->targetOrder);
-        $this->history->addEntity($this->customer);
-        $this->history->fixProvisionalAddPoint($provisionalPoint);
         // ポイント付与
         $this->history->refreshEntity();
         $this->history->addEntity($this->targetOrder);
