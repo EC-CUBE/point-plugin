@@ -131,21 +131,21 @@ class PointCalculateHelper
             return false;
         }
 
-        $calcType = $this->pointInfo->getPlgCalculationType();
+        $roundType = $this->pointInfo->getPlgRoundType();
 
         // 切り上げ
-        if ($calcType == PointInfo::POINT_ROUND_CEIL) {
+        if ($roundType == PointInfo::POINT_ROUND_CEIL) {
             return ceil($value);
         }
 
         // 四捨五入
-        if ($calcType == PointInfo::POINT_ROUND_ROUND) {
+        if ($roundType == PointInfo::POINT_ROUND_ROUND) {
             return round($value, 0);
         }
 
         // 切り捨て
-        if ($calcType == PointInfo::POINT_ROUND_FLOOR) {
-            return round($value, 0);
+        if ($roundType == PointInfo::POINT_ROUND_FLOOR) {
+            return floor($value);
         }
     }
 
