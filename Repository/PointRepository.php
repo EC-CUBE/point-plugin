@@ -102,7 +102,7 @@ class PointRepository extends EntityRepository
     }
 
     /**
-     * 仮ポイントレコードを受注情報を基に返却
+     * 受注に対して行われた最後の付与ポイントを取得
      * @param $order
      * @return array|bool|null
      */
@@ -114,12 +114,10 @@ class PointRepository extends EntityRepository
         }
 
         try {
-            // 受注をもとに仮付与ポイントを計算
+            // 受注をもとにその受注に対して行われた最後の付与ポイントを取得
             $qb = $this->createQueryBuilder('p')
-                ->andWhere('p.plg_point_type = :pointType')
                 ->andWhere('p.customer_id = :customer_id')
                 ->andWhere('p.order_id = :order_id')
-                ->setParameter('pointType', PointHistoryHelper::STATE_PRE_ADD)
                 ->setParameter('customer_id', $order->getCustomer()->getId())
                 ->setParameter('order_id', $order->getId())
                 ->orderBy('p.plg_point_id', 'desc')
@@ -127,14 +125,14 @@ class PointRepository extends EntityRepository
 
             $provisionalAddPoint = $qb->getQuery()->getResult();
 
-            // 仮ポイント取得判定
+            // ポイント取得判定
             if (count($provisionalAddPoint) < 1) {
                 return false;
             }
 
             $provisionalAddPoint = $provisionalAddPoint[0]->getPlgDynamicPoint();
 
-            // 仮ポイントがマイナスになった場合はエラー表示
+            // ポイントがマイナスになった場合はエラー表示
             if ($provisionalAddPoint < 0) {
                 return false;
             }

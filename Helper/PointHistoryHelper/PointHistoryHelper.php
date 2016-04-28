@@ -112,7 +112,7 @@ class PointHistoryHelper
         $this->currentActionName = self::HISTORY_MESSAGE_MANUAL_EDIT;
         $this->historyActionType = self::HISTORY_MESSAGE_TYPE_PRE_ADD;
         $this->historyType = self::STATE_PRE_ADD;
-        $this->saveHistoryPoint($point);
+        //$this->saveHistoryPoint($point);
     }
 
     /**
@@ -125,7 +125,7 @@ class PointHistoryHelper
         $this->currentActionName = self::HISTORY_MESSAGE_ORDER_EDIT;
         $this->historyActionType = self::HISTORY_MESSAGE_TYPE_PRE_ADD;
         $this->historyType = self::STATE_PRE_ADD;
-        $this->saveHistoryPoint($point);
+        //$this->saveHistoryPoint($point);
     }
 
     /**
@@ -188,7 +188,7 @@ class PointHistoryHelper
         $this->currentActionName = self::HISTORY_MESSAGE_ORDER_EDIT;
         $this->historyActionType = self::HISTORY_MESSAGE_TYPE_PRE_ADD;
         $this->historyType = self::STATE_PRE_ADD;
-        $this->saveHistoryPoint(abs($point) * -1);
+        //$this->saveHistoryPoint(abs($point) * -1);
     }
 
     /**
@@ -207,7 +207,7 @@ class PointHistoryHelper
         $this->currentActionName = self::HISTORY_MESSAGE_ORDER_EDIT;
         $this->historyActionType = self::HISTORY_MESSAGE_TYPE_PRE_ADD;
         $this->historyType = self::STATE_PRE_ADD;
-        $this->saveHistoryPoint(abs($point) * -1);
+        //$this->saveHistoryPoint(abs($point) * -1);
     }
 
     /**

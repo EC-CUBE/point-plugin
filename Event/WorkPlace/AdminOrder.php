@@ -326,7 +326,7 @@ class  AdminOrder extends AbstractWorkPlace
     /**
      * 受注編集で購入商品の構成が変更した際に以下処理を行う
      *  - 前回付与ポイントの打ち消し
-     *  - 今回付与ポイントの仮付与
+     *  - 今回付与ポイントの付与
      * @param $addPoint
      * @param $provisionalPoint
      * @return bool
@@ -338,36 +338,19 @@ class  AdminOrder extends AbstractWorkPlace
             return false;
         }
 
-        // 仮付与ポイントが空でなければ登録
+        // 付与ポイントが空でなければ登録
         if (!empty($provisionalPoint)) {
             $this->history->addEntity($this->targetOrder);
             $this->history->addEntity($this->customer);
-            $this->history->saveProvisionalAddPoint(abs($provisionalPoint) * -1);
-        }
-
-        // 本受注に対して最後に確定付与されたポイントを取得
-        $lastAddPoint = $this->app['eccube.plugin.point.repository.point']->getLastAddPointByOrder($this->targetOrder);
-
-        // 最後に確定付与されたポイントと今回付与ポイントが
-        // 同値であれば、リロードと判定
-        if ($lastAddPoint == $addPoint) {
-            return false;
-        }
-
-        // 最終確定付与ポイント打ち消し
-        if (!empty($lastAddPoint)) {
-            $this->history->refreshEntity();
-            $this->history->addEntity($this->targetOrder);
-            $this->history->addEntity($this->customer);
-            $this->history->cancelAddPoint(abs($lastAddPoint) * -1);
+            $this->history->saveFixProvisionalAddPoint(abs($provisionalPoint) * -1);
         }
 
         // 履歴保存
-        // 仮ポイントの保存
+        // ポイントの保存
         $this->history->refreshEntity();
         $this->history->addEntity($this->targetOrder);
         $this->history->addEntity($this->customer);
-        $this->history->saveProvisionalAddPoint(abs($addPoint));
+        $this->history->saveFixProvisionalAddPoint(abs($addPoint));
 
         $point = array();
         // 現在保有ポイント再計算
