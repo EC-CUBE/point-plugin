@@ -116,15 +116,20 @@ class  AdminCustomer extends AbstractWorkPlace
         // ポイント付与保存処理
         $saveEntity = $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint($pointCurrent, $customer);
 
-        $lastCustomerPoint = $this->app['eccube.plugin.point.repository.point']->getLastManualPointByCustomer($customer);
-
-        // 手動設定ポイントのログ登録(戻し処理)
-        if(!empty($lastCustomerPoint)){
+        // 現在の保持ポイントを減算して登録（ゼロリセットする）
+        $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
+            $customer->getId()
+        );
+        $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->getCalculateCurrentPointByCustomerId(
+            $orderIds
+        );
+        if(!empty($calculateCurrentPoint)){
             $this->app['eccube.plugin.point.history.service']->addEntity($customer);
-            $this->app['eccube.plugin.point.history.service']->saveManualpoint(abs($lastCustomerPoint) * -1);
+            $this->app['eccube.plugin.point.history.service']->saveManualpoint(abs($calculateCurrentPoint) * -1);
             $this->app['eccube.plugin.point.history.service']->refreshEntity();
         }
 
+        // 新しいポイントを登録
         $this->app['eccube.plugin.point.history.service']->addEntity($customer);
         $this->app['eccube.plugin.point.history.service']->saveManualpoint(abs($pointCurrent));
 
