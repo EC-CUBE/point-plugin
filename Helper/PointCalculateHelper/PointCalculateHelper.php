@@ -5,6 +5,7 @@ namespace Plugin\Point\Helper\PointCalculateHelper;
 
 use Doctrine\ORM\EntityNotFoundException;
 use Plugin\Point\Entity\PointInfo;
+use Symfony\Component\Form\Exception\LogicException;
 
 /**
  * ポイント計算サービスクラス
@@ -309,11 +310,6 @@ class PointCalculateHelper
             );
         }
 
-        // 減算処理の場合減算値を返却
-        if ($this->isSubtraction() && !empty($this->usePoint)) {
-            return $this->getSubtractionCalculate();
-        }
-
         return $this->addPoint;
     }
 
@@ -447,29 +443,28 @@ class PointCalculateHelper
      * 利用ポイント数 ＊ ポイント金額換算率 ＝ ポイント値引額
      * 加算ポイント - ポイント値引き額 * 基本ポイント付与率 = 減算後加算ポイント
      *
-     * @return bool|int
+     * ポイント利用時かつ, ポイント設定でポイント減算ありを選択指定た場合に, 加算ポイントの減算処理を行う.
+     * 減算の計算後, プロパティのaddPointに減算後の加算ポイントをセットする.
+     *
+     * @return bool|float|void
      */
     public function getSubtractionCalculate()
     {
         // 基本情報が設定されているか確認
         if (is_null($this->pointInfo->getPlgCalculationType())) {
-            return false;
+            $this->app['monolog']->critical('calculation type not found.');
+            throw new LogicException();
         }
 
-        // 減算値計算
-        if (!isset($this->usePoint) || empty($this->usePoint)) {
-            return false;
+        // 利用ポイントがない場合は処理しない.
+        if (empty($this->usePoint)) {
+            return;
         }
 
-        // 換算レート
-        $conversionRate = $this->pointInfo->getPlgPointConversionRate();
-
-        // 基本付与率
-        $rate = ($this->basicRate / 100) + 1;
-
-        $pointDiscount = $this->usePoint * $conversionRate;
+        // 利用ポイント数 ＊ ポイント金額換算率 ＝ ポイント値引額
+        $pointDiscount = $this->usePoint * $this->pointInfo->getPlgPointConversionRate();
         $basicRate = ($this->basicRate / 100) + 1;
-
+        // 加算ポイント - ポイント値引き額 * 基本ポイント付与率 = 減算後加算ポイント
         $addPoint = $this->addPoint - $pointDiscount * $basicRate;
 
         if ($addPoint < 0) {
