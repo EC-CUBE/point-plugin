@@ -83,7 +83,7 @@ class PointStatusRepository extends EntityRepository
 
             $result = $qb->getQuery()->getSingleResult();
 
-            return ($result[0]->getStatus() == 1);
+            return ($result->getStatus() == 1);
         } catch (NoResultException $e) {
             return false;
         }
