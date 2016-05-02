@@ -55,12 +55,7 @@ class FrontShopping extends AbstractWorkPlace
 
         // 利用ポイントの確認
         $pointUse = new PointUse();
-        $usePoint = 0;
-        $lastPreUsePoint = 0;
-        $lastPreUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($order);
-        if (!empty($lastPreUsePoint)) {
-            $usePoint = $lastPreUsePoint;
-        }
+        $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($order);
 
         // 計算に必要なエンティティを登録
         $calculator->setUsePoint($usePoint);

@@ -61,9 +61,6 @@ class FrontPointController
 
         // 最終仮利用ポイントがあるかどうかの判定
         $lastPreUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($Order);
-        if (empty($lastPreUsePoint)) {
-            $lastPreUsePoint = 0;
-        }
 
         // 計算用ヘルパー呼び出し
         $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];

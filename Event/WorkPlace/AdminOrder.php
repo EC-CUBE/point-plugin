@@ -84,11 +84,6 @@ class  AdminOrder extends AbstractWorkPlace
         $lastUsePoint = 0;
         if (!empty($order) && !empty($hasCustomer)) {
             $lastUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($order);
-
-            // 初期値設定
-            if (empty($lastUsePoint)) {
-                $lastUsePoint = 0;
-            }
         }
 
         // カスタマー保有ポイント取得
@@ -185,10 +180,6 @@ class  AdminOrder extends AbstractWorkPlace
 
         // 手動調整ポイントを取得
         $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($order);
-
-        if (empty($usePoint)) {
-            $usePoint = 0;
-        }
 
         // 計算ヘルパー取得判定
         if (is_null($this->calculator)) {

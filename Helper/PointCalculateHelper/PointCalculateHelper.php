@@ -211,50 +211,41 @@ class PointCalculateHelper
     /**
      * 仮付与ポイントを返却
      *  - 会員IDをもとに返却
-     * @return bool
+     * @return int 仮付与ポイント
      */
     public function getProvisionalAddPoint()
     {
         // 必要エンティティを判定
         if (!$this->hasEntities('Customer')) {
-            return false;
+            return 0;
         }
 
         $customer_id = $this->entities['Customer']->getId();
         $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithUnfixedByCustomer($customer_id);
         $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->calcProvisionalAddPoint($orderIds);
 
-        if (!empty($provisionalPoint)) {
-            return $provisionalPoint;
-        }
-
-        return false;
+        return $provisionalPoint;
     }
 
     /**
      * 仮付与ポイントを返却
      *  - オーダー情報をもとに返却
-     * @return bool
+     * @return int 仮付与ポイント
      */
     public function getLatestAddPointByOrder()
     {
         // 必要エンティティを判定
         if (!$this->hasEntities('Customer')) {
-            return false;
+            return 0;
         }
         if (!$this->hasEntities('Order')) {
-            return false;
+            return 0;
         }
 
         $order = $this->entities['Order'];
         $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder($order);
 
-
-        if (!empty($provisionalPoint)) {
-            return $provisionalPoint;
-        }
-
-        return false;
+        return $provisionalPoint;
     }
 
     /**
@@ -590,13 +581,8 @@ class PointCalculateHelper
         $order = $this->entities['Order'];
         $customer = $this->entities['Customer'];
 
-        // 最終保存仮利用ポイントがあるかどうかの判定
-        $usePoint = 0;
-        $lastPreUsePoint = 0;
-        $lastPreUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($order);
-        if (!empty($lastPreUsePoint)) {
-            $usePoint = $lastPreUsePoint;
-        }
+        // 最終保存仮利用ポイント
+        $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($order);
 
         // 値引きを除いた支払い合計を取得
         $totalPrice = $order->getTotalPrice();

@@ -40,15 +40,7 @@ class FrontShoppingComplete extends AbstractWorkPlace
         }
 
         // 使用ポイントをエンティティに格納
-        $pointUse = new PointUse();
-        $usePoint = 0;
-
-        // 最終保存ポイントがあるかどうかの判定
-        $lastPreUsePoint = 0;
-        $lastPreUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($order);
-        if (!empty($lastPreUsePoint)) {
-            $usePoint = $lastPreUsePoint;
-        }
+        $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($order);
 
         // 計算判定取得
         $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
