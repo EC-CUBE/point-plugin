@@ -60,7 +60,7 @@ class FrontPointController
         }
 
         // 最終仮利用ポイントがあるかどうかの判定
-        $lastPreUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($Order);
+        $lastPreUsePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($Order));
 
         // 計算用ヘルパー呼び出し
         $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
@@ -145,9 +145,6 @@ class FrontPointController
 
         // 保存処理
         if ($form->isSubmitted() && $form->isValid() && !$errorFlg) {
-            // ユーザー入力値
-            $saveUsePoint = $form->get('plg_use_point')->getData();
-
             // 最終保存ポイントと現在ポイントに相違があれば利用ポイント保存
             if ($lastPreUsePoint != $usePoint) {
                 if ($calculator->setDiscount($lastPreUsePoint)) {
