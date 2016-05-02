@@ -355,9 +355,7 @@ class PointCalculateHelper
                     $rate = $this->productRates[$node->getProduct()->getId()] / 100;
                 }
             }
-            $this->addPoint += (integer)$this->getRoundValue(
-                (($node->getProductClass()->getPrice02() * $rate) * $node->getQuantity())
-            );
+            $this->addPoint += $this->getRoundValue(($node->getProductClass()->getPrice02() * $rate) * $node->getQuantity());
         }
 
         // 減算処理の場合減算値を返却
@@ -365,7 +363,7 @@ class PointCalculateHelper
             return $this->getSubtractionCalculate();
         }
 
-        return $this->addPoint;
+        return $this->getRoundValue($this->addPoint);
     }
 
     /**
@@ -450,7 +448,7 @@ class PointCalculateHelper
 
         // 利用ポイントがない場合は処理しない.
         if (empty($this->usePoint)) {
-            return;
+            return $this->addPoint;
         }
 
         // 利用ポイント数 ＊ ポイント金額換算率 ＝ ポイント値引額
