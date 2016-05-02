@@ -375,38 +375,38 @@ class  AdminOrder extends AbstractWorkPlace
      */
     protected function pointFixEvent($event)
     {
-        // ポイントが確定状態か？
-        $fixFlg = $this->app['eccube.plugin.point.repository.pointstatus']->isFixedStatus($this->targetOrder);
-
-        // 最終ポイントの種別が確定ポイントの場合は処理キャンセル
-        if ($fixFlg) {
+        // ポイントが確定ステータスなら何もしない
+        if ($this->app['eccube.plugin.point.repository.pointstatus']->isFixedStatus($this->targetOrder)) {
             return false;
         }
-        
+
+        // 必要エンティティ判定
         if (empty($this->targetOrder)) {
             return false;
         }
 
-        // 加算ポイントがあるか確認
-        $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder(
-            $this->targetOrder
-        );
-
-        if (empty($provisionalPoint)) {
+        if (empty($this->customer)) {
             return false;
         }
 
-        // ポイントを確定にする
+        // ポイントを確定ステータスにする
         $this->fixPointStatus();
 
-        $point = array();
-        // 現在保有ポイント再計算
+        // 会員の保有ポイント更新
         $currentPoint = $this->calculateCurrentPoint();
-        $point['current'] = $currentPoint;
-        $point['use'] = 0;
-        $point['add'] = $provisionalPoint;
+        $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
+            $currentPoint,
+            $this->customer
+        );
 
         // SnapShot保存
+        $fixedAddPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder(
+            $this->targetOrder
+        );
+        $point = array();
+        $point['current'] = $currentPoint;
+        $point['use'] = 0;
+        $point['add'] = $fixedAddPoint;
         $this->saveFixOrderSnapShot($point);
     }
 
@@ -509,20 +509,9 @@ class  AdminOrder extends AbstractWorkPlace
             return;
         }
 
-        if (empty($this->customer)) {
-            return;
-        }
-
         // ポイントを確定状態にする
         $this->history->addEntity($this->targetOrder);
         $this->history->fixPointStatus();
-
-        // 会員の保有ポイント更新
-        $currentPoint = $this->calculateCurrentPoint();
-        $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
-            $currentPoint,
-            $this->customer
-        );
     }
 
     /**
