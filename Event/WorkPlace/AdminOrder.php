@@ -349,19 +349,18 @@ class  AdminOrder extends AbstractWorkPlace
         $this->history->addEntity($this->customer);
         $this->history->saveAddPointByOrderEdit(abs($newAddPoint));
 
-        // スナップショット保存
-        $point = array();
-        // 現在保有ポイント再計算
+        // 会員の保有ポイント保存
         $currentPoint = $this->calculateCurrentPoint();
-        $point['current'] = $currentPoint;
-        $point['use'] = 0;
-        $point['add'] = $newAddPoint;
-
         $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
             $currentPoint,
             $this->customer
         );
 
+        // スナップショット保存
+        $point = array();
+        $point['current'] = $currentPoint;
+        $point['use'] = 0;
+        $point['add'] = $newAddPoint;
         $this->history->refreshEntity();
         $this->history->addEntity($this->targetOrder);
         $this->history->addEntity($this->customer);
@@ -383,20 +382,12 @@ class  AdminOrder extends AbstractWorkPlace
         if ($fixFlg) {
             return false;
         }
-
-        if (empty($event)) {
-            return false;
-        }
-
+        
         if (empty($this->targetOrder)) {
             return false;
         }
 
-        if (empty($this->customer)) {
-            return false;
-        }
-
-        // 仮付与ポイントがあるか確認
+        // 加算ポイントがあるか確認
         $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder(
             $this->targetOrder
         );
@@ -405,13 +396,8 @@ class  AdminOrder extends AbstractWorkPlace
             return false;
         }
 
-        // AdminOrder計算ヘルパーを使用
-        $this->calculator->addEntity('Order', $this->targetOrder);
-        $this->calculator->addEntity('Customer', $this->customer);
-
-        // 履歴保存
-        // 仮ポイントの保存
-        $this->saveFixOrderHistory($provisionalPoint);
+        // ポイントを確定にする
+        $this->fixPointStatus();
 
         $point = array();
         // 現在保有ポイント再計算
@@ -514,32 +500,24 @@ class  AdminOrder extends AbstractWorkPlace
     }
 
     /**
-     * ポイント確定情報の保存
-     * @param $provisionalPoint
-     * @return bool
+     * 付与ポイントを「確定」に変更する
      */
-    protected function saveFixOrderHistory($provisionalPoint)
+    protected function fixPointStatus()
     {
         // 必要エンティティ判定
         if (empty($this->targetOrder)) {
-            return false;
+            return;
         }
 
         if (empty($this->customer)) {
-            return false;
+            return;
         }
 
-        if (empty($provisionalPoint)) {
-            return false;
-        }
-
-        // 履歴情報登録
         // ポイントを確定状態にする
         $this->history->addEntity($this->targetOrder);
         $this->history->fixPointStatus();
 
-        // 会員ポイント更新
-        // 現在ポイントを履歴から計算
+        // 会員の保有ポイント更新
         $currentPoint = $this->calculateCurrentPoint();
         $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
             $currentPoint,
