@@ -37,19 +37,16 @@ class  AdminProduct extends AbstractWorkPlace
             );
         }
 
-        $data = is_null($lastPointProduct) ? '' : $lastPointProduct;
-
         // ポイント付与率項目拡張
         $builder
             ->add(
                 'plg_point_product_rate',
-                'text',
+                'integer',
                 array(
                     'label' => 'ポイント付与率',
                     'required' => false,
                     'mapped' => false,
-                    'data' => $data,
-                    'empty_data' => null,
+                    'data' => $lastPointProduct,
                     'attr' => array(
                         'placeholder' => '設定されていると本商品のみ設定値をもとにポイントを計算します。',
                     ),
@@ -87,9 +84,6 @@ class  AdminProduct extends AbstractWorkPlace
 
         // ポイント付与率取得
         $pointRate = $form->get('plg_point_product_rate')->getData();
-        if(empty($pointRate)){
-            $pointRate = 0;
-        }
 
         // 商品ID取得
         $productId = $form->getData()->getId();
@@ -98,9 +92,8 @@ class  AdminProduct extends AbstractWorkPlace
         }
 
         // 前回入力値と比較
-        $status = false;
-        $status = $this->app['eccube.plugin.point.repository.pointproductrate']->isSamePoint($pointRate, $productId);
-
+        $status = $this->app['eccube.plugin.point.repository.pointproductrate']
+            ->isSamePoint($pointRate, $productId);
 
         // 前回入力値と同じ値であれば登録をキャンセル
         if ($status) {

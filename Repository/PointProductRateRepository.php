@@ -24,7 +24,6 @@ class PointProductRateRepository extends EntityRepository
         $pointRateEntity = new PointProductRate();
         $pointRateEntity->setPlgPointProductRate($pointRate);
         $pointRateEntity->setProduct($product);
-        $pointRateEntity->setProductId(1);
 
         try {
             // DB更新
@@ -48,17 +47,7 @@ class PointProductRateRepository extends EntityRepository
         // 商品IDをもとに最終設定値を取得
         $lastPointRate = $this->getLastPointProductRateById($productId);
 
-        // 0値保存用
-        if ($pointRate === 0 && $lastPointRate !== 0) {
-            return false;
-        }
-
-        // 値が同じ場合
-        if ((integer)$pointRate === (integer)$lastPointRate) {
-            return true;
-        }
-
-        return false;
+        return $lastPointRate === $pointRate;
     }
 
     /**
