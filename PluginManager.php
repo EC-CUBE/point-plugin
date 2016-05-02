@@ -53,7 +53,9 @@ class PluginManager extends AbstractPluginManager
         $this->migrationSchema($app, __DIR__.'/Resource/doctrine/migration', $config['code']);
 
         // ポイント基本設定のデフォルト値を登録
-        $PointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->testGetLastInsertData();
+        $PointInfo = $this->app['orm.em']
+            ->getRepository('Plugin\Point\Repository\PointInfoRepository')
+            ->testGetLastInsertData();
         if (is_null($PointInfo)) {
             $PointInfo = new PointInfo();
             $PointInfo
