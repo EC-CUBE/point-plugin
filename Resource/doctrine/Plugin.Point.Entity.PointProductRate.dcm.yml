@@ -21,8 +21,6 @@ Plugin\Point\Entity\PointProductRate:
             type: integer
             nullable: true
             unsigned: false
-            options:
-                default: 0
         create_date:
             type: datetime
             nullable: false
