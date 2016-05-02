@@ -432,53 +432,35 @@ class  AdminOrder extends AbstractWorkPlace
             return false;
         }
 
-
-        // 現在利用ポイントを設定
-        $calculateUsePoint = $lastUsePoint - $this->usePoint;
-        $calculateUsePoint = $calculateUsePoint * -1;
-
         // 計算に必要なエンティティをセット
         $this->calculator->addEntity('Order', $this->targetOrder);
         $this->calculator->addEntity('Customer', $this->customer);
         // 計算使用値は絶対値
         $this->calculator->setUsePoint($this->usePoint);
 
-        // 付与ポイント取得
-        $addPoint = $this->calculator->getAddPointByOrder();
-
         // 履歴保存
-        // 戻し
+        // 更新前の利用ポイントを加算して相殺
         $this->history->addEntity($this->targetOrder);
         $this->history->addEntity($this->customer);
-        // 戻しは以前のポイント
         $this->history->saveUsePointAdjustOrderHistory(abs($lastUsePoint));
-        // 入力
+        // 新しい利用ポイントをマイナス
         $this->history->refreshEntity();
         $this->history->addEntity($this->targetOrder);
         $this->history->addEntity($this->customer);
         $this->history->saveUsePointAdjustOrderHistory(abs($this->usePoint) * -1);
 
-        // 現在保有ポイント再計算
+        // 会員ポイントの更新
         $currentPoint = $this->calculateCurrentPoint();
-        // 現在保有ポイント取得
-        $currentPoint = $currentPoint;
-        if (empty($currentPoint)) {
-            $currentPoint = 0;
-        }
-
-        $point = array();
-        // 現在ポイントをログから再計算
-        $point['current'] = $currentPoint;
-        $point['use'] = $calculateUsePoint;
-        // 計算付与ポイント
-        $point['add'] = $addPoint;
-
         $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
             $currentPoint,
             $this->customer
         );
 
         // SnapShot保存
+        $point = array();
+        $point['current'] = $currentPoint;
+        $point['use'] = ($lastUsePoint - $this->usePoint) * -1;
+        $point['add'] = $this->calculator->getAddPointByOrder();
         $this->saveAdjustUseOrderSnapShot($point);
     }
 
