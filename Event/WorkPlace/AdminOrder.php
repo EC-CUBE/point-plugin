@@ -607,5 +607,9 @@ class  AdminOrder extends AbstractWorkPlace
             $this->customer->getId(),
             $orderIds
         );
+
+        if ($this->calculateCurrentPoint < 0) {
+            // TODO: ポイントがマイナス！
+        }
     }
 }

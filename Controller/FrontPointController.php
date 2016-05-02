@@ -181,6 +181,10 @@ class FrontPointController
                         $orderIds
                     );
 
+                    if ($calculateCurrentPoint < 0) {
+                        // TODO: ポイントがマイナス！
+                    }
+
                     // 会員ポイント更新
                     $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
                         $calculateCurrentPoint,
