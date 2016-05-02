@@ -17,19 +17,16 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class PointHistoryHelper
 {
     // 保存内容(場所)
-    const HISTORY_MESSAGE_MANUAL_EDIT = 'ポイント手動編集';
-    const HISTORY_MESSAGE_EDIT = 'ポイント購入完了登録';
-    const HISTORY_MESSAGE_USE_POINT = 'ポイント利用仮登録';
-    const HISTORY_MESSAGE_ORDER_EDIT = 'ポイント管理画面受注ステータス変更保存';
-    const HISTORY_MESSAGE_ORDER_CANCEL = 'ポイント管理画面受注ステータスキャンセル保存';
+    const HISTORY_MESSAGE_MANUAL_EDIT = 'ポイント(手動変更)';
+    const HISTORY_MESSAGE_EDIT = 'ポイント';
+    const HISTORY_MESSAGE_USE_POINT = 'ポイント';
+    const HISTORY_MESSAGE_ORDER_EDIT = 'ポイント(受注内容変更)';
 
     // 保存内容(ポイント種別)
     const HISTORY_MESSAGE_TYPE_CURRENT = '保有';
-    const HISTORY_MESSAGE_TYPE_PRE_ADD = '付与(仮)';
-    const HISTORY_MESSAGE_TYPE_ADD = '付与(確定)';
+    const HISTORY_MESSAGE_TYPE_ADD = '加算';
     const HISTORY_MESSAGE_TYPE_PRE_USE = '仮利用';
     const HISTORY_MESSAGE_TYPE_USE = '利用';
-    const HISTORY_MESSAGE_TYPE_ADJUST_USE = '利用調整';
 
     // 保存内容(ポイント種別)
     const STATE_CURRENT = 1;
@@ -185,8 +182,8 @@ class PointHistoryHelper
      */
     public function saveUsePointAdjustOrderHistory($point)
     {
-        $this->currentActionName = self::HISTORY_MESSAGE_MANUAL_EDIT;
-        $this->historyActionType = self::HISTORY_MESSAGE_TYPE_ADJUST_USE;
+        $this->currentActionName = self::HISTORY_MESSAGE_ORDER_EDIT;
+        $this->historyActionType = self::HISTORY_MESSAGE_TYPE_USE;
         $this->historyType = self::STATE_USE;
         $this->saveHistoryPoint($point);
     }
