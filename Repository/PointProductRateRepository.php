@@ -91,33 +91,8 @@ class PointProductRateRepository extends EntityRepository
     {
         // 最終データ取得共通クエリビルダーを作成
         return $this->createQueryBuilder('pr')
-            ->orderBy('pr.update_date', 'DESC')
+            ->orderBy('pr.plg_point_product_rate_id', 'DESC')
             ->setMaxResults(1);
-    }
-
-    /**
-     * 一番最後に保存したポイント付与率を取得
-     * @return null
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     */
-    public function getLastPointProductRate()
-    {
-        try {
-            // 商品IDをもとに最終に保存のポイント付与率を取得
-            $qb = $this->createLastPointProductRateBaseQuery();
-
-            $result = $qb->getQuery()->getOneOrNullResult();
-
-            // データが一件もない場合処理をキャンセル
-            if (is_null($result)) {
-                return null;
-            }
-
-            // 最終設定ポイント付与率
-            return $result->getPlgPointProductRate();
-        } catch (NoResultException $e) {
-            return null;
-        }
     }
 
     /**
@@ -146,14 +121,19 @@ class PointProductRateRepository extends EntityRepository
 
         try {
             // 商品毎ポイント付与率取得
-            $qb = $this->createQueryBuilder('pr');
-            $qb->addSelect('MAX(pr.update_date) as HIDDEN max_date')
-                ->add('where', $qb->expr()->in('pr.product_id', $ids))
-                ->andWhere('pr.plg_point_product_rate IS NOT NULL')
-                ->groupBy('pr.update_date')
-                ->addGroupBy('pr.plg_point_product_rate_id');
+            $dql = '
+SELECT
+    t1.product_id,
+    t1.plg_point_product_rate
+FROM Plugin\Point\Entity\PointProductRate t1
+WHERE t1.plg_point_product_rate_id = (
+    SELECT
+      MAX(t2.plg_point_product_rate_id)
+    FROM Plugin\Point\Entity\PointProductRate t2
+    WHERE t2.plg_point_product_rate IS NOT NULL AND t1.product_id = t1.product_id
+)';
 
-            $result = $qb->getQuery()->getResult();
+            $result = $this->getEntityManager()->createQuery($dql)->getArrayResult();
 
             // データが一件もない場合処理をキャンセル
             if (count($result) < 1) {
@@ -163,7 +143,9 @@ class PointProductRateRepository extends EntityRepository
             // キー商品ID、値が付与率の連想配列を作成
             $productRates = array();
             foreach ($result as $node) {
-                $productRates[$node->getProductId()] = $node->getPlgPointProductRate();
+                $productId = $node['product_id'];
+                $pointProductRate = $node['plg_point_product_rate'];
+                $productRates[$productId] = $pointProductRate;
             }
 
             return $productRates;

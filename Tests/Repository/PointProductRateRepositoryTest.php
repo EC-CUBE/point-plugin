@@ -39,15 +39,6 @@ class PointProductRateRepositoryTest extends EccubeTestCase
         $this->verify();
     }
 
-    public function testGetLastPointProductRate(){
-        $Product = $this->createProductRate();
-        $repository = $this->app['eccube.plugin.point.repository.pointproductrate'];
-        $pointRate = $repository->getLastPointProductRate();
-        $this->expected = 2;
-        $this->actual = $pointRate;
-        $this->verify();
-    }
-
     public function testGetPointProductRateByEntity(){
         $Customer = $this->createCustomer();
         $Order = $this->createOrder($Customer);
