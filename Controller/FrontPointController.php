@@ -91,7 +91,7 @@ class FrontPointController
         if (empty($pointInfo)) {
             return false;
         }
-        $pointRate = $pointInfo->getPlgBasicPointRate();
+        $pointRate = $pointInfo->getPlgPointConversionRate();
         if (empty($pointInfo)) {
             return false;
         }

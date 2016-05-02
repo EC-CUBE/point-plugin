@@ -89,7 +89,7 @@ class FrontShopping extends AbstractWorkPlace
             $point['use'] = $usePoint;
         }
         $point['add'] = $addPoint;
-        $point['rate'] = $pointInfo->getPlgBasicPointRate();
+        $point['rate'] = $pointInfo->getPlgPointConversionRate();
 
         // Twigデータ内IDをキーに表示項目を追加
         // ポイント情報表示

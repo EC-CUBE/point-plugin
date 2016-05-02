@@ -507,7 +507,7 @@ class PointCalculateHelper
         }
 
         // 基本換金値の取得
-        $pointRate = $this->pointInfo->getPlgBasicPointRate();
+        $pointRate = $this->pointInfo->getPlgPointConversionRate();
 
         return $this->getRoundValue($this->usePoint * $pointRate);
     }
@@ -541,7 +541,7 @@ class PointCalculateHelper
         // 値引き額と利用ポイント換算値を比較→相違があればポイント利用分相殺後利用ポイントセット
         $useDiscount = $this->getConversionPoint();
 
-        $diff = $currDiscount - ($lastUsePoint * $this->pointInfo->getPlgBasicPointRate());
+        $diff = $currDiscount - ($lastUsePoint * $this->pointInfo->getPlgPointConversionRate());
 
         if ($diff >= 0) {
             if ((integer)$currDiscount != (integer)$useDiscount) {
