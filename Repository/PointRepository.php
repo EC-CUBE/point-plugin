@@ -38,6 +38,9 @@ class PointRepository extends EntityRepository
                 ->orWhere($qb->expr()->andX(
                     $qb->expr()->isNull('p.order_id'),
                     $qb->expr()->eq('p.customer_id', $customer_id))
+                )
+                ->orWhere(
+                    $qb->expr()->eq('p.plg_point_type', PointHistoryHelper::STATE_USE)
                 );
             // 合計ポイント
             $sum_point = $qb->getQuery()->getScalarResult();
@@ -68,7 +71,8 @@ class PointRepository extends EntityRepository
         try {
             $qb = $this->createQueryBuilder('p');
             $qb->select('SUM(p.plg_dynamic_point) as point_sum')
-                ->where($qb->expr()->in('p.order_id', $orderIds));
+                ->where($qb->expr()->in('p.order_id', $orderIds))
+                ->andWhere($qb->expr()->neq('p.plg_point_type', PointHistoryHelper::STATE_USE));
 
             $provisionalAddPoint = $qb->getQuery()->getScalarResult();
 
