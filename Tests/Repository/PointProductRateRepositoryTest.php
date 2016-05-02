@@ -59,7 +59,7 @@ class PointProductRateRepositoryTest extends EccubeTestCase
         $repository->savePointProductRate(2, $Product);
         $productRates = $repository->getPointProductRateByEntity($products);
         $this->expected = 2;
-        $this->actual = $productRates[1];
+        $this->actual = $productRates[$Product->getId()];
         $this->verify();
     }
 

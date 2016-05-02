@@ -24,6 +24,7 @@ class PointProductRateRepository extends EntityRepository
         $pointRateEntity = new PointProductRate();
         $pointRateEntity->setPlgPointProductRate($pointRate);
         $pointRateEntity->setProduct($product);
+        $pointRateEntity->setProductId($product->getId());
 
         try {
             // DB更新
