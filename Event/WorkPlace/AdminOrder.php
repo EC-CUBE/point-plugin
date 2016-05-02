@@ -106,7 +106,7 @@ class  AdminOrder extends AbstractWorkPlace
                 'label' => '利用ポイント',
                 'required' => false,
                 'mapped' => false,
-                'data' => abs($lastUsePoint),
+                'data' => $lastUsePoint,
                 'empty_data' => null,
                 'attr' => array(
                     'placeholder' => '手動調整可能なカスタマーの利用ポイント',
@@ -331,14 +331,14 @@ class  AdminOrder extends AbstractWorkPlace
         if (!empty($beforeAddPoint)) {
             $this->history->addEntity($this->targetOrder);
             $this->history->addEntity($this->customer);
-            $this->history->saveAddPointByOrderEdit(abs($beforeAddPoint) * -1);
+            $this->history->saveAddPointByOrderEdit($beforeAddPoint * -1);
         }
 
         // 新しい加算ポイントの保存
         $this->history->refreshEntity();
         $this->history->addEntity($this->targetOrder);
         $this->history->addEntity($this->customer);
-        $this->history->saveAddPointByOrderEdit(abs($newAddPoint));
+        $this->history->saveAddPointByOrderEdit($newAddPoint);
 
         // 会員の保有ポイント保存
         $currentPoint = $this->calculateCurrentPoint();
@@ -427,12 +427,12 @@ class  AdminOrder extends AbstractWorkPlace
         // 更新前の利用ポイントを加算して相殺
         $this->history->addEntity($this->targetOrder);
         $this->history->addEntity($this->customer);
-        $this->history->saveUsePointByOrderEdit(abs($beforeUsePoint));
+        $this->history->saveUsePointByOrderEdit($beforeUsePoint);
         // 新しい利用ポイントをマイナス
         $this->history->refreshEntity();
         $this->history->addEntity($this->targetOrder);
         $this->history->addEntity($this->customer);
-        $this->history->saveUsePointByOrderEdit(abs($this->usePoint) * -1);
+        $this->history->saveUsePointByOrderEdit($this->usePoint * -1);
 
         // 会員ポイントの更新
         $currentPoint = $this->calculateCurrentPoint();

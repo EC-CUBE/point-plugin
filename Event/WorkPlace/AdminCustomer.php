@@ -130,7 +130,7 @@ class  AdminCustomer extends AbstractWorkPlace
         
         // 新しいポイントを登録
         $this->app['eccube.plugin.point.history.service']->addEntity($customer);
-        $this->app['eccube.plugin.point.history.service']->saveManualpoint(abs($pointCurrent));
+        $this->app['eccube.plugin.point.history.service']->saveManualpoint($pointCurrent);
 
         $point = array();
         $point['current'] = $pointCurrent;

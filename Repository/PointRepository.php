@@ -142,7 +142,7 @@ class PointRepository extends EntityRepository
                 return 0;
             }
 
-            return abs($max_use_point[0]->getPlgDynamicPoint());
+            return $max_use_point[0]->getPlgDynamicPoint();
         } catch (NoResultException $e) {
             return 0;
         }

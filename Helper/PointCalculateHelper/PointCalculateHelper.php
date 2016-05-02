@@ -626,7 +626,7 @@ class PointCalculateHelper
         if (!empty($lastPreUsePoint)) {
             $this->app['eccube.plugin.point.history.service']->addEntity($order);
             $this->app['eccube.plugin.point.history.service']->addEntity($customer);
-            $this->app['eccube.plugin.point.history.service']->savePreUsePoint(abs($usePoint));
+            $this->app['eccube.plugin.point.history.service']->savePreUsePoint($usePoint);
         }
         // キャンセルのために「0」でログテーブルを更新
         $this->app['eccube.plugin.point.history.service']->addEntity($order);

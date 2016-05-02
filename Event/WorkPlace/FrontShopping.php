@@ -86,7 +86,7 @@ class FrontShopping extends AbstractWorkPlace
         $point['current'] = $currentPoint - $usePoint;
         $point['use'] = 0;
         if (!empty($usePoint)) {
-            $point['use'] = abs($usePoint);
+            $point['use'] = $usePoint;
         }
         $point['add'] = $addPoint;
         $point['rate'] = $pointInfo->getPlgBasicPointRate();
