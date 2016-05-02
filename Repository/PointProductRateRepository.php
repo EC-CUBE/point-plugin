@@ -130,8 +130,8 @@ WHERE t1.plg_point_product_rate_id = (
     SELECT
       MAX(t2.plg_point_product_rate_id)
     FROM Plugin\Point\Entity\PointProductRate t2
-    WHERE t2.plg_point_product_rate IS NOT NULL AND t1.product_id = t1.product_id
-)';
+    WHERE t1.product_id = t1.product_id
+) AND t1.plg_point_product_rate IS NOT NULL';
 
             $result = $this->getEntityManager()->createQuery($dql)->getArrayResult();
 

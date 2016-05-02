@@ -392,7 +392,7 @@ class PointCalculateHelper
         // 商品毎の付与率あればそちらを優先
         // なければサイト設定ポイントを利用
         $calculateRate = $basicPointRate;
-        if (!empty($pointRate)) {
+        if (!is_null($pointRate)) {
             $calculateRate = $pointRate;
         }
 
@@ -402,8 +402,8 @@ class PointCalculateHelper
 
         // 返却値生成
         $rate = array();
-        $rate['min'] = (integer)$this->getRoundValue($min_price * ((integer)$calculateRate / 100));
-        $rate['max'] = (integer)$this->getRoundValue($max_price * ((integer)$calculateRate / 100));
+        $rate['min'] = (integer)$this->getRoundValue($min_price * ($calculateRate / 100));
+        $rate['max'] = (integer)$this->getRoundValue($max_price * ($calculateRate / 100));
 
         return $rate;
     }
