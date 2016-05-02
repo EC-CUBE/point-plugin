@@ -40,6 +40,8 @@ class FrontPointController
             throw new HttpException\NotFoundHttpException;
         }
 
+        $app['monolog.point']->addInfo('usePoint start');
+
         // カートサービス取得
         $cartService = $this->app['eccube.service.cart'];
 
@@ -148,8 +150,12 @@ class FrontPointController
 
         // 保存処理
         if ($form->isSubmitted() && $form->isValid() && !$errorFlg) {
-            // ユーザー入力値
-            $saveUsePoint = $form->get('plg_use_point')->getData();
+
+            $app['monolog.point']->addInfo('usePoint data', array(
+                    'customer_id' => $Order->getCustomer()->getId(),
+                    'use point' => $usePoint,
+                )
+            );
 
             // 最終保存ポイントと現在ポイントに相違があれば利用ポイント保存
             if (abs($lastPreUsePoint) != abs($usePoint)) {
@@ -188,6 +194,8 @@ class FrontPointController
                 }
             }
 
+            $app['monolog.point']->addInfo('usePoint end');
+
             return $this->app->redirect($this->app->url('shopping'));
         }
 
@@ -199,6 +207,8 @@ class FrontPointController
         if ($errorFlg) {
             $form['plg_use_point']->addError(new FormError('計算でマイナス値が発生します。入力を確認してください。'));
         }
+
+        $app['monolog.point']->addInfo('usePoint end');
 
         return $app->render(
             'Point/Resource/template/default/point_use.twig',
