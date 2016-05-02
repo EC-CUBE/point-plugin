@@ -18,10 +18,7 @@ class PointCalculateHelperTest extends EccubeTestCase
 //
 //    }
 //
-//    public function testGetAddPointByOrder()
-//    {
-//
-//    }
+
 //
 //    public function testGetAddPointByProduct()
 //    {
@@ -111,6 +108,66 @@ class PointCalculateHelperTest extends EccubeTestCase
             // 期待値
             $this->expected = ($data[5]);
             $this->actual = $calculater->getSubtractionCalculate();
+            $this->verify('index ' . $i . ' failed.');
+        }
+    }
+
+    public function testGetAddPointByOrder()
+    {
+        $testData = array(
+            /**
+             * - 基本ポイント付与率
+             * - ポイント換算レート
+             * - 端数計算方法
+             * - ポイント利用
+             * - ポイント減算方式
+             * - 商品毎ポイント付与率
+             * - 商品価格
+             * - 商品個数
+             * - 期待値
+             */
+            array(1, 1, 0, 0, 1, null, 5000, 1, 50),
+            array(1, 1, 0, 50, 0, 1, 5000, 1, 0)
+        );
+
+        // テストデータ生成
+        $Customer = $this->createCustomer();
+        $Order = $this->createOrder($Customer);
+
+        /** @var $calculater \Plugin\Point\Helper\PointCalculateHelper\PointCalculateHelper **/
+        $calculater = $this->app['eccube.plugin.point.calculate.helper.factory'];
+        /** @var $PointInfo \Plugin\Point\Entity\PointInfo **/
+        $PointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
+
+        $calculater->addEntity('Order', $Order);
+
+        $max = count($testData);
+        for ($i = 0; $i < $max; $i++) {
+            $data = $testData[$i];
+            // 基本ポイント付与率
+            $PointInfo->setPlgBasicPointRate($data[0]);
+            // ポイント換算レート
+            $PointInfo->setPlgPointConversionRate($data[1]);
+            // 端数計算方法
+            $PointInfo->setPlgRoundType($data[2]);
+            // 利用ポイント
+            $calculater->setUsePoint($data[3]);
+            // ポイント減算方式
+            $PointInfo->setPlgCalculationType($data[4]);
+
+            foreach ($Order->getOrderDetails() as $OrderDetail) {
+                $ProductClass = $OrderDetail->getProductClass();
+                $Product = $ProductClass->getProduct();
+                // 商品ごとポイント付与率
+                $this->app['eccube.plugin.point.repository.pointproductrate']->savePointProductRate($data[5], $Product);
+                // 商品価格
+                $ProductClass->setPrice02($data[6]);
+                // 商品個数
+                $OrderDetail->setQuantity($data[7]);
+            }
+
+            $this->expected = $data[8];
+            $this->actual = $calculater->getAddPointByOrder();
             $this->verify('index ' . $i . ' failed.');
         }
     }

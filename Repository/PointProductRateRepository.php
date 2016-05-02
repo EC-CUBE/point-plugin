@@ -149,6 +149,7 @@ class PointProductRateRepository extends EntityRepository
             $qb = $this->createQueryBuilder('pr');
             $qb->addSelect('MAX(pr.update_date) as HIDDEN max_date')
                 ->add('where', $qb->expr()->in('pr.product_id', $ids))
+                ->andWhere('pr.plg_point_product_rate IS NOT NULL')
                 ->groupBy('pr.update_date')
                 ->addGroupBy('pr.plg_point_product_rate_id');
 
