@@ -2,12 +2,9 @@
 
 namespace DoctrineMigrations;
 
-use Doctrine\DBAL\Exception\DatabaseObjectNotFoundException;
-use Eccube\Application;
 use Doctrine\DBAL\Migrations\AbstractMigration;
 use Doctrine\DBAL\Schema\Schema;
 use Plugin\Point\Entity;
-use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
  * Class Version20160428120000
@@ -15,13 +12,8 @@ use Symfony\Component\Config\Definition\Exception\Exception;
  */
 class Version20160428120000 extends AbstractMigration
 {
-    protected $app;
     // テーブル名称
     const PLG_POINT_STATUS = 'plg_point_status';
-
-    public function __construct(){
-        $this->app = \Eccube\Application::getInstance();
-    }
 
     /**
      * インストール時処理
