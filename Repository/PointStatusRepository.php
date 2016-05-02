@@ -79,18 +79,13 @@ class PointStatusRepository extends EntityRepository
             // 受注をもとに仮付与ポイントを計算
             $qb = $this->createQueryBuilder('p');
             $qb->where('p.order_id = :order_id')
-                ->setParameter('order_id', $order->getId())
-                ->orderBy('p.plg_point_status_id', 'desc')
-                ->setMaxResults(1);
+                ->setParameter('order_id', $order->getId());
 
-            $result = $qb->getQuery()->getResult();
-            if (count($result) < 1) {
-                return false;
-            }
+            $result = $qb->getQuery()->getSingleResult();
 
             return ($result[0]->getStatus() == 1);
         } catch (NoResultException $e) {
-            return null;
+            return false;
         }
     }
 }
