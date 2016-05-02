@@ -302,7 +302,7 @@ class  AdminOrder extends AbstractWorkPlace
             // 付与ポイント有無確認
             if (!empty($addPoint)) {
                 // 現在仮付与ポイント取得
-                $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getLatestProvisionalAddPointByOrder(
+                $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder(
                     $this->targetOrder
                 );
 
@@ -399,7 +399,7 @@ class  AdminOrder extends AbstractWorkPlace
         }
 
         // 仮付与ポイントがあるか確認
-        $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getLatestProvisionalAddPointByOrder(
+        $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder(
             $this->targetOrder
         );
 

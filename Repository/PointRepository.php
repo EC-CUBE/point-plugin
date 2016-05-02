@@ -90,7 +90,7 @@ class PointRepository extends EntityRepository
      * @param $order
      * @return array|bool|null
      */
-    public function getLatestProvisionalAddPointByOrder($order)
+    public function getLatestAddPointByOrder($order)
     {
         // 必要エンティティ判定
         if (empty($order)) {
@@ -107,21 +107,21 @@ class PointRepository extends EntityRepository
                 ->orderBy('p.plg_point_id', 'desc')
                 ->setMaxResults(1);
 
-            $provisionalAddPoint = $qb->getQuery()->getResult();
+            $addPoint = $qb->getQuery()->getResult();
 
             // ポイント取得判定
-            if (count($provisionalAddPoint) < 1) {
+            if (count($addPoint) < 1) {
                 return false;
             }
 
-            $provisionalAddPoint = $provisionalAddPoint[0]->getPlgDynamicPoint();
+            $addPoint = $addPoint[0]->getPlgDynamicPoint();
 
             // ポイントがマイナスになった場合はエラー表示
-            if ($provisionalAddPoint < 0) {
+            if ($addPoint < 0) {
                 return false;
             }
 
-            return $provisionalAddPoint;
+            return $addPoint;
         } catch (NoResultException $e) {
             return null;
         }

@@ -236,7 +236,7 @@ class PointCalculateHelper
      *  - オーダー情報をもとに返却
      * @return bool
      */
-    public function getLatestProvisionalAddPointByOrder()
+    public function getLatestAddPointByOrder()
     {
         // 必要エンティティを判定
         if (!$this->hasEntities('Customer')) {
@@ -247,7 +247,7 @@ class PointCalculateHelper
         }
 
         $order = $this->entities['Order'];
-        $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getLatestProvisionalAddPointByOrder($order);
+        $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder($order);
 
 
         if (!empty($provisionalPoint)) {
