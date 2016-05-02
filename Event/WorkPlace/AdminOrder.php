@@ -301,12 +301,12 @@ class  AdminOrder extends AbstractWorkPlace
 
             // 付与ポイント有無確認
             if (!empty($addPoint)) {
-                // 現在仮付与ポイント取得
+                // 現在付与ポイント取得
                 $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder(
                     $this->targetOrder
                 );
 
-                // 現在仮付与ポイントと保存済み付与ポイントに相違があった際はアップデート処理
+                // 現在の付与ポイントと保存済み付与ポイントに相違があった際はアップデート処理
                 if ($provisionalPoint != $addPoint) {
                     $this->updateOrderEvent($addPoint, $provisionalPoint);
                 }
