@@ -456,7 +456,7 @@ class PointCalculateHelper
 
         // 利用ポイントがない場合は処理しない.
         if (empty($this->usePoint)) {
-            return;
+            return $this->addPoint;
         }
 
         // 利用ポイント数 ＊ ポイント金額換算率 ＝ ポイント値引額
