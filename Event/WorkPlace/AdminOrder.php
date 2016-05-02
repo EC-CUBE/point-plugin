@@ -317,7 +317,7 @@ class  AdminOrder extends AbstractWorkPlace
             $this->pointFixEvent($event);
         }
 
-        // 利用ポイント調整イベント
+        // 利用ポイントの更新
         $this->pointUseEvent($event);
     }
 
@@ -411,20 +411,19 @@ class  AdminOrder extends AbstractWorkPlace
     }
 
     /**
-     * 本受注ログ最終利用ポイントと今回利用ポイントの相違確認
-     *  - 相違あり : 利用ポイント打ち消し更新
-     *  - 相違なし : 処理中止
+     * 受注の利用ポイントを新しい利用ポイントに更新する
+     *  - 相違あり : 利用ポイント打ち消し、更新
+     *  - 相違なし : なにもしない
      * @param $event
      * @return bool
      */
     protected function pointUseEvent($event)
     {
-        // 最終利用ポイントの取得
-        $lastUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($this->targetOrder);
-
-        // 最終利用ポイントと現在利用ポイントが同じであれば処理をキャンセル
-        if ($this->isSameUsePoint($lastUsePoint)) {
-            return false;
+        // 更新前の利用ポイントの取得
+        $beforeUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($this->targetOrder);
+        // 更新前の利用ポイントと新しい利用ポイントが同じであれば処理をキャンセル
+        if ($this->usePoint == $beforeUsePoint) {
+            return;
         }
 
         // 計算に必要なエンティティをセット
@@ -437,7 +436,7 @@ class  AdminOrder extends AbstractWorkPlace
         // 更新前の利用ポイントを加算して相殺
         $this->history->addEntity($this->targetOrder);
         $this->history->addEntity($this->customer);
-        $this->history->saveUsePointAdjustOrderHistory(abs($lastUsePoint));
+        $this->history->saveUsePointAdjustOrderHistory(abs($beforeUsePoint));
         // 新しい利用ポイントをマイナス
         $this->history->refreshEntity();
         $this->history->addEntity($this->targetOrder);
@@ -454,26 +453,9 @@ class  AdminOrder extends AbstractWorkPlace
         // SnapShot保存
         $point = array();
         $point['current'] = $currentPoint;
-        $point['use'] = ($lastUsePoint - $this->usePoint) * -1;
+        $point['use'] = ($beforeUsePoint - $this->usePoint) * -1;
         $point['add'] = $this->calculator->getAddPointByOrder();
         $this->saveAdjustUseOrderSnapShot($point);
-    }
-
-    /**
-     * 本受注ログ最終利用ポイントと今回利用ポイントを判定
-     *  - true 同一
-     *  - false 相違
-     * @param $lastUse
-     * @return bool
-     */
-    protected function isSameUsePoint($lastUse)
-    {
-        // 必要値判定
-        if ($lastUse == $this->usePoint) {
-            return true;
-        }
-
-        return false;
     }
 
     /**
