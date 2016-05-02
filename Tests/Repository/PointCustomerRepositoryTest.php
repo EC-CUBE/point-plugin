@@ -6,7 +6,7 @@ use Eccube\Application;
 use Eccube\Tests\EccubeTestCase;
 
 /**
- * Class PointInfoRepositoryTest
+ * Class PointCustomerRepositoryTest
  *
  * @package Eccube\Tests\Repository
  */
