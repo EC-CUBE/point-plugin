@@ -3,7 +3,7 @@ Plugin\Point\Entity\PointStatus:
     table: plg_point_status
     repositoryClass: Plugin\Point\Repository\PointStatusRepository
     id:
-        plg_point_status_id:
+        point_status_id:
             type: integer
             id: true
             generator:

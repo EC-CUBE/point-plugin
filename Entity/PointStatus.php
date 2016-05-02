@@ -14,7 +14,7 @@ class PointStatus extends \Eccube\Entity\AbstractEntity
     /**
      * @var integer
      */
-    private $plg_point_status_id;
+    private $point_status_id;
     /**
      * @var integer
      */
@@ -37,26 +37,26 @@ class PointStatus extends \Eccube\Entity\AbstractEntity
     private $point_fix_date;
 
     /**
-     * Set plg_point_status_id
+     * Set point_status_id
      *
-     * @param integer $plg_point_status_id
+     * @param integer $point_status_id
      * @return PointStatus
      */
-    public function setPlgPointStatusId($plg_point_status_id)
+    public function setPlgPointStatusId($point_status_id)
     {
-        $this->plg_point_status_id = $plg_point_status_id;
+        $this->point_status_id = $point_status_id;
 
         return $this;
     }
 
     /**
-     * Get plg_point_status_id
+     * Get point_status_id
      *
      * @return integer
      */
     public function getPlgPointStatusId()
     {
-        return $this->plg_point_status_id;
+        return $this->point_status_id;
     }
 
     /**
