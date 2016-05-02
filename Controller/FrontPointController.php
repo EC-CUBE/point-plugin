@@ -60,7 +60,7 @@ class FrontPointController
         }
 
         // 最終仮利用ポイントがあるかどうかの判定
-        $lastPreUsePoint = $this->app['eccube.plugin.point.repository.point']->getLastPreUsePoint($Order);
+        $lastPreUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($Order);
         if (empty($lastPreUsePoint)) {
             $lastPreUsePoint = 0;
         }
@@ -176,7 +176,7 @@ class FrontPointController
                     $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
                         $Order->getCustomer()->getId()
                     );
-                    $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->getCalculateCurrentPointByCustomerId(
+                    $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
                         $Order->getCustomer()->getId(),
                         $orderIds
                     );

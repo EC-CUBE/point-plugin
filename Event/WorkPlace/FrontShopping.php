@@ -57,7 +57,7 @@ class FrontShopping extends AbstractWorkPlace
         $pointUse = new PointUse();
         $usePoint = 0;
         $lastPreUsePoint = 0;
-        $lastPreUsePoint = $this->app['eccube.plugin.point.repository.point']->getLastPreUsePoint($order);
+        $lastPreUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($order);
         if (!empty($lastPreUsePoint)) {
             $usePoint = $lastPreUsePoint;
         }

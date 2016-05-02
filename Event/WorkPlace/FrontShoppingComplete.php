@@ -45,7 +45,7 @@ class FrontShoppingComplete extends AbstractWorkPlace
 
         // 最終保存ポイントがあるかどうかの判定
         $lastPreUsePoint = 0;
-        $lastPreUsePoint = $this->app['eccube.plugin.point.repository.point']->getLastPreUsePoint($order);
+        $lastPreUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($order);
         if (!empty($lastPreUsePoint)) {
             $usePoint = $lastPreUsePoint;
         }
@@ -117,7 +117,7 @@ class FrontShoppingComplete extends AbstractWorkPlace
         $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
             $order->getCustomer()->getId()
         );
-        $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->getCalculateCurrentPointByCustomerId(
+        $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
             $order->getCustomer()->getId(),
             $orderIds
         );

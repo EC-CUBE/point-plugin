@@ -222,7 +222,7 @@ class PointCalculateHelper
 
         $customer_id = $this->entities['Customer']->getId();
         $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithUnfixedByCustomer($customer_id);
-        $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getAllProvisionalAddPoint($orderIds);
+        $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->calcProvisionalAddPoint($orderIds);
 
         if (!empty($provisionalPoint)) {
             return $provisionalPoint;
@@ -236,7 +236,7 @@ class PointCalculateHelper
      *  - オーダー情報をもとに返却
      * @return bool
      */
-    public function getProvisionalAddPointByOrder()
+    public function getLatestProvisionalAddPointByOrder()
     {
         // 必要エンティティを判定
         if (!$this->hasEntities('Customer')) {
@@ -247,7 +247,7 @@ class PointCalculateHelper
         }
 
         $order = $this->entities['Order'];
-        $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getProvisionalAddPointByOrder($order);
+        $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getLatestProvisionalAddPointByOrder($order);
 
 
         if (!empty($provisionalPoint)) {
@@ -593,7 +593,7 @@ class PointCalculateHelper
         // 最終保存仮利用ポイントがあるかどうかの判定
         $usePoint = 0;
         $lastPreUsePoint = 0;
-        $lastPreUsePoint = $this->app['eccube.plugin.point.repository.point']->getLastPreUsePoint($order);
+        $lastPreUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($order);
         if (!empty($lastPreUsePoint)) {
             $usePoint = $lastPreUsePoint;
         }
@@ -651,7 +651,7 @@ class PointCalculateHelper
         $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
             $order->getCustomer()->getId()
         );
-        $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->getCalculateCurrentPointByCustomerId(
+        $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
             $order->getCustomer()->getId(),
             $orderIds
         );

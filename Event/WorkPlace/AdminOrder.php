@@ -85,7 +85,7 @@ class  AdminOrder extends AbstractWorkPlace
         // 初回のダミーエンティティにはカスタマー情報を含まない
         $lastUsePoint = 0;
         if (!empty($order) && !empty($hasCustomer)) {
-            $lastUsePoint = $this->app['eccube.plugin.point.repository.point']->getLastAdjustUsePoint($order);
+            $lastUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($order);
 
             // 初期値設定
             if (empty($lastUsePoint)) {
@@ -186,7 +186,7 @@ class  AdminOrder extends AbstractWorkPlace
         $pointUse = new PointUse();
 
         // 手動調整ポイントを取得
-        $usePoint = $this->app['eccube.plugin.point.repository.point']->getLastAdjustUsePoint($order);
+        $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($order);
 
         if (empty($usePoint)) {
             $usePoint = 0;
@@ -302,7 +302,7 @@ class  AdminOrder extends AbstractWorkPlace
             // 付与ポイント有無確認
             if (!empty($addPoint)) {
                 // 現在仮付与ポイント取得
-                $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getProvisionalAddPointByOrder(
+                $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getLatestProvisionalAddPointByOrder(
                     $this->targetOrder
                 );
 
@@ -399,7 +399,7 @@ class  AdminOrder extends AbstractWorkPlace
         }
 
         // 仮付与ポイントがあるか確認
-        $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getProvisionalAddPointByOrder(
+        $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getLatestProvisionalAddPointByOrder(
             $this->targetOrder
         );
 
@@ -436,7 +436,7 @@ class  AdminOrder extends AbstractWorkPlace
     protected function pointUseEvent($event)
     {
         // 最終利用ポイントの取得
-        $lastUsePoint = $this->app['eccube.plugin.point.repository.point']->getLastAdjustUsePoint($this->targetOrder);
+        $lastUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($this->targetOrder);
 
         // 最終利用ポイント確認
         if (empty($lastUsePoint)) {
@@ -603,7 +603,7 @@ class  AdminOrder extends AbstractWorkPlace
         $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
             $this->customer->getId()
         );
-        $this->calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->getCalculateCurrentPointByCustomerId(
+        $this->calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
             $this->customer->getId(),
             $orderIds
         );
