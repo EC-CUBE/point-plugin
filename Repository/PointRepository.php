@@ -130,21 +130,21 @@ class PointRepository extends EntityRepository
     /**
      * 最終利用ポイントを受注エンティティより取得
      * @param Order $order
-     * @return int|null|number
+     * @return int 利用ポイント
      */
     public function getLatestUsePoint(Order $order)
     {
         $customer = $order->getCustomer();
         if (empty($customer)) {
-            return null;
+            return 0;
         }
         try {
             // 履歴情報をもとに現在利用ポイントを計算し取得
             $qb = $this->createQueryBuilder('p')
                 //->addSelect('o')
                 ->where('p.customer_id = :customerId')
-                ->andwhere('p.order_id = :orderId')
-                ->andwhere('p.plg_point_type = :pointType')
+                ->andWhere('p.order_id = :orderId')
+                ->andWhere('p.plg_point_type = :pointType')
                 ->setParameter('customerId', $order->getCustomer()->getId())
                 ->setParameter('orderId', $order->getId())
                 ->setParameter('pointType', PointHistoryHelper::STATE_USE)
@@ -159,7 +159,7 @@ class PointRepository extends EntityRepository
 
             return abs($max_use_point[0]->getPlgDynamicPoint());
         } catch (NoResultException $e) {
-            return null;
+            return 0;
         }
     }
 

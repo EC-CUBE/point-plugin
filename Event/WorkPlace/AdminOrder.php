@@ -422,11 +422,6 @@ class  AdminOrder extends AbstractWorkPlace
         // 最終利用ポイントの取得
         $lastUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($this->targetOrder);
 
-        // 最終利用ポイント確認
-        if (empty($lastUsePoint)) {
-            $lastUsePoint = 0;
-        }
-
         // 最終利用ポイントと現在利用ポイントが同じであれば処理をキャンセル
         if ($this->isSameUsePoint($lastUsePoint)) {
             return false;
