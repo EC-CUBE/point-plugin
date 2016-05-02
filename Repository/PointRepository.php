@@ -19,7 +19,7 @@ class PointRepository extends EntityRepository
      * カスタマーIDを基準にポイントの合計を計算
      * @param int $customer_id
      * @param array $orderIds
-     * @return bool|null
+     * @return int 保有ポイント
      */
     public function calcCurrentPoint($customer_id, array $orderIds)
     {
@@ -57,7 +57,7 @@ class PointRepository extends EntityRepository
      * 仮ポイントを会員IDを基に返却
      *  - 合計値
      * @param array $orderIds
-     * @return array|bool|null
+     * @return int 仮ポイント
      */
     public function calcProvisionalAddPoint(array $orderIds)
     {
@@ -77,9 +77,7 @@ class PointRepository extends EntityRepository
                 return 0;
             }
 
-            $provisionalAddPoint = $provisionalAddPoint[0]['point_sum'];
-
-            return $provisionalAddPoint;
+            return $provisionalAddPoint[0]['point_sum'];
         } catch (NoResultException $e) {
             return 0;
         }
@@ -88,13 +86,13 @@ class PointRepository extends EntityRepository
     /**
      * 受注に対して行われた最後の付与ポイントを取得
      * @param $order
-     * @return array|bool|null
+     * @return int 付与ポイント
      */
     public function getLatestAddPointByOrder($order)
     {
         // 必要エンティティ判定
         if (empty($order)) {
-            return false;
+            return 0;
         }
 
         try {
@@ -108,22 +106,9 @@ class PointRepository extends EntityRepository
                 ->setMaxResults(1);
 
             $addPoint = $qb->getQuery()->getResult();
-
-            // ポイント取得判定
-            if (count($addPoint) < 1) {
-                return false;
-            }
-
-            $addPoint = $addPoint[0]->getPlgDynamicPoint();
-
-            // ポイントがマイナスになった場合はエラー表示
-            if ($addPoint < 0) {
-                return false;
-            }
-
-            return $addPoint;
+            return $addPoint[0]->getPlgDynamicPoint();
         } catch (NoResultException $e) {
-            return null;
+            return 0;
         }
     }
 
@@ -166,7 +151,7 @@ class PointRepository extends EntityRepository
     /**
      * 最終仮利用ポイントを取得
      * @param Order $order
-     * @return int|null|number
+     * @return int 仮利用ポイント
      */
     public function getLatestPreUsePoint(Order $order)
     {
@@ -174,8 +159,8 @@ class PointRepository extends EntityRepository
             // 履歴情報をもとに現在利用ポイントを計算し取得
             $qb = $this->createQueryBuilder('p')
                 ->where('p.customer_id = :customerId')
-                ->andwhere('p.order_id = :orderId')
-                ->andwhere('p.plg_point_type = :pointType')
+                ->andWhere('p.order_id = :orderId')
+                ->andWhere('p.plg_point_type = :pointType')
                 ->setParameter('customerId', $order->getCustomer()->getId())
                 ->setParameter('orderId', $order->getId())
                 ->setParameter('pointType', PointHistoryHelper::STATE_PRE_USE)
@@ -188,9 +173,9 @@ class PointRepository extends EntityRepository
                 return 0;
             }
 
-            return abs($max_use_point[0]->getPlgDynamicPoint());
+            return $max_use_point[0]->getPlgDynamicPoint();
         } catch (NoResultException $e) {
-            return null;
+            return 0;
         }
     }
 }
