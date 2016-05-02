@@ -44,17 +44,12 @@ class PointRepository extends EntityRepository
 
             // 情報が取得できない場合
             if (count($sum_point) < 1) {
-                return false;
-            }
-
-            // 値がマイナスになった場合@todo 将来拡張
-            if ($sum_point[0]['point_sum'] < 0) {
-                return false;
+                return 0;
             }
 
             return $sum_point[0]['point_sum'];
         } catch (NoResultException $e) {
-            return null;
+            return 0;
         }
     }
 
@@ -79,19 +74,14 @@ class PointRepository extends EntityRepository
 
             // 仮ポイント取得判定
             if (count($provisionalAddPoint) < 1) {
-                return false;
+                return 0;
             }
 
             $provisionalAddPoint = $provisionalAddPoint[0]['point_sum'];
 
-            // 仮ポイントがマイナスになった場合はエラー表示
-            if ($provisionalAddPoint < 0) {
-                return false;
-            }
-
             return $provisionalAddPoint;
         } catch (NoResultException $e) {
-            return null;
+            return 0;
         }
     }
 
