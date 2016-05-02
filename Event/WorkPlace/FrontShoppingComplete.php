@@ -103,7 +103,7 @@ class FrontShoppingComplete extends AbstractWorkPlace
         $this->app['eccube.plugin.point.history.service']->refreshEntity();
         $this->app['eccube.plugin.point.history.service']->addEntity($order);
         $this->app['eccube.plugin.point.history.service']->addEntity($order->getCustomer());
-        $this->app['eccube.plugin.point.history.service']->saveShoppingFixProvisionalAddPoint($addPoint);
+        $this->app['eccube.plugin.point.history.service']->saveAddPoint($addPoint);
 
 		// ポイントステータスのレコードを生成
         $this->app['eccube.plugin.point.history.service']->savePointStatus();

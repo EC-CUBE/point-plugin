@@ -327,37 +327,37 @@ class  AdminOrder extends AbstractWorkPlace
      * 受注編集で購入商品の構成が変更した際に以下処理を行う
      *  - 前回付与ポイントの打ち消し
      *  - 今回付与ポイントの付与
-     * @param $addPoint
-     * @param $provisionalPoint
+     * @param $newAddPoint
+     * @param $beforeAddPoint
      * @return bool
      */
-    public function updateOrderEvent($addPoint, $provisionalPoint)
+    public function updateOrderEvent($newAddPoint, $beforeAddPoint)
     {
         // 引数判定
-        if (empty($addPoint)) {
+        if (empty($newAddPoint)) {
             return false;
         }
 
-        // 付与ポイントが空でなければ登録
-        if (!empty($provisionalPoint)) {
+        // 以前の加算ポイントをマイナスで相殺
+        if (!empty($beforeAddPoint)) {
             $this->history->addEntity($this->targetOrder);
             $this->history->addEntity($this->customer);
-            $this->history->saveFixProvisionalAddPoint(abs($provisionalPoint) * -1);
+            $this->history->saveAddPointByOrderEdit(abs($beforeAddPoint) * -1);
         }
 
-        // 履歴保存
-        // ポイントの保存
+        // 新しい加算ポイントの保存
         $this->history->refreshEntity();
         $this->history->addEntity($this->targetOrder);
         $this->history->addEntity($this->customer);
-        $this->history->saveFixProvisionalAddPoint(abs($addPoint));
+        $this->history->saveAddPointByOrderEdit(abs($newAddPoint));
 
+        // スナップショット保存
         $point = array();
         // 現在保有ポイント再計算
         $this->refreshCurrentPoint();
         $point['current'] = $this->calculateCurrentPoint;
         $point['use'] = 0;
-        $point['add'] = $addPoint;
+        $point['add'] = $newAddPoint;
 
         $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
             $this->calculateCurrentPoint,

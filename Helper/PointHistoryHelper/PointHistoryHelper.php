@@ -104,7 +104,7 @@ class PointHistoryHelper
      *  - 受注管理画面
      * @param $point
      */
-    public function saveFixProvisionalAddPoint($point)
+    public function saveAddPointByOrderEdit($point)
     {
         $this->currentActionName = self::HISTORY_MESSAGE_ORDER_EDIT;
         $this->historyActionType = self::HISTORY_MESSAGE_TYPE_ADD;
@@ -117,19 +117,7 @@ class PointHistoryHelper
      *  - フロント画面
      * @param $point
      */
-    public function saveShoppingFixProvisionalAddPoint($point)
-    {
-        $this->currentActionName = self::HISTORY_MESSAGE_EDIT;
-        $this->historyActionType = self::HISTORY_MESSAGE_TYPE_ADD;
-        $this->historyType = self::STATE_ADD;
-        $this->saveHistoryPoint($point);
-    }
-
-    /**
-     * 加算ポイント情報を履歴登録
-     * @param $point
-     */
-    public function cancelAddPoint($point)
+    public function saveAddPoint($point)
     {
         $this->currentActionName = self::HISTORY_MESSAGE_EDIT;
         $this->historyActionType = self::HISTORY_MESSAGE_TYPE_ADD;
