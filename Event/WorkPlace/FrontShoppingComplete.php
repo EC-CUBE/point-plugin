@@ -40,15 +40,7 @@ class FrontShoppingComplete extends AbstractWorkPlace
         }
 
         // 使用ポイントをエンティティに格納
-        $pointUse = new PointUse();
-        $usePoint = 0;
-
-        // 最終保存ポイントがあるかどうかの判定
-        $lastPreUsePoint = 0;
-        $lastPreUsePoint = $this->app['eccube.plugin.point.repository.point']->getLastPreUsePoint($order);
-        if (!empty($lastPreUsePoint)) {
-            $usePoint = $lastPreUsePoint;
-        }
+        $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($order);
 
         // 計算判定取得
         $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
@@ -93,35 +85,38 @@ class FrontShoppingComplete extends AbstractWorkPlace
         // 利用ポイント
         $this->app['eccube.plugin.point.history.service']->addEntity($order);
         $this->app['eccube.plugin.point.history.service']->addEntity($order->getCustomer());
-        $this->app['eccube.plugin.point.history.service']->savePreUsePoint($usePoint);
+        $this->app['eccube.plugin.point.history.service']->savePreUsePoint($usePoint * -1);
         $this->app['eccube.plugin.point.history.service']->refreshEntity();
         $this->app['eccube.plugin.point.history.service']->addEntity($order);
         $this->app['eccube.plugin.point.history.service']->addEntity($order->getCustomer());
-        $this->app['eccube.plugin.point.history.service']->saveUsePoint(abs($usePoint) * -1);
+        $this->app['eccube.plugin.point.history.service']->saveUsePoint($usePoint);
 
-        // 仮付与ポイント(ステータスの設定により付与ポイント)
+        // ポイントの付与
         $this->app['eccube.plugin.point.history.service']->refreshEntity();
         $this->app['eccube.plugin.point.history.service']->addEntity($order);
         $this->app['eccube.plugin.point.history.service']->addEntity($order->getCustomer());
-        $this->app['eccube.plugin.point.history.service']->saveProvisionalAddPoint($addPoint);
+        $this->app['eccube.plugin.point.history.service']->saveAddPoint($addPoint);
 
+		// ポイントステータスのレコードを生成
+        $this->app['eccube.plugin.point.history.service']->savePointStatus();
 
-        // 付与ポイント受注ステータスが新規であれば、ポイント付与
+        // 付与ポイント受注ステータスが新規であれば、ポイントを確定状態にする
         if ($add_point_flg) {
-            $this->app['eccube.plugin.point.history.service']->refreshEntity();
-            $this->app['eccube.plugin.point.history.service']->addEntity($order);
-            $this->app['eccube.plugin.point.history.service']->addEntity($order->getCustomer());
-            $this->app['eccube.plugin.point.history.service']->fixShoppingProvisionalAddPoint($addPoint);
-            $this->app['eccube.plugin.point.history.service']->refreshEntity();
-            $this->app['eccube.plugin.point.history.service']->addEntity($order);
-            $this->app['eccube.plugin.point.history.service']->addEntity($order->getCustomer());
-            $this->app['eccube.plugin.point.history.service']->saveShoppingFixProvisionalAddPoint($addPoint);
+            $this->app['eccube.plugin.point.history.service']->fixPointStatus();
         }
 
         // 現在ポイントを履歴から計算
-        $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->getCalculateCurrentPointByCustomerId(
+        $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
             $order->getCustomer()->getId()
         );
+        $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
+            $order->getCustomer()->getId(),
+            $orderIds
+        );
+
+        if ($calculateCurrentPoint < 0) {
+            // TODO: ポイントがマイナス！
+        }
 
         // 会員ポイント更新
         $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
@@ -132,7 +127,7 @@ class FrontShoppingComplete extends AbstractWorkPlace
         // ポイント保存用変数作成
         $point = array();
         $point['current'] = $calculateCurrentPoint;
-        $point['use'] = abs($usePoint) * -1;
+        $point['use'] = $usePoint * -1;
         $point['add'] = $addPoint;
         $this->app['eccube.plugin.point.history.service']->refreshEntity();
         $this->app['eccube.plugin.point.history.service']->addEntity($order);

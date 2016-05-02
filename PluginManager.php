@@ -32,7 +32,6 @@ class PluginManager extends AbstractPluginManager
      */
     public function install($config, $app)
     {
-        $this->migrationSchema($app, __DIR__.'/Resource/doctrine/migration', $config['code']);
     }
 
     /**
@@ -52,6 +51,7 @@ class PluginManager extends AbstractPluginManager
      */
     public function enable($config, $app)
     {
+        $this->migrationSchema($app, __DIR__.'/Resource/doctrine/migration', $config['code']);
 
         $PointInfo = new PointInfo();
         $PointInfo

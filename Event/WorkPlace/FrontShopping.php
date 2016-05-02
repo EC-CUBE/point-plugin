@@ -55,12 +55,7 @@ class FrontShopping extends AbstractWorkPlace
 
         // 利用ポイントの確認
         $pointUse = new PointUse();
-        $usePoint = 0;
-        $lastPreUsePoint = 0;
-        $lastPreUsePoint = $this->app['eccube.plugin.point.repository.point']->getLastPreUsePoint($order);
-        if (!empty($lastPreUsePoint)) {
-            $usePoint = $lastPreUsePoint;
-        }
+        $usePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($order));
 
         // 計算に必要なエンティティを登録
         $calculator->setUsePoint($usePoint);
@@ -91,10 +86,10 @@ class FrontShopping extends AbstractWorkPlace
         $point['current'] = $currentPoint - $usePoint;
         $point['use'] = 0;
         if (!empty($usePoint)) {
-            $point['use'] = abs($usePoint);
+            $point['use'] = $usePoint;
         }
         $point['add'] = $addPoint;
-        $point['rate'] = $pointInfo->getPlgBasicPointRate();
+        $point['rate'] = $pointInfo->getPlgPointConversionRate();
 
         // Twigデータ内IDをキーに表示項目を追加
         // ポイント情報表示

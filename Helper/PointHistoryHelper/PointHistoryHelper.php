@@ -6,6 +6,8 @@ namespace Plugin\Point\Helper\PointHistoryHelper;
 use Doctrine\DBAL\Exception\DatabaseObjectNotFoundException;
 use Plugin\Point\Entity\PointSnapshot;
 use Plugin\Point\Entity\Point;
+use Plugin\Point\Entity\PointStatus;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * ポイント履歴ヘルパー
@@ -15,19 +17,16 @@ use Plugin\Point\Entity\Point;
 class PointHistoryHelper
 {
     // 保存内容(場所)
-    const HISTORY_MESSAGE_MANUAL_EDIT = 'ポイント手動編集';
-    const HISTORY_MESSAGE_EDIT = 'ポイント購入完了登録';
-    const HISTORY_MESSAGE_USE_POINT = 'ポイント利用仮登録';
-    const HISTORY_MESSAGE_ORDER_EDIT = 'ポイント管理画面受注ステータス変更保存';
-    const HISTORY_MESSAGE_ORDER_CANCEL = 'ポイント管理画面受注ステータスキャンセル保存';
+    const HISTORY_MESSAGE_MANUAL_EDIT = 'ポイント(手動変更)';
+    const HISTORY_MESSAGE_EDIT = 'ポイント';
+    const HISTORY_MESSAGE_USE_POINT = 'ポイント';
+    const HISTORY_MESSAGE_ORDER_EDIT = 'ポイント(受注内容変更)';
 
     // 保存内容(ポイント種別)
     const HISTORY_MESSAGE_TYPE_CURRENT = '保有';
-    const HISTORY_MESSAGE_TYPE_PRE_ADD = '付与(仮)';
-    const HISTORY_MESSAGE_TYPE_ADD = '付与(確定)';
+    const HISTORY_MESSAGE_TYPE_ADD = '加算';
     const HISTORY_MESSAGE_TYPE_PRE_USE = '仮利用';
     const HISTORY_MESSAGE_TYPE_USE = '利用';
-    const HISTORY_MESSAGE_TYPE_ADJUST_USE = '利用調整';
 
     // 保存内容(ポイント種別)
     const STATE_CURRENT = 1;
@@ -101,37 +100,11 @@ class PointHistoryHelper
     }
 
     /**
-     * 仮加算ポイント情報を履歴登録
-     *  - 会員管理
-     * @param $point
-     */
-    public function saveManualProvisionalAddPoint($point)
-    {
-        $this->currentActionName = self::HISTORY_MESSAGE_MANUAL_EDIT;
-        $this->historyActionType = self::HISTORY_MESSAGE_TYPE_PRE_ADD;
-        $this->historyType = self::STATE_PRE_ADD;
-        $this->saveHistoryPoint($point);
-    }
-
-    /**
-     * 仮加算ポイント情報を履歴登録
-     *  - 受注管理画面
-     * @param $point
-     */
-    public function saveProvisionalAddPoint($point)
-    {
-        $this->currentActionName = self::HISTORY_MESSAGE_ORDER_EDIT;
-        $this->historyActionType = self::HISTORY_MESSAGE_TYPE_PRE_ADD;
-        $this->historyType = self::STATE_PRE_ADD;
-        $this->saveHistoryPoint($point);
-    }
-
-    /**
      * 加算ポイントの履歴登録
      *  - 受注管理画面
      * @param $point
      */
-    public function saveFixProvisionalAddPoint($point)
+    public function saveAddPointByOrderEdit($point)
     {
         $this->currentActionName = self::HISTORY_MESSAGE_ORDER_EDIT;
         $this->historyActionType = self::HISTORY_MESSAGE_TYPE_ADD;
@@ -144,62 +117,12 @@ class PointHistoryHelper
      *  - フロント画面
      * @param $point
      */
-    public function saveShoppingFixProvisionalAddPoint($point)
+    public function saveAddPoint($point)
     {
         $this->currentActionName = self::HISTORY_MESSAGE_EDIT;
         $this->historyActionType = self::HISTORY_MESSAGE_TYPE_ADD;
         $this->historyType = self::STATE_ADD;
         $this->saveHistoryPoint($point);
-    }
-
-    /**
-     * 加算ポイント情報を履歴登録
-     * @param $point
-     */
-    public function cancelAddPoint($point)
-    {
-        $this->currentActionName = self::HISTORY_MESSAGE_EDIT;
-        $this->historyActionType = self::HISTORY_MESSAGE_TYPE_ADD;
-        $this->historyType = self::STATE_ADD;
-        $this->saveHistoryPoint($point);
-    }
-
-    /**
-     * 仮加算ポイント確定処理
-     *  - 管理画面
-     * @param $point
-     * @return bool
-     */
-    public function fixProvisionalAddPoint($point)
-    {
-        // 引数判定
-        if (empty($point)) {
-            return false;
-        }
-
-        $this->currentActionName = self::HISTORY_MESSAGE_ORDER_EDIT;
-        $this->historyActionType = self::HISTORY_MESSAGE_TYPE_PRE_ADD;
-        $this->historyType = self::STATE_PRE_ADD;
-        $this->saveHistoryPoint(abs($point) * -1);
-    }
-
-    /**
-     * 仮加算ポイント確定処理
-     *  - フロント画面
-     * @param $point
-     * @return bool
-     */
-    public function fixShoppingProvisionalAddPoint($point)
-    {
-        // 引数判定
-        if (empty($point)) {
-            return false;
-        }
-
-        $this->currentActionName = self::HISTORY_MESSAGE_ORDER_EDIT;
-        $this->historyActionType = self::HISTORY_MESSAGE_TYPE_PRE_ADD;
-        $this->historyType = self::STATE_PRE_ADD;
-        $this->saveHistoryPoint(abs($point) * -1);
     }
 
     /**
@@ -242,13 +165,13 @@ class PointHistoryHelper
     }
 
     /**
-     * 受注画面調整利用ポイント保存
+     * 受注編集による利用ポイント変更の保存
      * @param $point
      */
-    public function saveUsePointAdjustOrderHistory($point)
+    public function saveUsePointByOrderEdit($point)
     {
-        $this->currentActionName = self::HISTORY_MESSAGE_MANUAL_EDIT;
-        $this->historyActionType = self::HISTORY_MESSAGE_TYPE_ADJUST_USE;
+        $this->currentActionName = self::HISTORY_MESSAGE_ORDER_EDIT;
+        $this->historyActionType = self::HISTORY_MESSAGE_TYPE_USE;
         $this->historyType = self::STATE_USE;
         $this->saveHistoryPoint($point);
     }
@@ -323,5 +246,48 @@ class PointHistoryHelper
         }
 
         return false;
+    }
+
+    /**
+     * 付与ポイントのステータスレコードを追加する
+     * @return bool
+     */
+    public function savePointStatus()
+    {
+        $this->entities['PointStatus'] = new PointStatus();
+        if (isset($this->entities['Order'])) {
+            $this->entities['PointStatus']->setOrderId($this->entities['Order']->getId());
+        }
+        if (isset($this->entities['Customer'])) {
+            $this->entities['PointStatus']->setCustomerId($this->entities['Customer']->getId());
+        }
+        $this->entities['PointStatus']->setStatus(0);
+        $this->entities['PointStatus']->setDelFlg(0);
+        $this->entities['PointStatus']->setPointFixDate(null);
+        try {
+            $this->app['orm.em']->persist($this->entities['PointStatus']);
+            $this->app['orm.em']->flush($this->entities['PointStatus']);
+            $this->app['orm.em']->clear($this->entities['PointStatus']);
+        } catch (DatabaseObjectNotFoundException $e) {
+            return false;
+        }
+    }
+
+    /**
+     *  ポイントステータスを確定状態にする
+     */
+    public function fixPointStatus()
+    {
+        $orderId = $this->entities['Order']->getId();
+        $pointStatus = $this->app['eccube.plugin.point.repository.pointstatus']->findOneBy(
+            array('order_id' => $orderId)
+        );
+        if (!$pointStatus) {
+            throw new NotFoundHttpException();
+        }
+        /** @var PointStatus $pointStatus */
+        $pointStatus->setStatus($this->app['eccube.plugin.point.repository.pointstatus']->getFixStatusValue());
+        $pointStatus->setPointFixDate(new \DateTime());
+        $this->app['orm.em']->flush();
     }
 }
