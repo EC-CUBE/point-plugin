@@ -13,14 +13,6 @@ use Plugin\Point\Entity\PointInfo;
  */
 class PointCalculateHelperTest extends EccubeTestCase
 {
-//    public function testGetProvisionalAddPoint()
-//    {
-//    }
-//
-//    public function testGetProvisionalAddPointByOrder()
-//    {
-//
-//    }
 //    public function testGetAddPointByCart()
 //    {
 //
@@ -82,5 +74,44 @@ class PointCalculateHelperTest extends EccubeTestCase
         $this->expected = 10;
         $this->actual = $calculater->getRoundValue(10.04);
         $this->verify();
+    }
+
+    /**
+     * ポイント利用時の加算ポイント減算処理のテスト
+     */
+    public function testGetSubtractionCalculate()
+    {
+        $testData = array(
+            array(1, 1, 0, 1, 50, 48),
+            array(1, 1, 1, 1, 50, 49),
+            array(1, 1, 1, 1, 50, 49),
+        );
+
+        /** @var $calculater \Plugin\Point\Helper\PointCalculateHelper\PointCalculateHelper **/
+        $calculater = $this->app['eccube.plugin.point.calculate.helper.factory'];
+        /** @var $PointInfo \Plugin\Point\Entity\PointInfo **/
+        $PointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
+        $PointInfo->setPlgCalculationType(PointInfo::POINT_CALCULATE_SUBTRACTION);
+
+        $i = 0;
+        $max = count($testData);
+        for ($i = 0; $i < $max; $i++)  {
+            $data = $testData[$i];
+
+            // 基本ポイント付与率
+            $PointInfo->setPlgBasicPointRate($data[0]);
+            // ポイント換算レート
+            $PointInfo->setPlgPointConversionRate($data[1]);
+            // 端数計算方法
+            $PointInfo->setPlgRoundType($data[2]);
+            // 利用ポイント
+            $calculater->setUsePoint($data[3]);
+            // 加算ポイント
+            $calculater->setAddPoint($data[4]);
+            // 期待値
+            $this->expected = ($data[5]);
+            $this->actual = $calculater->getSubtractionCalculate();
+            $this->verify('index ' . $i . ' failed.');
+        }
     }
 }

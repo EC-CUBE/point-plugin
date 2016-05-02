@@ -120,6 +120,16 @@ class PointCalculateHelper
     }
 
     /**
+     * 加算ポイントをセットする.
+     *
+     * @param $addPoint
+     */
+    public function setAddPoint($addPoint)
+    {
+        $this->addPoint = $addPoint;
+    }
+
+    /**
      * ポイント計算時端数を設定に基づき計算返却
      * @param $value
      * @return bool|float
@@ -432,10 +442,14 @@ class PointCalculateHelper
     }
 
     /**
-     * 利用ポイント減算処理
+     * ポイント利用時の減算処理
+     *
+     * 利用ポイント数 ＊ ポイント金額換算率 ＝ ポイント値引額
+     * 加算ポイント - ポイント値引き額 * 基本ポイント付与率 = 減算後加算ポイント
+     *
      * @return bool|int
      */
-    protected function getSubtractionCalculate()
+    public function getSubtractionCalculate()
     {
         // 基本情報が設定されているか確認
         if (is_null($this->pointInfo->getPlgCalculationType())) {
@@ -447,11 +461,22 @@ class PointCalculateHelper
             return false;
         }
 
+        // 換算レート
         $conversionRate = $this->pointInfo->getPlgPointConversionRate();
-        $rate = ($this->basicRate / 100) + 1;
-        $usePointAddRate = (integer)$this->getRoundValue(($this->usePoint * $rate) * $conversionRate);
 
-        $this->addPoint = (($this->addPoint - $usePointAddRate) < 0) ? 0 : ($this->addPoint - $usePointAddRate);
+        // 基本付与率
+        $rate = ($this->basicRate / 100) + 1;
+
+        $pointDiscount = $this->usePoint * $conversionRate;
+        $basicRate = ($this->basicRate / 100) + 1;
+
+        $addPoint = $this->addPoint - $pointDiscount * $basicRate;
+
+        if ($addPoint < 0) {
+            $addPoint = 0;
+        }
+
+        $this->addPoint = $this->getRoundValue($addPoint);
 
         return $this->addPoint;
     }
