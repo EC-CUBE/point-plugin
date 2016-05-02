@@ -5,33 +5,24 @@ Plugin\Point\Entity\PointStatus:
     id:
         plg_point_status_id:
             type: integer
-            nullable: false
-            unsigned: false
             id: true
             generator:
                 strategy: AUTO
     fields:
         order_id:
             type: integer
-            nullable: false
-            unsigned: false
             options:
                 default: 0
         customer_id:
             type: integer
-            nullable: false
-            unsigned: false
             options:
                 default: 0
         status:
             type: smallint
-            nullable: false
-            unsigned: false
             options:
                 default: 0
         del_flg:
             type: smallint
-            nullable: false
             options:
                 default: 0
         point_fix_date:
