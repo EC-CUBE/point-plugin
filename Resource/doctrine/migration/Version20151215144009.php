@@ -88,7 +88,7 @@ class Version20151215144009 extends AbstractMigration
             $t = $schema->createTable(self::PLG_POINT_PRODUCT_RATE);
             $t->addColumn('plg_point_product_rate_id', 'integer', array('NotNull' => true, 'autoincrement' => true));
             $t->addColumn('product_id', 'integer', array('NotNull' => true, 'Default' => 0));
-            $t->addColumn('plg_point_product_rate', 'integer', array('NotNull' => false, 'Default' => 0));
+            $t->addColumn('plg_point_product_rate', 'integer', array('NotNull' => false));
             $t->addColumn('create_date', 'datetime', array('NotNull' => true));
             $t->addColumn('update_date', 'datetime', array('NotNull' => true));
             $t->setPrimaryKey(array('plg_point_product_rate_id'));
