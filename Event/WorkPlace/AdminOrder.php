@@ -83,7 +83,7 @@ class  AdminOrder extends AbstractWorkPlace
         // 初回のダミーエンティティにはカスタマー情報を含まない
         $lastUsePoint = 0;
         if (!empty($order) && !empty($hasCustomer)) {
-            $lastUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($order);
+            $lastUsePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($order));
         }
 
         // カスタマー保有ポイント取得
@@ -179,7 +179,7 @@ class  AdminOrder extends AbstractWorkPlace
         $pointUse = new PointUse();
 
         // 手動調整ポイントを取得
-        $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($order);
+        $usePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($order));
 
         // 計算ヘルパー取得判定
         if (is_null($this->calculator)) {
@@ -411,7 +411,7 @@ class  AdminOrder extends AbstractWorkPlace
     protected function pointUseEvent($event)
     {
         // 更新前の利用ポイントの取得
-        $beforeUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($this->targetOrder);
+        $beforeUsePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($this->targetOrder));
         // 更新前の利用ポイントと新しい利用ポイントが同じであれば処理をキャンセル
         if ($this->usePoint == $beforeUsePoint) {
             return;

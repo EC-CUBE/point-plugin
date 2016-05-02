@@ -104,8 +104,10 @@ class PointRepository extends EntityRepository
             $qb = $this->createQueryBuilder('p')
                 ->andWhere('p.customer_id = :customer_id')
                 ->andWhere('p.order_id = :order_id')
+                ->andWhere('p.plg_point_type = :point_type')
                 ->setParameter('customer_id', $order->getCustomer()->getId())
                 ->setParameter('order_id', $order->getId())
+                ->setParameter('point_type', PointHistoryHelper::STATE_ADD)
                 ->orderBy('p.plg_point_id', 'desc')
                 ->setMaxResults(1);
 
