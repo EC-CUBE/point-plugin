@@ -54,7 +54,7 @@ class PluginManager extends AbstractPluginManager
 
         // ポイント基本設定のデフォルト値を登録
         $PointInfo = $this->app['orm.em']
-            ->getRepository('Plugin\Point\Repository\PointInfoRepository')
+            ->getRepository('Plugin\Point\Entity\PointInfo')
             ->getLastInsertData();
         if (is_null($PointInfo)) {
             $PointInfo = new PointInfo();
