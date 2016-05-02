@@ -436,12 +436,12 @@ class  AdminOrder extends AbstractWorkPlace
         // 更新前の利用ポイントを加算して相殺
         $this->history->addEntity($this->targetOrder);
         $this->history->addEntity($this->customer);
-        $this->history->saveUsePointAdjustOrderHistory(abs($beforeUsePoint));
+        $this->history->saveUsePointByOrderEdit(abs($beforeUsePoint));
         // 新しい利用ポイントをマイナス
         $this->history->refreshEntity();
         $this->history->addEntity($this->targetOrder);
         $this->history->addEntity($this->customer);
-        $this->history->saveUsePointAdjustOrderHistory(abs($this->usePoint) * -1);
+        $this->history->saveUsePointByOrderEdit(abs($this->usePoint) * -1);
 
         // 会員ポイントの更新
         $currentPoint = $this->calculateCurrentPoint();

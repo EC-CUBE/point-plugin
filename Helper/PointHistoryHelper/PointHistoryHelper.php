@@ -165,10 +165,10 @@ class PointHistoryHelper
     }
 
     /**
-     * 受注画面調整利用ポイント保存
+     * 受注編集による利用ポイント変更の保存
      * @param $point
      */
-    public function saveUsePointAdjustOrderHistory($point)
+    public function saveUsePointByOrderEdit($point)
     {
         $this->currentActionName = self::HISTORY_MESSAGE_ORDER_EDIT;
         $this->historyActionType = self::HISTORY_MESSAGE_TYPE_USE;
