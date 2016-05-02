@@ -302,7 +302,6 @@ class PointHistoryHelper
         }
         /** @var PointStatus $pointStatus */
         $pointStatus->setStatus(1);
-        $this->app['orm.em']->persist($pointStatus);
         $this->app['orm.em']->flush();
     }
 }
