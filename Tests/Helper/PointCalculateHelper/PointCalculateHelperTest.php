@@ -79,9 +79,42 @@ class PointCalculateHelperTest extends EccubeTestCase
     public function testGetSubtractionCalculate()
     {
         $testData = array(
+            array(1, 1, 0, 0, 0, 0),
+            array(1, 1, 1, 0, 0, 0),
+            array(1, 1, 2, 0, 0, 0),
+            array(1, 1, 0, 0, 50, 50),
+            array(1, 1, 1, 0, 50, 50),
+            array(1, 1, 2, 0, 50, 50),
+            array(1, 1, 0, 50, 0, 0),
+            array(1, 1, 1, 50, 0, 0),
+            array(1, 1, 2, 50, 0, 0),
             array(1, 1, 0, 1, 50, 48),
             array(1, 1, 1, 1, 50, 49),
-            array(1, 1, 1, 1, 50, 49),
+            array(1, 1, 2, 1, 50, 49),
+            array(1, 1, 0, 49, 50, 0),
+            array(1, 1, 1, 49, 50, 1),
+            array(1, 1, 2, 49, 50, 1),
+            array(1, 1, 0, 50, 50, 0),
+            array(1, 1, 1, 50, 50, 0),
+            array(1, 1, 2, 50, 50, 0),
+            array(5, 5, 0, 0, 0, 0),
+            array(5, 5, 1, 0, 0, 0),
+            array(5, 5, 2, 0, 0, 0),
+            array(5, 5, 0, 0, 50, 50),
+            array(5, 5, 1, 0, 50, 50),
+            array(5, 5, 2, 0, 50, 50),
+            array(5, 5, 0, 50, 0, 0),
+            array(5, 5, 1, 50, 0, 0),
+            array(5, 5, 2, 50, 0, 0),
+            array(5, 5, 0, 1, 50, 44),
+            array(5, 5, 1, 1, 50, 45),
+            array(5, 5, 2, 1, 50, 45),
+            array(5, 5, 0, 49, 50, 0),
+            array(5, 5, 1, 49, 50, 0),
+            array(5, 5, 2, 49, 50, 0),
+            array(5, 5, 0, 50, 50, 0),
+            array(5, 5, 1, 50, 50, 0),
+            array(5, 5, 2, 50, 50, 0)
         );
 
         /** @var $calculater \Plugin\Point\Helper\PointCalculateHelper\PointCalculateHelper **/
