@@ -5,6 +5,7 @@ namespace Plugin\Point\Helper\PointCalculateHelper;
 
 use Doctrine\ORM\EntityNotFoundException;
 use Plugin\Point\Entity\PointInfo;
+use Symfony\Component\Form\Exception\LogicException;
 
 /**
  * ポイント計算サービスクラス
@@ -120,6 +121,16 @@ class PointCalculateHelper
     }
 
     /**
+     * 加算ポイントをセットする.
+     *
+     * @param $addPoint
+     */
+    public function setAddPoint($addPoint)
+    {
+        $this->addPoint = $addPoint;
+    }
+
+    /**
      * ポイント計算時端数を設定に基づき計算返却
      * @param $value
      * @return bool|float
@@ -131,21 +142,21 @@ class PointCalculateHelper
             return false;
         }
 
-        $calcType = $this->pointInfo->getPlgCalculationType();
+        $roundType = $this->pointInfo->getPlgRoundType();
 
         // 切り上げ
-        if ($calcType == PointInfo::POINT_ROUND_CEIL) {
+        if ($roundType == PointInfo::POINT_ROUND_CEIL) {
             return ceil($value);
         }
 
         // 四捨五入
-        if ($calcType == PointInfo::POINT_ROUND_ROUND) {
+        if ($roundType == PointInfo::POINT_ROUND_ROUND) {
             return round($value, 0);
         }
 
         // 切り捨て
-        if ($calcType == PointInfo::POINT_ROUND_FLOOR) {
-            return round($value, 0);
+        if ($roundType == PointInfo::POINT_ROUND_FLOOR) {
+            return floor($value);
         }
     }
 
@@ -300,11 +311,6 @@ class PointCalculateHelper
             );
         }
 
-        // 減算処理の場合減算値を返却
-        if ($this->isSubtraction() && !empty($this->usePoint)) {
-            return $this->getSubtractionCalculate();
-        }
-
         return $this->addPoint;
     }
 
@@ -433,26 +439,40 @@ class PointCalculateHelper
     }
 
     /**
-     * 利用ポイント減算処理
-     * @return bool|int
+     * ポイント利用時の減算処理
+     *
+     * 利用ポイント数 ＊ ポイント金額換算率 ＝ ポイント値引額
+     * 加算ポイント - ポイント値引き額 * 基本ポイント付与率 = 減算後加算ポイント
+     *
+     * ポイント利用時かつ, ポイント設定でポイント減算ありを選択指定た場合に, 加算ポイントの減算処理を行う.
+     * 減算の計算後, プロパティのaddPointに減算後の加算ポイントをセットする.
+     *
+     * @return bool|float|void
      */
-    protected function getSubtractionCalculate()
+    public function getSubtractionCalculate()
     {
         // 基本情報が設定されているか確認
         if (is_null($this->pointInfo->getPlgCalculationType())) {
-            return false;
+            $this->app['monolog']->critical('calculation type not found.');
+            throw new LogicException();
         }
 
-        // 減算値計算
-        if (!isset($this->usePoint) || empty($this->usePoint)) {
-            return false;
+        // 利用ポイントがない場合は処理しない.
+        if (empty($this->usePoint)) {
+            return;
         }
 
-        $conversionRate = $this->pointInfo->getPlgPointConversionRate();
-        $rate = ($this->basicRate / 100) + 1;
-        $usePointAddRate = (integer)$this->getRoundValue(($this->usePoint * $rate) * $conversionRate);
+        // 利用ポイント数 ＊ ポイント金額換算率 ＝ ポイント値引額
+        $pointDiscount = $this->usePoint * $this->pointInfo->getPlgPointConversionRate();
+        $basicRate = ($this->basicRate / 100) + 1;
+        // 加算ポイント - ポイント値引き額 * 基本ポイント付与率 = 減算後加算ポイント
+        $addPoint = $this->addPoint - $pointDiscount * $basicRate;
 
-        $this->addPoint = (($this->addPoint - $usePointAddRate) < 0) ? 0 : ($this->addPoint - $usePointAddRate);
+        if ($addPoint < 0) {
+            $addPoint = 0;
+        }
+
+        $this->addPoint = $this->getRoundValue($addPoint);
 
         return $this->addPoint;
     }
