@@ -47,6 +47,10 @@ class Version20160428120000 extends AbstractMigration
     {
         if ($schema->hasTable(self::PLG_POINT_STATUS)) {
             $schema->dropTable(self::PLG_POINT_STATUS);
+
+            if ($this->connection->getDatabasePlatform()->getName() == 'postgresql') {
+                $schema->dropSequence('plg_point_status_point_status_id_seq');
+            }
         }
     }
 }
