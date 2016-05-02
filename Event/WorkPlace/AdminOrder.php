@@ -295,18 +295,18 @@ class  AdminOrder extends AbstractWorkPlace
         if (!empty($this->targetOrder) && !empty($this->customer)) {
             $this->calculator->addEntity('Order', $this->targetOrder);
             $this->calculator->addEntity('Customer', $this->customer);
-            $addPoint = $this->calculator->getAddPointByOrder();
+            $newAddPoint = $this->calculator->getAddPointByOrder();
 
             // 付与ポイント有無確認
-            if (!empty($addPoint)) {
-                // 現在付与ポイント取得
-                $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder(
+            if (!empty($newAddPoint)) {
+                // 更新前の付与ポイント取得
+                $beforeAddPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder(
                     $this->targetOrder
                 );
 
-                // 現在の付与ポイントと保存済み付与ポイントに相違があった際はアップデート処理
-                if ($provisionalPoint != $addPoint) {
-                    $this->updateOrderEvent($addPoint, $provisionalPoint);
+                // 更新前の付与ポイントと新しい付与ポイントに相違があった際はアップデート処理
+                if ($beforeAddPoint != $newAddPoint) {
+                    $this->updateOrderEvent($newAddPoint, $beforeAddPoint);
                 }
             }
         }
