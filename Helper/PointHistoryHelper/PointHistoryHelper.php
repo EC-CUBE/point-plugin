@@ -286,7 +286,7 @@ class PointHistoryHelper
             throw new NotFoundHttpException();
         }
         /** @var PointStatus $pointStatus */
-        $pointStatus->setStatus(1);
+        $pointStatus->setStatus($this->app['eccube.plugin.point.repository.pointstatus']->getFixStatusValue());
         $this->app['orm.em']->flush();
     }
 }

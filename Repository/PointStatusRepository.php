@@ -13,6 +13,10 @@ use Plugin\Point\Entity\PointStatus;
  */
 class PointStatusRepository extends EntityRepository
 {
+    // ポイントのステータス
+    const POINT_STATUS_UNFIX = 0;   // 仮
+    const POINT_STATUS_FIX = 1;     // 確定
+
     /**
      * 仮ステータスの受注ID一覧を返却する
      * @param $customer_id
@@ -26,7 +30,7 @@ class PointStatusRepository extends EntityRepository
             ->andWhere('p.customer_id = :customer_id')
             ->andWhere('p.status = :status')
             ->setParameter('customer_id', $customer_id)
-            ->setParameter('status', 0);
+            ->setParameter('status', PointStatusRepository::POINT_STATUS_UNFIX);
 
         $result = $qb->getQuery()->getScalarResult();
 
@@ -51,7 +55,7 @@ class PointStatusRepository extends EntityRepository
             ->andWhere('p.customer_id = :customer_id')
             ->andWhere('p.status = :status')
             ->setParameter('customer_id', $customer_id)
-            ->setParameter('status', 1);
+            ->setParameter('status', PointStatusRepository::POINT_STATUS_FIX);
 
         $result = $qb->getQuery()->getScalarResult();
 
@@ -83,9 +87,18 @@ class PointStatusRepository extends EntityRepository
 
             $result = $qb->getQuery()->getSingleResult();
 
-            return ($result->getStatus() == 1);
+            return ($result->getStatus() == PointStatusRepository::POINT_STATUS_FIX);
         } catch (NoResultException $e) {
             return false;
         }
+    }
+
+    /**
+     * ポイント確定時の定数を返す
+     * @return int ポイント確定時の定数
+     */
+    public function getFixStatusValue()
+    {
+        return PointStatusRepository::POINT_STATUS_FIX;
     }
 }
