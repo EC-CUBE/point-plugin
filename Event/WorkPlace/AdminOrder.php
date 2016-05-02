@@ -91,6 +91,8 @@ class  AdminOrder extends AbstractWorkPlace
             $hasPoint = $this->app['eccube.plugin.point.repository.pointcustomer']->getLastPointById(
                 $hasCustomer->getId()
             );
+            // 入力の上限になるので、保有ポイント+現在の利用ポイントを設定する
+            $hasPoint += $lastUsePoint;
         }
 
         // 0値設定
