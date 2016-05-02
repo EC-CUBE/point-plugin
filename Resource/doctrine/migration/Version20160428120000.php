@@ -4,6 +4,8 @@ namespace DoctrineMigrations;
 
 use Doctrine\DBAL\Migrations\AbstractMigration;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\ORM\Tools\SchemaTool;
+use Eccube\Application;
 use Plugin\Point\Entity;
 
 /**
@@ -24,18 +26,16 @@ class Version20160428120000 extends AbstractMigration
     public function up(Schema $schema)
     {
         // this up() migration is auto-generated, please modify it to your needs
-
-        // ポイントのステータステーブル
-        if (!$schema->hasTable(self::PLG_POINT_STATUS)) {
-            $t = $schema->createTable(self::PLG_POINT_STATUS);
-            $t->addColumn('plg_point_status_id', 'integer', array('NotNull' => true, 'autoincrement' => true));
-            $t->addColumn('order_id', 'integer', array('NotNull' => true, 'Default' => 0));
-            $t->addColumn('customer_id', 'integer', array('NotNull' => true, 'Default' => 0));
-            $t->addColumn('status', 'smallint', array('NotNull' => true, 'Default' => 0));
-            $t->addColumn('del_flg', 'smallint', array('NotNull' => true, 'Default' => 0));
-            $t->addColumn('point_fix_date', 'datetime', array('NotNull' => false));
-            $t->setPrimaryKey(array('plg_point_status_id'));
+        if ($schema->hasTable(self::PLG_POINT_STATUS)) {
+            return true;
         }
+        $app = Application::getInstance();
+        $em = $app['orm.em'];
+        $classes = array(
+            $em->getClassMetadata('Plugin\Point\Entity\PointStatus'),
+        );
+        $tool = new SchemaTool($em);
+        $tool->createSchema($classes);
     }
 
     /**
