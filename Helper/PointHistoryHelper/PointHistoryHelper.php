@@ -287,6 +287,7 @@ class PointHistoryHelper
         }
         /** @var PointStatus $pointStatus */
         $pointStatus->setStatus($this->app['eccube.plugin.point.repository.pointstatus']->getFixStatusValue());
+        $pointStatus->setPointFixDate(new \DateTime());
         $this->app['orm.em']->flush();
     }
 }
