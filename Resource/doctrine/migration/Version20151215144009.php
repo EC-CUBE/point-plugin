@@ -73,10 +73,10 @@ class Version20151215144009 extends AbstractMigration
         $tool = new SchemaTool($em);
         $tool->dropSchema($classes);
 
-        foreach ($this->sequences as $sequence) {
-            if ($schema->hasSequence($sequence)) {
-                $schema->dropSequence($sequence);
-            }
-        }
+//        foreach ($this->sequences as $sequence) {
+//            if ($schema->hasSequence($sequence)) {
+//                $schema->dropSequence($sequence);
+//            }
+//        }
     }
 }
