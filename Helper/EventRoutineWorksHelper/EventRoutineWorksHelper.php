@@ -70,4 +70,13 @@ class EventRoutineWorksHelper
     {
         $this->place->save($event);
     }
+
+    /**
+     * 受注削除拡張
+     * @param EventArgs $event
+     */
+    public function delete(EventArgs $event)
+    {
+        $this->place->delete($event);
+    }
 }

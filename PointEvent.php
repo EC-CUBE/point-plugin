@@ -201,6 +201,16 @@ class PointEvent
     }
 
     /**
+     * 受注削除
+     * @param EventArgs $event
+     */
+    public function onAdminOrderDeleteComplete(EventArgs $event)
+    {
+        $helper = $this->app['eccube.plugin.point.hookpoint.routinework'](new AdminOrder());
+        $helper->delete($event);
+    }
+
+    /**
      * 商品購入確認完了
      *  - 利用ポイント・保有ポイント・仮付与ポイント保存
      *  - フロント画面 > 商品購入確認完了

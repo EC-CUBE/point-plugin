@@ -315,6 +315,43 @@ class  AdminOrder extends AbstractWorkPlace
     }
 
     /**
+     * 受注削除
+     * @param EventArgs $event
+     */
+    public function delete(EventArgs $event)
+    {
+        // 必要情報をセット
+        $this->targetOrder = $event->getArgument('Order');
+        if (empty($this->targetOrder)) {
+            return;
+        }
+        $this->customer = $event->getArgument('Customer');
+        if (empty($this->customer)) {
+            return;
+        }
+
+        // ポイントステータスを削除にする
+        $this->history->deletePointStatus($this->targetOrder);
+
+        // 会員ポイントの再計算
+        $this->history->refreshEntity();
+        $this->history->addEntity($this->targetOrder);
+        $this->history->addEntity($this->customer);
+        $currentPoint = $this->calculateCurrentPoint();
+        $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
+            $currentPoint,
+            $this->customer
+        );
+
+        // SnapShot保存
+        $point = array();
+        $point['current'] = $currentPoint;
+        $point['use'] = 0;
+        $point['add'] = 0;
+        $this->saveAdjustUseOrderSnapShot($point);
+    }
+
+    /**
      * 受注編集で購入商品の構成が変更した際に以下処理を行う
      *  - 前回付与ポイントの打ち消し
      *  - 今回付与ポイントの付与

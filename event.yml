@@ -19,6 +19,10 @@ admin.order.edit.index.progress:
 admin.order.edit.index.complete:
     - [onAdminOrderEditIndexComplete, NORMAL]
 
+## 管理画面 > 受注一覧
+admin.order.delete.complete:
+    - [onAdminOrderDeleteComplete, NORMAL]
+
 # フロント画面
 ## フロント画面 > 商品購入確認完了(ポイント利用処理)
 front.shopping.confirm.processing:

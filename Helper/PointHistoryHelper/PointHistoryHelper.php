@@ -4,6 +4,7 @@
 namespace Plugin\Point\Helper\PointHistoryHelper;
 
 use Doctrine\DBAL\Exception\DatabaseObjectNotFoundException;
+use Eccube\Entity\Order;
 use Plugin\Point\Entity\PointSnapshot;
 use Plugin\Point\Entity\Point;
 use Plugin\Point\Entity\PointStatus;
@@ -288,6 +289,24 @@ class PointHistoryHelper
         /** @var PointStatus $pointStatus */
         $pointStatus->setStatus($this->app['eccube.plugin.point.repository.pointstatus']->getFixStatusValue());
         $pointStatus->setPointFixDate(new \DateTime());
+        $this->app['orm.em']->flush();
+    }
+
+    /**
+     *  ポイントステータスを削除状態にする
+     * @param Order $order 対象オーダー
+     */
+    public function deletePointStatus(Order $order)
+    {
+        $orderId = $order->getId();
+        $pointStatus = $this->app['eccube.plugin.point.repository.pointstatus']->findOneBy(
+            array('order_id' => $orderId)
+        );
+        if (!$pointStatus) {
+            return;
+        }
+        /** @var PointStatus $pointStatus */
+        $pointStatus->setDelFlg(1);
         $this->app['orm.em']->flush();
     }
 }
