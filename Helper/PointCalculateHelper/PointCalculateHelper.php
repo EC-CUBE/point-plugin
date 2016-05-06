@@ -339,7 +339,7 @@ class PointCalculateHelper
                     $rate = $this->productRates[$node->getProduct()->getId()] / 100;
                 }
             }
-            $this->addPoint += $this->getRoundValue(($node->getProductClass()->getPrice02() * $rate) * $node->getQuantity());
+            $this->addPoint += ($node->getProductClass()->getPrice02() * $rate) * $node->getQuantity();
         }
 
         // 減算処理の場合減算値を返却
