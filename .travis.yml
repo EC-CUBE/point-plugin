@@ -55,3 +55,7 @@ after_script:
   - php app/console plugin:develop disable --code=${PLUGIN_CODE}
   # uninstall plugin
   - php app/console plugin:develop uninstall --code=${PLUGIN_CODE}
+  # re install plugin
+  - php app/console plugin:develop install --code=${PLUGIN_CODE}
+  # re enable plugin
+  - php app/console plugin:develop enable --code=${PLUGIN_CODE}

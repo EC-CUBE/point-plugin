@@ -15,37 +15,26 @@ Plugin\Point\Entity\PointSnapshot:
             type: integer
             nullable: true
             unsigned: false
-            options:
-                default: null
         plg_point_current:
             type: integer
-            nullable: true
+            nullable: false
             unsigned: false
-            options:
-                default: null
         plg_point_add:
             type: string
             nullable: true
             length: 255
-            options:
-                default: null
         plg_point_snap_action_name:
-            type: float
+            type: string
             nullable: true
-            options:
-                default: null
+            length: 255
         order_id:
             type: integer
             nullable: true
             unsigned: false
-            options:
-                default: 0
         customer_id:
             type: integer
             nullable: true
             unsigned: false
-            options:
-                default: 0
         create_date:
             type: datetime
             nullable: false
