@@ -26,7 +26,7 @@ class Version20151215144009 extends AbstractMigration
             'plg_point',
             'plg_point_customer',
             'plg_point_info',
-            'plg_point_productrate',
+            'plg_point_product_rate',
             'plg_point_snapshot',
         );
 
