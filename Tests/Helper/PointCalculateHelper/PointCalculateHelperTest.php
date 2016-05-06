@@ -266,18 +266,18 @@ class PointCalculateHelperTest extends EccubeTestCase
         $testData = array(
             /**
              * - 基本ポイント付与率
-             * - ポイント換算レート
              * - 端数計算方法
-             * //- ポイント利用(不要)
-             * //- ポイント減算方式(不要)
              * - 商品毎ポイント付与率
              * - 商品価格
              * - 商品個数
              * - 期待値
              */
-            array(1, 1, 0, 0, 1, null, 5000, 1, 50),
-            array(1, 1, 0, 0, 1, 5, 1000, 2, 100),
-
+            0 => array(1, 0, null, 50, 1, 0),
+            1 => array(1, 1, null, 50, 1, 1),
+            2 => array(1, 2, null, 50, 1, 1),
+            3 => array(1, 0, 5, 50, 1, 2),
+            4 => array(1, 1, 5, 50, 1, 3),
+            5 => array(1, 2, 5, 50, 1, 3),
         );
 
         $Product = $this->createProduct();
@@ -291,25 +291,20 @@ class PointCalculateHelperTest extends EccubeTestCase
 
         $calculater->addEntity('Cart', $this->app['eccube.service.cart']->getCart());
 
-        $max = count($testData);
-        for ($i = 0; $i < $max; $i++) {
-            $data = $testData[$i];
-
+        foreach ($testData as $i => $data) {
             // 基本ポイント付与率
             $PointInfo->setPlgBasicPointRate($data[0]);
-            // ポイント換算レート
-            $PointInfo->setPlgPointConversionRate($data[1]);
             // 端数計算方法
-            $PointInfo->setPlgRoundType($data[2]);
+            $PointInfo->setPlgRoundType($data[1]);
 
             // 商品ごとポイント付与率
-            $this->app['eccube.plugin.point.repository.pointproductrate']->savePointProductRate($data[5], $Product);
+            $this->app['eccube.plugin.point.repository.pointproductrate']->savePointProductRate($data[2], $Product);
             // 商品価格
-            $ProductClass->setPrice02($data[6]);
+            $ProductClass->setPrice02($data[3]);
 
             // 商品個数
             $this->app['eccube.service.cart']->clear();
-            $this->app['eccube.service.cart']->setProductQuantity($ProductClass, $data[7]);
+            $this->app['eccube.service.cart']->setProductQuantity($ProductClass, $data[4]);
             $this->app['eccube.service.cart']->save();
 
             $Cart = $this->app['session']->get('cart');
@@ -319,7 +314,7 @@ class PointCalculateHelperTest extends EccubeTestCase
             }
             $calculater->addEntity('Cart', $Cart);
 
-            $this->expected = $data[8];
+            $this->expected = $data[5];
             $this->actual = $calculater->getAddPointByCart();
             $this->verify('index ' . $i . ' failed.');
         }

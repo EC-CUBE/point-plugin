@@ -266,7 +266,7 @@ class PointCalculateHelper
         }
 
         $this->addPoint = 0;
-        $basicRate = $this->basicRate / 100;
+        $basicRate =  $this->pointInfo->getPlgBasicPointRate() / 100;
 
         foreach ($this->entities['Cart']->getCartItems() as $cartItem) {
             $rate = $basicRate;
