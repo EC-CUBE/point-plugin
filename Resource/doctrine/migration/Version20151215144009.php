@@ -23,7 +23,7 @@ class Version20151215144009 extends AbstractMigration
     public function __construct()
     {
         $this->tables = array(
-            'plg_point_point',
+            'plg_point',
             'plg_point_customer_point',
             'plg_point_info',
             'plg_point_productrate',
