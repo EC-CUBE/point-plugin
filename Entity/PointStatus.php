@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Class PointStatus
- * @package Plugin\Point\Entity
+ * @package Plugin\PointStatus\Entity
  */
 class PointStatus extends \Eccube\Entity\AbstractEntity
 {
@@ -86,7 +86,7 @@ class PointStatus extends \Eccube\Entity\AbstractEntity
      * Set customer_id
      *
      * @param integer $customer_id
-     * @return Point
+     * @return PointStatus
      */
     public function setCustomerId($customer_id)
     {
