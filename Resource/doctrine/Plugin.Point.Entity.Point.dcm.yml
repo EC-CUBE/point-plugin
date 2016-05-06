@@ -13,34 +13,24 @@ Plugin\Point\Entity\Point:
     fields:
         plg_dynamic_point:
             type: integer
-            nullable: true
+            nullable: false
             unsigned: false
-            options:
-                default: 0
         order_id:
             type: integer
             nullable: true
             unsigned: false
-            options:
-                default: 0
         customer_id:
             type: integer
-            nullable: true
+            nullable: false
             unsigned: false
-            options:
-                default: 0
         plg_point_type:
             type: smallint
             nullable: false
             unsigned: false
-            options:
-                default: 0
         plg_point_action_name:
             type: string
             length: 255
             nullable: true
-            options:
-                default: null
         plg_point_product_rate_id:
             type: integer
             nullable: true
@@ -49,10 +39,8 @@ Plugin\Point\Entity\Point:
                 default: null
         plg_point_info_id:
             type: integer
-            nullable: true
+            nullable: false
             unsigned: false
-            options:
-                default: null
         create_date:
             type: datetime
             nullable: false

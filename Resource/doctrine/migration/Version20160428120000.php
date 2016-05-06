@@ -32,7 +32,7 @@ class Version20160428120000 extends AbstractMigration
         $app = Application::getInstance();
         $em = $app['orm.em'];
         $classes = array(
-            $em->getClassMetadata('Plugin\Point\Entity\PointStatus'),
+            $em->getMetadataFactory()->getMetadataFor('Plugin\Point\Entity\PointStatus'),
         );
         $tool = new SchemaTool($em);
         $tool->createSchema($classes);
