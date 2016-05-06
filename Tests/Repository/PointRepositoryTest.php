@@ -217,6 +217,24 @@ class PointRepositoryTest extends EccubeTestCase
         $this->verify();
     }
 
+    public function testCalcCurrentPointWithManualPointOnly()
+    {
+        $customer = $this->createCustomer();
+        $orderIds = array();
+
+        // 準備：保有ポイント手動変更の履歴のみを追加
+        $this->createManualPoint($customer);
+
+        // 検証：現在の保有ポイントの計算
+        $sumPoint = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
+            $customer->getId(),
+            $orderIds
+        );
+        $this->expected = self::POINT_MANUAL_VALUE;
+        $this->actual = $sumPoint;
+        $this->verify();
+    }
+
     public function testGetLatestAddPointByOrder()
     {
         $customer = $this->createCustomer();
