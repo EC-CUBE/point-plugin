@@ -5,6 +5,7 @@ namespace Plugin\Point\Repository;
 
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
+use Eccube\Common\Constant;
 use Plugin\Point\Entity\PointStatus;
 
 /**
@@ -29,8 +30,10 @@ class PointStatusRepository extends EntityRepository
             ->select('p.order_id')
             ->andWhere('p.customer_id = :customer_id')
             ->andWhere('p.status = :status')
+            ->andWhere('p.del_flg = :del_flg')
             ->setParameter('customer_id', $customer_id)
-            ->setParameter('status', PointStatusRepository::POINT_STATUS_UNFIX);
+            ->setParameter('status', PointStatusRepository::POINT_STATUS_UNFIX)
+            ->setParameter('del_flg', 0);
 
         $result = $qb->getQuery()->getScalarResult();
 
@@ -54,8 +57,10 @@ class PointStatusRepository extends EntityRepository
             ->select('p.order_id')
             ->andWhere('p.customer_id = :customer_id')
             ->andWhere('p.status = :status')
+            ->andWhere('p.del_flg = :del_flg')
             ->setParameter('customer_id', $customer_id)
-            ->setParameter('status', PointStatusRepository::POINT_STATUS_FIX);
+            ->setParameter('status', PointStatusRepository::POINT_STATUS_FIX)
+            ->setParameter('del_flg', 0);
 
         $result = $qb->getQuery()->getScalarResult();
 
