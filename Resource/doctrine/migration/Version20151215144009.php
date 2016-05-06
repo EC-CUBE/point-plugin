@@ -16,10 +16,20 @@ class Version20151215144009 extends AbstractMigration
 {
     protected $tables = array();
 
+    protected $entities = array();
+
     protected $sequences = array();
 
     public function __construct()
     {
+        $this->tables = array(
+            'plg_point_point',
+            'plg_point_customer_point',
+            'plg_point_info',
+            'plg_point_productrate',
+            'plg_point_snapshot',
+        );
+
         $this->entities = array(
             'Plugin\Point\Entity\Point',
             'Plugin\Point\Entity\PointCustomer',
@@ -63,20 +73,15 @@ class Version20151215144009 extends AbstractMigration
      */
     public function down(Schema $schema)
     {
-        $app = Application::getInstance();
-        $em = $app['orm.em'];
-        $classes = array();
-        foreach ($this->entities as $entity) {
-            $classes[] = $em->getMetadataFactory()->getMetadataFor($entity);
+        foreach ($this->tables as $table) {
+            if ($schema->hasTable($table)) {
+                $schema->dropTable($table);
+            }
         }
-
-        $tool = new SchemaTool($em);
-        $tool->dropSchema($classes);
-
-//        foreach ($this->sequences as $sequence) {
-//            if ($schema->hasSequence($sequence)) {
-//                $schema->dropSequence($sequence);
-//            }
-//        }
+        foreach ($this->sequences as $sequence) {
+            if ($schema->hasSequence($sequence)) {
+                $schema->dropSequence($sequence);
+            }
+        }
     }
 }
