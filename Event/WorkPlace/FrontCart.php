@@ -1,15 +1,7 @@
 <?php
-
-
 namespace Plugin\Point\Event\WorkPlace;
 
-use Eccube\Event\EventArgs;
 use Eccube\Event\TemplateEvent;
-use Plugin\Point\Resource\lib\PointCalculateHelper\Bridge\CalculateType\FrontCart\NonSubtraction;
-use Symfony\Component\Form\FormBuilder;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -23,98 +15,41 @@ class FrontCart extends AbstractWorkPlace
 {
     /**
      * カートページにポイント情報を表示
+     *
      * @param TemplateEvent $event
      * @return bool
      */
     public function createTwig(TemplateEvent $event)
     {
-        // 権限判定
-        $isAuth = $this->app->isGranted('IS_AUTHENTICATED_FULLY');
-
         // ポイント情報基本設定を取得
-        $pointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
-        $pointRate = 0;
-        if (!empty($pointInfo)) {
-            $pointRate = (integer)$pointInfo->getPlgPointConversionRate();
-        }
+        $PointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
+        $pointRate = $PointInfo->getPlgPointConversionRate();
 
-        // ポイント表示用変数作成
         $point = array();
-
-        // ポイント換算率取得
-        if ($isAuth) {
-            // ポイント計算ヘルパーを取得
-            $calculator = null;
-            $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
-
-            // ヘルパーの取得判定
-            if (empty($calculator)) {
-                return false;
-            }
-
-            // カスタマー情報を取得
-            $customer = $this->app['security']->getToken()->getUser();
-
-            if (empty($customer)) {
-                return false;
-            }
-
-            // 計算に必要なエンティティを登録
-            // カートアイテム(プロダクトクラス)を取得設定
-            $parameters = $event->getParameters();
-
-            if (empty($parameters)) {
-                return false;
-            }
-
-            // カートオブジェクトの確認
-            if (!isset($parameters['Cart']) || empty($parameters['Cart'])) {
-                return false;
-            }
-
-            // 計算に必要なエンティティを格納
-            $calculator->addEntity('Customer', $customer);
-            $calculator->addEntity('Cart', $parameters['Cart']);
-
-
-            // 会員保有ポイントを取得
-            $currentPoint = $calculator->getPoint();
-
-            // 会員保有ポイント取得判定
-            if (empty($currentPoint)) {
-                $currentPoint = 0;
-            }
-
-            // 購入商品付与ポイント取得
-            $addPoint = $calculator->getAddPointByCart();
-
-            // 購入商品付与ポイント判定
-            if (empty($addPoint)) {
-                $addPoint = 0;
-            }
-            $point['current'] = $currentPoint;
-            $point['add'] = $addPoint;
-        }
-
         $point['rate'] = $pointRate;
 
-        // 使用ポイントボタン付与
-        // 権限判定
-        if ($isAuth) {
-            $snippet = $this->app->render(
-                'Point/Resource/template/default/Event/Cart/point_box.twig',
-                array(
-                    'point' => $point,
-                )
-            )->getContent();
+        if ($this->app->isGranted('IS_AUTHENTICATED_FULLY')) {
+            $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
+            $Customer = $this->app->user();
+            $parameters = $event->getParameters();
+            $calculator->addEntity('Customer', $Customer);
+            $calculator->addEntity('Cart', $parameters['Cart']);
+
+            // 現在の保有ポイント
+            $currentPoint = $calculator->getPoint();
+            // カートの加算ポイント
+            $addPoint = $calculator->getAddPointByCart();
+            // getPointはnullを返す場合がある.
+            $point['current'] = is_null($currentPoint) ? 0 : $currentPoint;
+            $point['add'] = $addPoint;
+
+            $template = 'Point/Resource/template/default/Event/Cart/point_box.twig';
         } else {
-            $snippet = $this->app->render(
-                'Point/Resource/template/default/Event/Cart/point_box_no_customer.twig',
-                array(
-                    'point' => $point,
-                )
-            )->getContent();
+            $template = 'Point/Resource/template/default/Event/Cart/point_box_no_customer.twig';
         }
+
+        $snippet = $this->app->renderView($template, array('point' => $point));
+
         $search = '<div id="cart_item_list"';
         $this->replaceView($event, $snippet, $search);
     }

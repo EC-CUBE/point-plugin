@@ -130,10 +130,12 @@ WHERE t1.plg_point_product_rate_id = (
     SELECT
       MAX(t2.plg_point_product_rate_id)
     FROM Plugin\Point\Entity\PointProductRate t2
-    WHERE t1.product_id = t1.product_id
-) AND t1.plg_point_product_rate IS NOT NULL';
+    WHERE t1.product_id = t2.product_id
+) AND t1.plg_point_product_rate IS NOT NULL AND t1.product_id IN (:ids)';
 
-            $result = $this->getEntityManager()->createQuery($dql)->getArrayResult();
+            $query = $this->getEntityManager()->createQuery($dql);
+            $query->setParameters(array('ids' => $ids));
+            $result = $query->getArrayResult();
 
             // データが一件もない場合処理をキャンセル
             if (count($result) < 1) {
