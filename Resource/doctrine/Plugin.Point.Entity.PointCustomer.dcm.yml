@@ -13,16 +13,12 @@ Plugin\Point\Entity\PointCustomer:
     fields:
         plg_point_current:
             type: integer
-            nullable: true
+            nullable: false
             unsigned: false
-            options:
-                default: 0
         customer_id:
             type: integer
-            nullable: true
+            nullable: false
             unsigned: false
-            options:
-                default: 0
         create_date:
             type: datetime
             nullable: false
