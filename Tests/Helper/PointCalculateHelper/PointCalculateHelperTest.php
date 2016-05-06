@@ -155,8 +155,78 @@ class PointCalculateHelperTest extends EccubeTestCase
              * - 商品個数
              * - 期待値
              */
-            array(1, 1, 0, 0, 1, null, 5000, 1, 50),
-            array(1, 1, 0, 50, 0, 1, 5000, 1, 0)
+            0 => array(1, 1, 0, 0, 1, null, 5000, 1, 50),
+            1 => array(1, 1, 1, 0, 1, null, 5000, 1, 50),
+            2 => array(1, 1, 2, 0, 1, null, 5000, 1, 50),
+            3 => array(1, 1, 0, 50, 1, null, 5000, 1, 50),
+            4 => array(1, 1, 1, 50, 1, null, 5000, 1, 50),
+            5 => array(1, 1, 2, 50, 1, null, 5000, 1, 50),
+            6 => array(1, 1, 0, 0, 0, null, 5000, 1, 50),
+            7 => array(1, 1, 1, 0, 0, null, 5000, 1, 50),
+            8 => array(1, 1, 2, 0, 0, null, 5000, 1, 50),
+            9 => array(1, 1, 0, 50, 0, null, 5000, 1, 0),
+            10 => array(1, 1, 1, 50, 0, null, 5000, 1, 0),
+            11 => array(1, 1, 2, 50, 0, null, 5000, 1, 0),
+            12 => array(1, 1, 0, 0, 1, 0, 5000, 1, 0),
+            13 => array(1, 1, 1, 0, 1, 0, 5000, 1, 0),
+            14 => array(1, 1, 2, 0, 1, 0, 5000, 1, 0),
+            15 => array(1, 1, 0, 50, 1, 0, 5000, 1, 0),
+            16 => array(1, 1, 1, 50, 1, 0, 5000, 1, 0),
+            17 => array(1, 1, 2, 50, 1, 0, 5000, 1, 0),
+            18 => array(1, 1, 0, 0, 0, 0, 5000, 1, 0),
+            19 => array(1, 1, 1, 0, 0, 0, 5000, 1, 0),
+            20 => array(1, 1, 2, 0, 0, 0, 5000, 1, 0),
+            21 => array(1, 1, 0, 50, 0, 0, 5000, 1, 0),
+            22 => array(1, 1, 1, 50, 0, 0, 5000, 1, 0),
+            23 => array(1, 1, 2, 50, 0, 0, 5000, 1, 0),
+            24 => array(1, 1, 0, 0, 1, 1, 5000, 1, 50),
+            25 => array(1, 1, 1, 0, 1, 1, 5000, 1, 50),
+            26 => array(1, 1, 2, 0, 1, 1, 5000, 1, 50),
+            27 => array(1, 1, 0, 50, 1, 1, 5000, 1, 50),
+            28 => array(1, 1, 1, 50, 1, 1, 5000, 1, 50),
+            29 => array(1, 1, 2, 50, 1, 1, 5000, 1, 50),
+            30 => array(1, 1, 0, 0, 0, 1, 5000, 1, 50),
+            31 => array(1, 1, 1, 0, 1, 1, 5000, 1, 50),
+            32 => array(1, 1, 2, 0, 1, 1, 5000, 1, 50),
+            33 => array(1, 1, 0, 50, 0, 1, 5000, 1, 0),
+            34 => array(1, 1, 1, 50, 0, 1, 5000, 1, 0),
+            35 => array(1, 1, 2, 50, 0, 1, 5000, 1, 0),
+            36 => array(5, 5, 0, 0, 1, null, 5000, 1, 250),
+            37 => array(5, 5, 1, 0, 1, null, 5000, 1, 250),
+            38 => array(5, 5, 2, 0, 1, null, 5000, 1, 250),
+            39 => array(5, 5, 0, 50, 1, null, 5000, 1, 250),
+            40 => array(5, 5, 1, 50, 1, null, 5000, 1, 250),
+            41 => array(5, 5, 2, 50, 1, null, 5000, 1, 250),
+            42 => array(5, 5, 0, 0, 0, null, 5000, 1, 250),
+            43 => array(5, 5, 1, 0, 0, null, 5000, 1, 250),
+            44 => array(5, 5, 2, 0, 0, null, 5000, 1, 250),
+            45 => array(5, 5, 0, 50, 0, null, 5000, 1, 0),
+            46 => array(5, 5, 1, 50, 0, null, 5000, 1, 0),
+            47 => array(5, 5, 2, 50, 0, null, 5000, 1, 0),
+            48 => array(5, 5, 0, 0, 1, 0, 5000, 1, 0),
+            49 => array(5, 5, 1, 0, 1, 0, 5000, 1, 0),
+            50 => array(5, 5, 2, 0, 1, 0, 5000, 1, 0),
+            51 => array(5, 5, 0, 50, 1, 0, 5000, 1, 0),
+            52 => array(5, 5, 1, 50, 1, 0, 5000, 1, 0),
+            53 => array(5, 5, 2, 50, 1, 0, 5000, 1, 0),
+            54 => array(5, 5, 0, 0, 0, 0, 5000, 1, 0),
+            55 => array(5, 5, 1, 0, 0, 0, 5000, 1, 0),
+            56 => array(5, 5, 2, 0, 0, 0, 5000, 1, 0),
+            57 => array(5, 5, 0, 50, 0, 0, 5000, 1, 0),
+            58 => array(5, 5, 1, 50, 0, 0, 5000, 1, 0),
+            59 => array(5, 5, 2, 50, 0, 0, 5000, 1, 0),
+            60 => array(5, 5, 0, 0, 1, 1, 5000, 1, 50),
+            61 => array(5, 5, 1, 0, 1, 1, 5000, 1, 50),
+            62 => array(5, 5, 2, 0, 1, 1, 5000, 1, 50),
+            63 => array(5, 5, 0, 50, 1, 1, 5000, 1, 50),
+            64 => array(5, 5, 1, 50, 1, 1, 5000, 1, 50),
+            65 => array(5, 5, 2, 50, 1, 1, 5000, 1, 50),
+            66 => array(5, 5, 0, 0, 0, 1, 5000, 1, 50),
+            67 => array(5, 5, 1, 0, 0, 1, 5000, 1, 50),
+            68 => array(5, 5, 2, 0, 0, 1, 5000, 1, 50),
+            69 => array(5, 5, 0, 50, 0, 1, 5000, 1, 0),
+            70 => array(5, 5, 1, 50, 0, 1, 5000, 1, 0),
+            71 => array(5, 5, 2, 50, 0, 1, 5000, 1, 0),
         );
 
         // テストデータ生成
@@ -170,9 +240,7 @@ class PointCalculateHelperTest extends EccubeTestCase
 
         $calculater->addEntity('Order', $Order);
 
-        $max = count($testData);
-        for ($i = 0; $i < $max; $i++) {
-            $data = $testData[$i];
+        foreach ($testData as $i => $data) {
             // 基本ポイント付与率
             $PointInfo->setPlgBasicPointRate($data[0]);
             // ポイント換算レート
@@ -206,18 +274,18 @@ class PointCalculateHelperTest extends EccubeTestCase
         $testData = array(
             /**
              * - 基本ポイント付与率
-             * - ポイント換算レート
              * - 端数計算方法
-             * //- ポイント利用(不要)
-             * //- ポイント減算方式(不要)
              * - 商品毎ポイント付与率
              * - 商品価格
              * - 商品個数
              * - 期待値
              */
-            array(1, 1, 0, 0, 1, null, 5000, 1, 50),
-            array(1, 1, 0, 0, 1, 5, 1000, 2, 100),
-
+            0 => array(1, 0, null, 50, 1, 0),
+            1 => array(1, 1, null, 50, 1, 1),
+            2 => array(1, 2, null, 50, 1, 1),
+            3 => array(1, 0, 5, 50, 1, 2),
+            4 => array(1, 1, 5, 50, 1, 3),
+            5 => array(1, 2, 5, 50, 1, 3),
         );
 
         $Product = $this->createProduct();
@@ -231,25 +299,20 @@ class PointCalculateHelperTest extends EccubeTestCase
 
         $calculater->addEntity('Cart', $this->app['eccube.service.cart']->getCart());
 
-        $max = count($testData);
-        for ($i = 0; $i < $max; $i++) {
-            $data = $testData[$i];
-
+        foreach ($testData as $i => $data) {
             // 基本ポイント付与率
             $PointInfo->setPlgBasicPointRate($data[0]);
-            // ポイント換算レート
-            $PointInfo->setPlgPointConversionRate($data[1]);
             // 端数計算方法
-            $PointInfo->setPlgRoundType($data[2]);
+            $PointInfo->setPlgRoundType($data[1]);
 
             // 商品ごとポイント付与率
-            $this->app['eccube.plugin.point.repository.pointproductrate']->savePointProductRate($data[5], $Product);
+            $this->app['eccube.plugin.point.repository.pointproductrate']->savePointProductRate($data[2], $Product);
             // 商品価格
-            $ProductClass->setPrice02($data[6]);
+            $ProductClass->setPrice02($data[3]);
 
             // 商品個数
             $this->app['eccube.service.cart']->clear();
-            $this->app['eccube.service.cart']->setProductQuantity($ProductClass, $data[7]);
+            $this->app['eccube.service.cart']->setProductQuantity($ProductClass, $data[4]);
             $this->app['eccube.service.cart']->save();
 
             $Cart = $this->app['session']->get('cart');
@@ -259,7 +322,7 @@ class PointCalculateHelperTest extends EccubeTestCase
             }
             $calculater->addEntity('Cart', $Cart);
 
-            $this->expected = $data[8];
+            $this->expected = $data[5];
             $this->actual = $calculater->getAddPointByCart();
             $this->verify('index ' . $i . ' failed.');
         }

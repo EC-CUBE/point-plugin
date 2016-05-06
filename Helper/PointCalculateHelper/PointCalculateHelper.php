@@ -274,7 +274,7 @@ class PointCalculateHelper
         }
 
         $this->addPoint = 0;
-        $basicRate = $this->basicRate / 100;
+        $basicRate =  $this->pointInfo->getPlgBasicPointRate() / 100;
 
         foreach ($this->entities['Cart']->getCartItems() as $cartItem) {
             $rate = $basicRate;
@@ -335,12 +335,13 @@ class PointCalculateHelper
             $productKeys = array_keys($this->productRates);
         }
 
+        $basicRate = $this->pointInfo->getPlgBasicPointRate();
+
         // 商品詳細ごとの購入金額にレートをかける
         // レート計算後個数をかける
         foreach ($this->products as $node) {
-            $rate = 1;
             // 商品毎ポイント付与率が設定されていない場合
-            $rate = $this->basicRate / 100;
+            $rate = $basicRate / 100;
             if ($this->productRates) {
                 if (in_array($node->getProduct()->getId(), $productKeys)) {
                     // 商品ごとポイント付与率が設定されている場合
