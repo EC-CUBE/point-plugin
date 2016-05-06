@@ -249,59 +249,43 @@ class PointCalculateHelper
     }
 
     /**
-     * カート情報をもとに付与ポイントを返却
-     * @return bool|int
+     * カート情報をもとに加算ポイントを返却する.
+     *
+     * かートの明細単位で計算を行う
+     * 商品ごとの付与率が設定されている場合は商品ごと付与率を利用する
+     * 商品ごとの付与率に0が設定されている場合は加算ポイントは付与しない
+     *
+     * @return int
      */
     public function getAddPointByCart()
     {
         // カートエンティティチェック
         if (empty($this->entities['Cart'])) {
-            return false;
+            $this->app['monolog']->critical('cart not found.');
+            throw new LogicException();
         }
 
-        // 商品毎のポイント付与率を取得
-        $productClasses = array();
-        $cartObjects = array();
-        foreach ($this->entities['Cart']->getCartItems() as $cart) {
-            $productClasses[] = $cart->getObject();     // 商品毎ポイント付与率取得用
-            $cartObjects[] = $cart;                     // 購入数を判定するためのカートオブジェジェクト
-        }
+        $this->addPoint = 0;
+        $basicRate = $this->basicRate / 100;
 
-        // 商品毎のポイント付与率取得
-        $productRates = $this->app['eccube.plugin.point.repository.pointproductrate']->getPointProductRateByEntity(
-            $productClasses
-        );
+        foreach ($this->entities['Cart']->getCartItems() as $cartItem) {
+            $rate = $basicRate;
+            $ProductClass = $cartItem->getObject();
+            $Product = $ProductClass->getProduct();
+            // 商品ごとの付与率を取得
+            $productRates = $this->app['eccube.plugin.point.repository.pointproductrate']
+                ->getPointProductRateByEntity(array($ProductClass));
 
-        // 付与率の設定がされていない場合
-        if (count($productRates) < 1) {
-            $productRates = false;
-        }
-
-        // 商品毎のポイント付与率セット
-        $this->productRates = $productRates;
-
-        // 取得ポイント付与率商品ID配列を取得
-        if ($this->productRates) {
-            $productKeys = array_keys($this->productRates);
-        }
-
-        // 商品詳細ごとの購入金額にレートをかける
-        // レート計算後個数をかける
-        foreach ($cartObjects as $node) {
-            $rate = 1;
-            // 商品毎ポイント付与率が設定されていない場合
-            $rate = $this->basicRate / 100;
-            if ($this->productRates) {
-                if (in_array($node->getObject()->getProduct()->getId(), $productKeys)) {
-                    // 商品ごとポイント付与率が設定されている場合
-                    $rate = $this->productRates[$node->getObject()->getProduct()->getId()] / 100;
-                }
+            if ($productRates) {
+                // 商品ごとの付与率が設定されている場合は、基本付与率ではなく、商品ごとの付与率を利用する
+                $productId = $Product->getId();
+                $rate = $productRates[$productId] / 100;
             }
-            $this->addPoint += (integer)$this->getRoundValue(
-                (($node->getObject()->getPrice02() * $rate) * $node->getQuantity())
-            );
+            $addPoint = ($ProductClass->getPrice02() * $rate) * $cartItem->getQuantity();
+            $this->addPoint += $addPoint;
         }
 
+        $this->addPoint = $this->getRoundValue($this->addPoint);
         return $this->addPoint;
     }
 
@@ -355,7 +339,7 @@ class PointCalculateHelper
                     $rate = $this->productRates[$node->getProduct()->getId()] / 100;
                 }
             }
-            $this->addPoint += $this->getRoundValue(($node->getProductClass()->getPrice02() * $rate) * $node->getQuantity());
+            $this->addPoint += ($node->getProductClass()->getPrice02() * $rate) * $node->getQuantity();
         }
 
         // 減算処理の場合減算値を返却
