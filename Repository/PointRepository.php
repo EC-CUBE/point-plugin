@@ -31,10 +31,6 @@ class PointRepository extends EntityRepository
      */
     public function calcCurrentPoint($customer_id, array $orderIds)
     {
-        if (count($orderIds) < 1) {
-            return 0;
-        }
-
         try {
             $orderStatus = new OrderStatus();
             $orderStatus->setId(8);
@@ -42,14 +38,16 @@ class PointRepository extends EntityRepository
             // ログテーブルからポイントを計算
             $qb = $this->createQueryBuilder('p');
             $qb->select('SUM(p.plg_dynamic_point) as point_sum')
-                ->where($qb->expr()->in('p.order_id', $orderIds))
-                ->orWhere($qb->expr()->andX(
+                ->where($qb->expr()->andX(
                     $qb->expr()->isNull('p.order_id'),
                     $qb->expr()->eq('p.customer_id', $customer_id))
                 )
                 ->orWhere(
                     $qb->expr()->eq('p.plg_point_type', PointHistoryHelper::STATE_USE)
                 );
+            if (!empty($orderIds)) {
+                $qb->orWhere($qb->expr()->in('p.order_id', $orderIds));
+            }
             // 合計ポイント
             $sum_point = $qb->getQuery()->getScalarResult();
 
