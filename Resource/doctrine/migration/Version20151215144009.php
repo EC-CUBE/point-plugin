@@ -39,11 +39,11 @@ class Version20151215144009 extends AbstractMigration
         );
 
         $this->sequences = array(
-            'plg_point_point_id_seq',
-            'plg_point_customer_point_customer_id_seq',
-            'plg_point_info_point_info_id_seq',
-            'plg_point_productrate_point_productrate_id_seq',
-            'plg_point_snapshot_id_seq',
+            'plg_point_plg_point_id_seq',
+            'plg_point_customer_plg_point_customer_id_seq',
+            'plg_point_info_plg_point_info_id_seq',
+            'plg_point_product_rate_plg_point_product_rate_id_seq',
+            'plg_point_snapshot_plg_point_snapshot_id_seq',
         );
     }
 
