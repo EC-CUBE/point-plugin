@@ -285,7 +285,8 @@ class PointCalculateHelper
             $this->addPoint += $addPoint;
         }
 
-        return $this->getRoundValue($this->addPoint);
+        $this->addPoint = $this->getRoundValue($this->addPoint);
+        return $this->addPoint;
     }
 
     /**
