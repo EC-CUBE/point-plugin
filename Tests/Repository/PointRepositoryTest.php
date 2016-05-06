@@ -7,6 +7,7 @@ use Eccube\Entity\Customer;
 use Eccube\Entity\Order;
 use Eccube\Tests\EccubeTestCase;
 use Plugin\Point\Entity\Point;
+use Plugin\Point\Entity\PointInfo;
 use Plugin\Point\Helper\PointHistoryHelper\PointHistoryHelper;
 
 /**
@@ -32,6 +33,15 @@ class PointRepositoryTest extends EccubeTestCase
      *  int テストで使用する仮利用ポイント
      */
     const POINT_PRE_USE_VALUE = -17;
+
+    private  $pointInfo;
+
+    public function setUp()
+    {
+        parent::setUp();
+
+        $this->pointInfo = $this->createPointInfo();
+    }
 
     public function testCalcCurrentPoint()
     {
@@ -287,16 +297,34 @@ class PointRepositoryTest extends EccubeTestCase
         if (empty($order)) {
             $order = $this->createOrder($customer);
         }
+
         $Point = new Point();
         $Point
             ->setCustomer($customer)
             ->setPlgDynamicPoint($pointValue)
             ->setPlgPointType(PointHistoryHelper::STATE_ADD)
+            ->setPointInfo($this->pointInfo)
             ->setOrder($order);
 
         $this->app['orm.em']->persist($Point);
         $this->app['orm.em']->flush();
         return $Point;
+    }
+
+    // PointoInfoの作成
+    private function createPointInfo(){
+        $PointInfo = new PointInfo();
+        $PointInfo
+            ->setPlgAddPointStatus(1)
+            ->setPlgBasicPointRate(1)
+            ->setPlgCalculationType(1)
+            ->setPlgPointConversionRate(1)
+            ->setPlgRoundType(1);
+
+        $this->app['orm.em']->persist($PointInfo);
+        $this->app['orm.em']->flush();
+
+        return $PointInfo;
     }
 
     /**
@@ -311,6 +339,7 @@ class PointRepositoryTest extends EccubeTestCase
             ->setCustomer($customer)
             ->setPlgDynamicPoint(self::POINT_MANUAL_VALUE)
             ->setPlgPointType(PointHistoryHelper::STATE_CURRENT)
+            ->setPointInfo($this->pointInfo)
             ->setOrder(null);
 
         $this->app['orm.em']->persist($Point);
@@ -332,6 +361,7 @@ class PointRepositoryTest extends EccubeTestCase
             ->setCustomer($customer)
             ->setPlgDynamicPoint($pointValue)
             ->setPlgPointType(PointHistoryHelper::STATE_USE)
+            ->setPointInfo($this->pointInfo)
             ->setOrder($order);
 
         $this->app['orm.em']->persist($Point);
@@ -353,6 +383,7 @@ class PointRepositoryTest extends EccubeTestCase
             ->setCustomer($customer)
             ->setPlgDynamicPoint($pointValue)
             ->setPlgPointType(PointHistoryHelper::STATE_PRE_USE)
+            ->setPointInfo($this->pointInfo)
             ->setOrder($order);
 
         $this->app['orm.em']->persist($Point);
