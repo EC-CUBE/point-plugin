@@ -24,7 +24,7 @@ class Version20151215144009 extends AbstractMigration
     {
         $this->tables = array(
             'plg_point',
-            'plg_point_customer_point',
+            'plg_point_customer',
             'plg_point_info',
             'plg_point_productrate',
             'plg_point_snapshot',
