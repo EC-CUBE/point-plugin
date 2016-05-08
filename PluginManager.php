@@ -4,7 +4,6 @@ namespace Plugin\Point;
 
 use Eccube\Entity\PageLayout;
 use Eccube\Plugin\AbstractPluginManager;
-use Monolog\Logger;
 use Plugin\Point\Entity\PointInfo;
 
 /**
@@ -32,7 +31,6 @@ class PluginManager extends AbstractPluginManager
      */
     public function install($config, $app)
     {
-        $this->migrationSchema($app, __DIR__.'/Resource/doctrine/migration', $config['code']);
     }
 
     /**
@@ -52,18 +50,24 @@ class PluginManager extends AbstractPluginManager
      */
     public function enable($config, $app)
     {
+        $this->migrationSchema($app, __DIR__.'/Resource/doctrine/migration', $config['code']);
 
-        $PointInfo = new PointInfo();
-        $PointInfo
-            ->setPlgAddPointStatus(1)
-            ->setPlgBasicPointRate(1)
-            ->setPlgPointConversionRate(1)
-            ->setPlgRoundType(1)
-            ->setPlgCalculationType(1);
+        // ポイント基本設定のデフォルト値を登録
+        $PointInfo = $this->app['orm.em']
+            ->getRepository('Plugin\Point\Entity\PointInfo')
+            ->getLastInsertData();
+        if (is_null($PointInfo)) {
+            $PointInfo = new PointInfo();
+            $PointInfo
+                ->setPlgAddPointStatus(1)
+                ->setPlgBasicPointRate(1)
+                ->setPlgPointConversionRate(1)
+                ->setPlgRoundType(1)
+                ->setPlgCalculationType(1);
 
-        $this->app['orm.em']->persist($PointInfo);
-        $this->app['orm.em']->flush($PointInfo);
-
+            $this->app['orm.em']->persist($PointInfo);
+            $this->app['orm.em']->flush($PointInfo);
+        }
 
         // ページレイアウトにプラグイン使用時の値を代入
         $deviceType = $this->app['eccube.repository.master.device_type']->findOneById(10);
@@ -75,14 +79,8 @@ class PluginManager extends AbstractPluginManager
         $pageLayout->setMetaRobots('noindex');
         $pageLayout->setUrl('point_use');
         $pageLayout->setName('商品購入確認/利用ポイント');
-        try {
-            $this->app['orm.em']->persist($pageLayout);
-            $this->app['orm.em']->flush($pageLayout);
-        } catch (\Exception $e) {
-            $log = $e;
-            $this->app->log($log, array(), Logger::WARNING);
-            $app->addError('プラグインの有効化に失敗いたしました', 'admin');
-        }
+        $this->app['orm.em']->persist($pageLayout);
+        $this->app['orm.em']->flush($pageLayout);
     }
 
     /**
@@ -92,23 +90,11 @@ class PluginManager extends AbstractPluginManager
      */
     public function disable($config, $app)
     {
-        $qb = $this->app['db']->createQueryBuilder();
-        $qb->delete('plg_point_info');
-        $qb->execute();
-        // ログテーブルからポイントを計算
+        // ページ情報の削除
         $pageLayout = $this->app['eccube.repository.page_layout']->findByUrl('point_use');
-
-        // 重複登録対応
         foreach ($pageLayout as $deleteNode) {
-            $this->app['orm.em']->persist($deleteNode);
             $this->app['orm.em']->remove($deleteNode);
-        }
-        try {
-            $this->app['orm.em']->flush();
-        } catch (\Exception $e) {
-            $log = $e;
-            $this->app->log($log, array(), Logger::WARNING);
-            $app->addError('プラグインの無効化に失敗いたしました', 'admin');
+            $this->app['orm.em']->flush($deleteNode);
         }
     }
 

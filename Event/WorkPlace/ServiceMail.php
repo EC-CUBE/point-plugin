@@ -1,5 +1,13 @@
 <?php
-
+/*
+* This file is part of EC-CUBE
+*
+* Copyright(c) 2000-2016 LOCKON CO.,LTD. All Rights Reserved.
+* http://www.lockon.co.jp/
+*
+* For the full copyright and license information, please view the LICENSE
+* file that was distributed with this source code.
+*/
 
 namespace Plugin\Point\Event\WorkPlace;
 
@@ -46,7 +54,7 @@ class ServiceMail extends AbstractWorkPlace
         $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
 
         // 利用ポイントの取得と設定
-        $usePoint = $this->app['eccube.plugin.point.repository.point']->getLastAdjustUsePoint($order);
+        $usePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($order));
 
         $calculator->setUsePoint($usePoint);
         // 計算に必要なエンティティの設定

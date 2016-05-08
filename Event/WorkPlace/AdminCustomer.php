@@ -1,5 +1,13 @@
 <?php
-
+/*
+* This file is part of EC-CUBE
+*
+* Copyright(c) 2000-2016 LOCKON CO.,LTD. All Rights Reserved.
+* http://www.lockon.co.jp/
+*
+* For the full copyright and license information, please view the LICENSE
+* file that was distributed with this source code.
+*/
 
 namespace Plugin\Point\Event\WorkPlace;
 
@@ -116,26 +124,30 @@ class  AdminCustomer extends AbstractWorkPlace
         // ポイント付与保存処理
         $saveEntity = $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint($pointCurrent, $customer);
 
-        $lastCustomerPoint = $this->app['eccube.plugin.point.repository.point']->getLastManualPointByCustomer($customer);
-
-        // 手動設定ポイントのログ登録(戻し処理)
-        if(!empty($lastCustomerPoint)){
-            $this->app['eccube.plugin.point.history.service']->addEntity($customer);
-            $this->app['eccube.plugin.point.history.service']->saveManualpoint(abs($lastCustomerPoint) * -1);
-            $this->app['eccube.plugin.point.history.service']->refreshEntity();
-        }
+        // 現在の保持ポイントを減算して登録（ゼロリセットする）
+        $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
+            $customer->getId()
+        );
+        $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
+            $customer->getId(),
+            $orderIds
+        );
 
         $this->app['monolog.point.admin']->addInfo('save add point', array(
                 'customer_id' => $customer->getId(),
                 'status' => $status,
-                'current point' => $lastCustomerPoint,
+                'current point' => $calculateCurrentPoint,
                 'add point' => $pointCurrent,
             )
         );
 
-
         $this->app['eccube.plugin.point.history.service']->addEntity($customer);
-        $this->app['eccube.plugin.point.history.service']->saveManualpoint(abs($pointCurrent));
+        $this->app['eccube.plugin.point.history.service']->saveManualpoint($calculateCurrentPoint * -1);
+        $this->app['eccube.plugin.point.history.service']->refreshEntity();
+        
+        // 新しいポイントを登録
+        $this->app['eccube.plugin.point.history.service']->addEntity($customer);
+        $this->app['eccube.plugin.point.history.service']->saveManualpoint($pointCurrent);
 
         $point = array();
         $point['current'] = $pointCurrent;

@@ -1,5 +1,13 @@
 <?php
-
+/*
+* This file is part of EC-CUBE
+*
+* Copyright(c) 2000-2016 LOCKON CO.,LTD. All Rights Reserved.
+* http://www.lockon.co.jp/
+*
+* For the full copyright and license information, please view the LICENSE
+* file that was distributed with this source code.
+*/
 
 namespace Plugin\Point\Event\WorkPlace;
 
@@ -27,8 +35,6 @@ class  AdminOrder extends AbstractWorkPlace
     protected $pointType;
     /** @var */
     protected $targetOrder;
-    /** @var */
-    protected $calculateCurrentPoint;
     /** @var */
     protected $customer;
     /** @var */
@@ -83,12 +89,7 @@ class  AdminOrder extends AbstractWorkPlace
         // 初回のダミーエンティティにはカスタマー情報を含まない
         $lastUsePoint = 0;
         if (!empty($order) && !empty($hasCustomer)) {
-            $lastUsePoint = $this->app['eccube.plugin.point.repository.point']->getLastAdjustUsePoint($order);
-
-            // 初期値設定
-            if (empty($lastUsePoint)) {
-                $lastUsePoint = 0;
-            }
+            $lastUsePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($order));
         }
 
         // カスタマー保有ポイント取得
@@ -96,6 +97,8 @@ class  AdminOrder extends AbstractWorkPlace
             $hasPoint = $this->app['eccube.plugin.point.repository.pointcustomer']->getLastPointById(
                 $hasCustomer->getId()
             );
+            // 入力の上限になるので、保有ポイント+現在の利用ポイントを設定する
+            $hasPoint += $lastUsePoint;
         }
 
         // 0値設定
@@ -111,7 +114,7 @@ class  AdminOrder extends AbstractWorkPlace
                 'label' => '利用ポイント',
                 'required' => false,
                 'mapped' => false,
-                'data' => abs($lastUsePoint),
+                'data' => $lastUsePoint,
                 'empty_data' => null,
                 'attr' => array(
                     'placeholder' => '手動調整可能なカスタマーの利用ポイント',
@@ -184,11 +187,7 @@ class  AdminOrder extends AbstractWorkPlace
         $pointUse = new PointUse();
 
         // 手動調整ポイントを取得
-        $usePoint = $this->app['eccube.plugin.point.repository.point']->getLastAdjustUsePoint($order);
-
-        if (empty($usePoint)) {
-            $usePoint = 0;
-        }
+        $usePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($order));
 
         // 計算ヘルパー取得判定
         if (is_null($this->calculator)) {
@@ -298,26 +297,26 @@ class  AdminOrder extends AbstractWorkPlace
         if (!empty($this->targetOrder) && !empty($this->customer)) {
             $this->calculator->addEntity('Order', $this->targetOrder);
             $this->calculator->addEntity('Customer', $this->customer);
-            $addPoint = $this->calculator->getAddPointByOrder();
+            $newAddPoint = $this->calculator->getAddPointByOrder();
 
             // 付与ポイント有無確認
-            if (!empty($addPoint)) {
-                // 現在仮付与ポイント取得
-                $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getProvisionalAddPointByOrder(
+            if (!empty($newAddPoint)) {
+                // 更新前の付与ポイント取得
+                $beforeAddPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder(
                     $this->targetOrder
                 );
 
                 $this->app['monolog.point.admin']->addInfo('save add point', array(
                         'customer_id' => $this->customer->getId(),
                         'order_id' => $this->targetOrder->getId(),
-                        'provisional point' => $provisionalPoint,
-                        'add point' => $addPoint,
+                        'before point' => $beforeAddPoint,
+                        'add point' => $newAddPoint,
                     )
                 );
 
-                // 現在仮付与ポイントと保存済み付与ポイントに相違があった際はアップデート処理
-                if ($provisionalPoint != $addPoint) {
-                    $this->updateOrderEvent($addPoint, $provisionalPoint);
+                // 更新前の付与ポイントと新しい付与ポイントに相違があった際はアップデート処理
+                if ($beforeAddPoint != $newAddPoint) {
+                    $this->updateOrderEvent($newAddPoint, $beforeAddPoint);
                 }
             }
         }
@@ -328,7 +327,7 @@ class  AdminOrder extends AbstractWorkPlace
             $this->pointFixEvent($event);
         }
 
-        // 利用ポイント調整イベント
+        // 利用ポイントの更新
         $this->pointUseEvent($event);
 
 
@@ -336,75 +335,93 @@ class  AdminOrder extends AbstractWorkPlace
     }
 
     /**
-     * 受注編集で購入商品の構成が変更した際に以下処理を行う
-     *  - 前回付与ポイントの打ち消し
-     *  - 今回付与ポイントの仮付与
-     * @param $addPoint
-     * @param $provisionalPoint
-     * @return bool
+     * 受注削除
+     * @param EventArgs $event
      */
-    public function updateOrderEvent($addPoint, $provisionalPoint)
+    public function delete(EventArgs $event)
     {
 
         $this->app['monolog.point.admin']->addInfo('updateOrderEvent start');
 
+        // 必要情報をセット
+        $this->targetOrder = $event->getArgument('Order');
+        if (empty($this->targetOrder)) {
+            return;
+        }
+        $this->customer = $event->getArgument('Customer');
+        if (empty($this->customer)) {
+            return;
+        }
+
+        // ポイントステータスを削除にする
+        $this->history->deletePointStatus($this->targetOrder);
+
+        // 会員ポイントの再計算
+        $this->history->refreshEntity();
+        $this->history->addEntity($this->targetOrder);
+        $this->history->addEntity($this->customer);
+        $currentPoint = $this->calculateCurrentPoint();
+        $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
+            $currentPoint,
+            $this->customer
+        );
+
+        // SnapShot保存
+        $point = array();
+        $point['current'] = $currentPoint;
+        $point['use'] = 0;
+        $point['add'] = 0;
+        $this->saveAdjustUseOrderSnapShot($point);
+    }
+
+    /**
+     * 受注編集で購入商品の構成が変更した際に以下処理を行う
+     *  - 前回付与ポイントの打ち消し
+     *  - 今回付与ポイントの付与
+     * @param $newAddPoint
+     * @param $beforeAddPoint
+     * @return bool
+     */
+    public function updateOrderEvent($newAddPoint, $beforeAddPoint)
+    {
         // 引数判定
-        if (empty($addPoint)) {
+        if (empty($newAddPoint)) {
             return false;
         }
 
-        // 仮付与ポイントが空でなければ登録
-        if (!empty($provisionalPoint)) {
+        // 以前の加算ポイントをマイナスで相殺
+        if (!empty($beforeAddPoint)) {
             $this->history->addEntity($this->targetOrder);
             $this->history->addEntity($this->customer);
-            $this->history->saveProvisionalAddPoint(abs($provisionalPoint) * -1);
+            $this->history->saveAddPointByOrderEdit($beforeAddPoint * -1);
         }
-
-        // 本受注に対して最後に確定付与されたポイントを取得
-        $lastAddPoint = $this->app['eccube.plugin.point.repository.point']->getLastAddPointByOrder($this->targetOrder);
-
-        // 最後に確定付与されたポイントと今回付与ポイントが
-        // 同値であれば、リロードと判定
-        if ($lastAddPoint == $addPoint) {
-            return false;
-        }
-
-        // 最終確定付与ポイント打ち消し
-        if (!empty($lastAddPoint)) {
-            $this->history->refreshEntity();
-            $this->history->addEntity($this->targetOrder);
-            $this->history->addEntity($this->customer);
-            $this->history->cancelAddPoint(abs($lastAddPoint) * -1);
-        }
-
 
         $this->app['monolog.point.admin']->addInfo('updateOrderEvent add point', array(
                 'customer_id' => $this->customer->getId(),
                 'order_id' => $this->targetOrder->getId(),
-                'provisional point' => $provisionalPoint,
-                'add point' => $addPoint,
+                'before point' => $beforeAddPoint,
+                'add point' => $newAddPoint,
             )
         );
 
-        // 履歴保存
-        // 仮ポイントの保存
+        // 新しい加算ポイントの保存
         $this->history->refreshEntity();
         $this->history->addEntity($this->targetOrder);
         $this->history->addEntity($this->customer);
-        $this->history->saveProvisionalAddPoint(abs($addPoint));
+        $this->history->saveAddPointByOrderEdit($newAddPoint);
 
-        $point = array();
-        // 現在保有ポイント再計算
-        $this->refreshCurrentPoint();
-        $point['current'] = $this->calculateCurrentPoint;
-        $point['use'] = 0;
-        $point['add'] = $addPoint;
-
+        // 会員の保有ポイント保存
+        $currentPoint = $this->calculateCurrentPoint();
         $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
-            $this->calculateCurrentPoint,
+            $currentPoint,
             $this->customer
         );
 
+        // スナップショット保存
+        $point = array();
+        $point['current'] = $currentPoint;
+        $point['use'] = 0;
+        $point['add'] = $newAddPoint;
         $this->history->refreshEntity();
         $this->history->addEntity($this->targetOrder);
         $this->history->addEntity($this->customer);
@@ -422,150 +439,11 @@ class  AdminOrder extends AbstractWorkPlace
      */
     protected function pointFixEvent($event)
     {
-        // 本受注最終受注ポイントの種類を判定する
-        $fixFlg = $this->app['eccube.plugin.point.repository.point']->isLastProvisionalFix($this->targetOrder);
-
-        // 最終ポイントの種別が確定ポイントの場合は処理キャンセル
-        if ($fixFlg) {
+        // ポイントが確定ステータスなら何もしない
+        if ($this->app['eccube.plugin.point.repository.pointstatus']->isFixedStatus($this->targetOrder)) {
             return false;
         }
 
-        if (empty($event)) {
-            return false;
-        }
-
-        if (empty($this->targetOrder)) {
-            return false;
-        }
-
-        if (empty($this->customer)) {
-            return false;
-        }
-
-        // 仮付与ポイントがあるか確認
-        $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getProvisionalAddPointByOrder(
-            $this->targetOrder
-        );
-
-        if (empty($provisionalPoint)) {
-            return false;
-        }
-
-        // AdminOrder計算ヘルパーを使用
-        $this->calculator->addEntity('Order', $this->targetOrder);
-        $this->calculator->addEntity('Customer', $this->customer);
-
-        // 履歴保存
-        // 仮ポイントの保存
-        $this->saveFixOrderHistory($provisionalPoint);
-
-        $point = array();
-        // 現在保有ポイント再計算
-        $this->refreshCurrentPoint();
-        $point['current'] = $this->calculateCurrentPoint;
-        $point['use'] = 0;
-        $point['add'] = $provisionalPoint;
-
-        // SnapShot保存
-        $this->saveFixOrderSnapShot($point);
-    }
-
-    /**
-     * 本受注ログ最終利用ポイントと今回利用ポイントの相違確認
-     *  - 相違あり : 利用ポイント打ち消し更新
-     *  - 相違なし : 処理中止
-     * @param $event
-     * @return bool
-     */
-    protected function pointUseEvent($event)
-    {
-        // 最終利用ポイントの取得
-        $lastUsePoint = $this->app['eccube.plugin.point.repository.point']->getLastAdjustUsePoint($this->targetOrder);
-
-        // 最終利用ポイント確認
-        if (empty($lastUsePoint)) {
-            $lastUsePoint = 0;
-        }
-
-        // 最終利用ポイントと現在利用ポイントが同じであれば処理をキャンセル
-        if ($this->isSameUsePoint($lastUsePoint)) {
-            return false;
-        }
-
-
-        // 現在利用ポイントを設定
-        $calculateUsePoint = $lastUsePoint - $this->usePoint;
-        $calculateUsePoint = $calculateUsePoint * -1;
-
-        // 計算に必要なエンティティをセット
-        $this->calculator->addEntity('Order', $this->targetOrder);
-        $this->calculator->addEntity('Customer', $this->customer);
-        // 計算使用値は絶対値
-        $this->calculator->setUsePoint($this->usePoint);
-
-        // 付与ポイント取得
-        $addPoint = $this->calculator->getAddPointByOrder();
-
-        // 履歴保存
-        // 戻し
-        $this->history->addEntity($this->targetOrder);
-        $this->history->addEntity($this->customer);
-        // 戻しは以前のポイント
-        $this->history->saveUsePointAdjustOrderHistory(abs($lastUsePoint));
-        // 入力
-        $this->history->refreshEntity();
-        $this->history->addEntity($this->targetOrder);
-        $this->history->addEntity($this->customer);
-        $this->history->saveUsePointAdjustOrderHistory(abs($this->usePoint) * -1);
-
-        // 現在保有ポイント再計算
-        $this->refreshCurrentPoint();
-        // 現在保有ポイント取得
-        $currentPoint = $this->calculateCurrentPoint;
-        if (empty($currentPoint)) {
-            $currentPoint = 0;
-        }
-
-        $point = array();
-        // 現在ポイントをログから再計算
-        $point['current'] = $currentPoint;
-        $point['use'] = $calculateUsePoint;
-        // 計算付与ポイント
-        $point['add'] = $addPoint;
-
-        $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
-            $currentPoint,
-            $this->customer
-        );
-
-        // SnapShot保存
-        $this->saveAdjustUseOrderSnapShot($point);
-    }
-
-    /**
-     * 本受注ログ最終利用ポイントと今回利用ポイントを判定
-     *  - true 同一
-     *  - false 相違
-     * @param $lastUse
-     * @return bool
-     */
-    protected function isSameUsePoint($lastUse)
-    {
-        // 必要値判定
-        if ($lastUse == $this->usePoint) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * ポイント確定情報の保存
-     * @param $provisionalPoint
-     * @return bool
-     */
-    protected function saveFixOrderHistory($provisionalPoint)
-    {
         // 必要エンティティ判定
         if (empty($this->targetOrder)) {
             return false;
@@ -575,28 +453,88 @@ class  AdminOrder extends AbstractWorkPlace
             return false;
         }
 
-        if (empty($provisionalPoint)) {
-            return false;
+        // ポイントを確定ステータスにする
+        $this->fixPointStatus();
+
+        // 会員の保有ポイント更新
+        $currentPoint = $this->calculateCurrentPoint();
+        $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
+            $currentPoint,
+            $this->customer
+        );
+
+        // SnapShot保存
+        $fixedAddPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder(
+            $this->targetOrder
+        );
+        $point = array();
+        $point['current'] = $currentPoint;
+        $point['use'] = 0;
+        $point['add'] = $fixedAddPoint;
+        $this->saveFixOrderSnapShot($point);
+    }
+
+    /**
+     * 受注の利用ポイントを新しい利用ポイントに更新する
+     *  - 相違あり : 利用ポイント打ち消し、更新
+     *  - 相違なし : なにもしない
+     * @param $event
+     * @return bool
+     */
+    protected function pointUseEvent($event)
+    {
+        // 更新前の利用ポイントの取得
+        $beforeUsePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($this->targetOrder));
+        // 更新前の利用ポイントと新しい利用ポイントが同じであれば処理をキャンセル
+        if ($this->usePoint == $beforeUsePoint) {
+            return;
         }
 
-        // 履歴情報登録
-        // 仮付与ポイント打ち消し
+        // 計算に必要なエンティティをセット
+        $this->calculator->addEntity('Order', $this->targetOrder);
+        $this->calculator->addEntity('Customer', $this->customer);
+        // 計算使用値は絶対値
+        $this->calculator->setUsePoint($this->usePoint);
+
+        // 履歴保存
+        // 更新前の利用ポイントを加算して相殺
         $this->history->addEntity($this->targetOrder);
         $this->history->addEntity($this->customer);
-        $this->history->fixProvisionalAddPoint($provisionalPoint);
-        // ポイント付与
+        $this->history->saveUsePointByOrderEdit($beforeUsePoint);
+        // 新しい利用ポイントをマイナス
         $this->history->refreshEntity();
         $this->history->addEntity($this->targetOrder);
         $this->history->addEntity($this->customer);
-        $this->history->saveFixProvisionalAddPoint($provisionalPoint);
+        $this->history->saveUsePointByOrderEdit($this->usePoint * -1);
 
-        // 会員ポイント更新
-        // 現在ポイントを履歴から計算
-        $this->refreshCurrentPoint();
+        // 会員ポイントの更新
+        $currentPoint = $this->calculateCurrentPoint();
         $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
-            $this->calculateCurrentPoint,
+            $currentPoint,
             $this->customer
         );
+
+        // SnapShot保存
+        $point = array();
+        $point['current'] = $currentPoint;
+        $point['use'] = ($beforeUsePoint - $this->usePoint) * -1;
+        $point['add'] = $this->calculator->getAddPointByOrder();
+        $this->saveAdjustUseOrderSnapShot($point);
+    }
+
+    /**
+     * 付与ポイントを「確定」に変更する
+     */
+    protected function fixPointStatus()
+    {
+        // 必要エンティティ判定
+        if (empty($this->targetOrder)) {
+            return;
+        }
+
+        // ポイントを確定状態にする
+        $this->history->addEntity($this->targetOrder);
+        $this->history->fixPointStatus();
     }
 
     /**
@@ -647,11 +585,22 @@ class  AdminOrder extends AbstractWorkPlace
 
     /**
      * 現在保有ポイントをログから再計算
+     * @return int 保有ポイント
      */
-    protected function refreshCurrentPoint()
+    protected function calculateCurrentPoint()
     {
-        $this->calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->getCalculateCurrentPointByCustomerId(
+        $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
             $this->customer->getId()
         );
+        $currentPoint = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
+            $this->customer->getId(),
+            $orderIds
+        );
+
+        if ($currentPoint < 0) {
+            // TODO: ポイントがマイナス！
+        }
+
+        return $currentPoint;
     }
 }

@@ -1,5 +1,13 @@
 <?php
-
+/*
+* This file is part of EC-CUBE
+*
+* Copyright(c) 2000-2016 LOCKON CO.,LTD. All Rights Reserved.
+* http://www.lockon.co.jp/
+*
+* For the full copyright and license information, please view the LICENSE
+* file that was distributed with this source code.
+*/
 namespace Plugin\Point\Controller;
 
 use Eccube\Application;
@@ -12,6 +20,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * ポイント設定画面用コントローラー
  * Class FrontPointController
+ *
  * @package Plugin\Point\Controller
  */
 class FrontPointController
@@ -29,6 +38,7 @@ class FrontPointController
 
     /**
      * 利用ポイント入力画面
+     *
      * @param Application $app
      * @param Request $request
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
@@ -62,10 +72,7 @@ class FrontPointController
         }
 
         // 最終仮利用ポイントがあるかどうかの判定
-        $lastPreUsePoint = $this->app['eccube.plugin.point.repository.point']->getLastPreUsePoint($Order);
-        if (empty($lastPreUsePoint)) {
-            $lastPreUsePoint = 0;
-        }
+        $lastPreUsePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($Order));
 
         // 計算用ヘルパー呼び出し
         $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
@@ -96,7 +103,7 @@ class FrontPointController
         if (empty($pointInfo)) {
             return false;
         }
-        $pointRate = $pointInfo->getPlgBasicPointRate();
+        $pointRate = $pointInfo->getPlgPointConversionRate();
         if (empty($pointInfo)) {
             return false;
         }
@@ -158,7 +165,7 @@ class FrontPointController
             );
 
             // 最終保存ポイントと現在ポイントに相違があれば利用ポイント保存
-            if (abs($lastPreUsePoint) != abs($usePoint)) {
+            if ($lastPreUsePoint != $usePoint) {
                 if ($calculator->setDiscount($lastPreUsePoint)) {
                     $newOrder = $calculator->getEntity('Order');
                     // 値引き計算後のオーダーが返却
@@ -170,18 +177,26 @@ class FrontPointController
                     if (!empty($lastPreUsePoint)) {
                         $this->app['eccube.plugin.point.history.service']->addEntity($Order);
                         $this->app['eccube.plugin.point.history.service']->addEntity($Order->getCustomer());
-                        $this->app['eccube.plugin.point.history.service']->savePreUsePoint(abs($lastPreUsePoint));
+                        $this->app['eccube.plugin.point.history.service']->savePreUsePoint($lastPreUsePoint);
                     }
                     // ユーザー入力値保存
                     $this->app['eccube.plugin.point.history.service']->refreshEntity();
                     $this->app['eccube.plugin.point.history.service']->addEntity($Order);
                     $this->app['eccube.plugin.point.history.service']->addEntity($Order->getCustomer());
-                    $this->app['eccube.plugin.point.history.service']->savePreUsePoint(abs($usePoint) * -1);
+                    $this->app['eccube.plugin.point.history.service']->savePreUsePoint($usePoint * -1);
 
                     // 現在ポイントを履歴から計算
-                    $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->getCalculateCurrentPointByCustomerId(
+                    $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
                         $Order->getCustomer()->getId()
                     );
+                    $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
+                        $Order->getCustomer()->getId(),
+                        $orderIds
+                    );
+
+                    if ($calculateCurrentPoint < 0) {
+                        // TODO: ポイントがマイナス！
+                    }
 
                     // 会員ポイント更新
                     $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(

@@ -1,14 +1,17 @@
 <?php
 
-
+/*
+* This file is part of EC-CUBE
+*
+* Copyright(c) 2000-2016 LOCKON CO.,LTD. All Rights Reserved.
+* http://www.lockon.co.jp/
+*
+* For the full copyright and license information, please view the LICENSE
+* file that was distributed with this source code.
+*/
 namespace Plugin\Point\Event\WorkPlace;
 
-use Eccube\Event\EventArgs;
 use Eccube\Event\TemplateEvent;
-use Symfony\Component\Form\FormBuilder;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -47,7 +50,7 @@ class FrontHistory extends AbstractWorkPlace
         }
 
         // 利用ポイントの取得と設定
-        $usePoint = $this->app['eccube.plugin.point.repository.point']->getLastAdjustUsePoint($parameters['Order']);
+        $usePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($parameters['Order']));
 
         // 計算に必要なエンティティを登録
         $calculator->addEntity('Order', $parameters['Order']);

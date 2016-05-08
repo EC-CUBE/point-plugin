@@ -15,8 +15,6 @@ Plugin\Point\Entity\PointProductRate:
             type: integer
             nullable: false
             unsigned: false
-            options:
-                default: 0
         plg_point_product_rate:
             type: integer
             nullable: true

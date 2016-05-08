@@ -1,9 +1,17 @@
 <?php
 
-
+/*
+* This file is part of EC-CUBE
+*
+* Copyright(c) 2000-2016 LOCKON CO.,LTD. All Rights Reserved.
+* http://www.lockon.co.jp/
+*
+* For the full copyright and license information, please view the LICENSE
+* file that was distributed with this source code.
+*/
 namespace Plugin\Point\Helper\EventRoutineWorksHelper;
 
-use \Eccube\Event\EventArgs;
+use Eccube\Event\EventArgs;
 use Eccube\Event\TemplateEvent;
 use Plugin\Point\Event\WorkPlace\AbstractWorkPlace;
 use Symfony\Component\Form\FormBuilder;
@@ -69,5 +77,14 @@ class EventRoutineWorksHelper
     public function save(EventArgs $event)
     {
         $this->place->save($event);
+    }
+
+    /**
+     * 受注削除拡張
+     * @param EventArgs $event
+     */
+    public function delete(EventArgs $event)
+    {
+        $this->place->delete($event);
     }
 }

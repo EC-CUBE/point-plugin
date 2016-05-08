@@ -1,5 +1,13 @@
 <?php
-
+/*
+* This file is part of EC-CUBE
+*
+* Copyright(c) 2000-2016 LOCKON CO.,LTD. All Rights Reserved.
+* http://www.lockon.co.jp/
+*
+* For the full copyright and license information, please view the LICENSE
+* file that was distributed with this source code.
+*/
 namespace Plugin\Point\ServiceProvider;
 
 use Eccube\Application;
@@ -54,6 +62,13 @@ class PointServiceProvider implements ServiceProviderInterface
         $app['eccube.plugin.point.repository.point'] = $app->share(
             function () use ($app) {
                 return $app['orm.em']->getRepository('Plugin\Point\Entity\Point');
+            }
+        );
+
+        /** ポイントステータステーブル用リポジトリ */
+        $app['eccube.plugin.point.repository.pointstatus'] = $app->share(
+            function () use ($app) {
+                return $app['orm.em']->getRepository('Plugin\Point\Entity\PointStatus');
             }
         );
 
