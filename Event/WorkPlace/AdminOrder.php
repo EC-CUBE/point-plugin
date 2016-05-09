@@ -67,15 +67,9 @@ class  AdminOrder extends AbstractWorkPlace
      */
     public function createForm(FormBuilder $builder, Request $request, EventArgs $event = null)
     {
-        $builder = $event->getArgument('builder');
+        $builder = $this->buildForm($event->getArgument('builder'));
         $Order = $event->getArgument('TargetOrder');
         $Customer = $Order->getCustomer();
-
-        $currentPoint = 0;
-        $usePoint = 0;
-        $addPoint = 0;
-
-        $builder = $this->buildForm($builder);
 
         // 非会員受注の場合は制御を行わない.
         if (!$Customer instanceof Customer) {
@@ -84,7 +78,8 @@ class  AdminOrder extends AbstractWorkPlace
 
         $currentPoint = $this->calculateCurrentPoint($Order, $Customer);
         $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($Order);
-        $usePoint = -($usePoint);
+        $usePoint = $usePoint * -1;
+        $addPoint = 0;
 
         // 受注編集時
         if ($Order->getId()) {
@@ -272,6 +267,10 @@ class  AdminOrder extends AbstractWorkPlace
         if (!$Customer instanceof Customer) {
             return;
         }
+
+        // 該当受注の利用ポイントを0で更新する.
+        $this->updateUsePoint($Order, $Customer, 0);
+
         // ポイントステータスを削除にする
         $this->history->deletePointStatus($Order);
 
@@ -376,7 +375,8 @@ class  AdminOrder extends AbstractWorkPlace
     protected function updateUsePoint(Order $Order, Customer $Customer, $usePoint)
     {
         // 更新前の利用ポイントの取得
-        $beforeUsePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($Order));
+        $beforeUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($Order);
+        $beforeUsePoint = $beforeUsePoint * -1;
         // 更新前の利用ポイントと新しい利用ポイントが同じであれば処理をキャンセル
         if ($usePoint == $beforeUsePoint) {
             return;
