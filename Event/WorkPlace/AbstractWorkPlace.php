@@ -42,7 +42,7 @@ abstract class AbstractWorkPlace
      * @param Request $request
      * @return mixed
      */
-    public function createForm(FormBuilder $builder, Request $request){
+    public function createForm(FormBuilder $builder, Request $request, EventArgs $event = null){
         throw new MethodNotAllowedException();
     }
 
