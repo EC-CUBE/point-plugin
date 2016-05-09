@@ -14,8 +14,6 @@ admin.customer.edit.index.complete:
 ## 管理画面 > 受注登録 (編集) > 利用ポイントフォーム生成
 admin.order.edit.index.initialize:
     - [onAdminOrderEditIndexInitialize, NORMAL]
-admin.order.edit.index.progress:
-    - [onAdminOrderEditIndexProgress, NORMAL]
 admin.order.edit.index.complete:
     - [onAdminOrderEditIndexComplete, NORMAL]
 

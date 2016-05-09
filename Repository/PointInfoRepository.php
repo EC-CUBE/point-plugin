@@ -42,18 +42,11 @@ class PointInfoRepository extends EntityRepository
      * @return bool
      * @throws NoResultException
      */
-    public function save(\Plugin\Point\Entity\PointInfo $pointInfo)
+    public function save(\Plugin\Point\Entity\PointInfo $PointInfo)
     {
-        try {
-            //保存処理(登録)
-            $em = $this->getEntityManager();
-            $em->persist($pointInfo);
-            $em->flush();
-
-            return true;
-        } catch (NoResultException $e) {
-            throw new NoResultException();
-        }
+        $em = $this->getEntityManager();
+        $em->persist($PointInfo);
+        $em->flush($PointInfo);
     }
 
     /**
@@ -64,20 +57,13 @@ class PointInfoRepository extends EntityRepository
     public function getLastInsertData()
     {
         try {
-            // アソシエーションデータを含む最終データ取得のために親データの最終IDを取得
             $qb = $this->createQueryBuilder('pi')
-                ->orderBy('pi.create_date', 'DESC')
+                ->orderBy('pi.plg_point_info_id', 'DESC')
                 ->setMaxResults(1);
 
+            $PointInfo = $qb->getQuery()->getSingleResult();
 
-            $result = $qb->getQuery()->getOneOrNullResult();
-
-            // エラー判定
-            if (is_null($result)) {
-                return null;
-            }
-
-            return $result;
+            return $PointInfo;
         } catch (NoResultException $e) {
             return null;
         }
