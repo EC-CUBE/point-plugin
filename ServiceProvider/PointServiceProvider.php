@@ -80,13 +80,6 @@ class PointServiceProvider implements ServiceProviderInterface
             }
         );
 
-        /** ポイント付与タイミング受注ステータス保存テーブル用リポジトリ */
-        $app['eccube.plugin.point.repository.pointinfo.addstatus'] = $app->share(
-            function () use ($app) {
-                return $app['orm.em']->getRepository('Plugin\Point\Entity\PointInfoAddStatus');
-            }
-        );
-
         /** ポイント会員情報テーブル */
         $app['eccube.plugin.point.repository.pointcustomer'] = $app->share(
             function () use ($app) {
@@ -126,7 +119,7 @@ class PointServiceProvider implements ServiceProviderInterface
                 'config',
                 function ($config) {
                     $addNavi['id'] = "point_info";
-                    $addNavi['name'] = "ポイント管理";
+                    $addNavi['name'] = "ポイント設定";
                     $addNavi['url'] = "point_info";
                     $nav = $config['nav'];
                     foreach ($nav as $key => $val) {
