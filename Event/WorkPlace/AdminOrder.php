@@ -1,21 +1,15 @@
 <?php
-/*
-* This file is part of EC-CUBE
-*
-* Copyright(c) 2000-2016 LOCKON CO.,LTD. All Rights Reserved.
-* http://www.lockon.co.jp/
-*
-* For the full copyright and license information, please view the LICENSE
-* file that was distributed with this source code.
-*/
+
 
 namespace Plugin\Point\Event\WorkPlace;
 
+use Eccube\Entity\Customer;
 use Eccube\Event\EventArgs;
 use Eccube\Event\TemplateEvent;
-use Plugin\Point\Entity\PointUse;
 use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -31,8 +25,7 @@ class  AdminOrder extends AbstractWorkPlace
 {
     /** @var */
     protected $pointInfo;
-    /** @var */
-    protected $pointType;
+
     /** @var */
     protected $targetOrder;
     /** @var */
@@ -50,211 +43,173 @@ class  AdminOrder extends AbstractWorkPlace
     public function __construct()
     {
         parent::__construct();
+
         // 履歴管理ヘルパーセット
         $this->history = $this->app['eccube.plugin.point.history.service'];
 
         // ポイント情報基本設定をセット
         $this->pointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
-        if (empty($this->pointInfo)) {
-            return false;
-        }
-
-        // 計算方法を取得
-        $this->pointType = $this->pointInfo->getPlgCalculationType();
 
         // 計算ヘルパー取得
         $this->calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
     }
 
     /**
-     * フォームを拡張
-     *  -   利用ポイント項目を追加
-     *  -   追加項目の位置はTwig拡張で配備
+     * 受注登録・編集
+     *
      * @param FormBuilder $builder
      * @param Request $request
-     * @return bool
+     * @param EventArgs|null $event
      */
-    public function createForm(FormBuilder $builder, Request $request)
+    public function createForm(FormBuilder $builder, Request $request, EventArgs $event = null)
     {
-        // オーダーエンティティを取得
-        $order = $builder->getData();
+        $builder = $event->getArgument('builder');
+        $Order = $event->getArgument('TargetOrder');
+        $Customer = $Order->getCustomer();
 
-        if (empty($order) || !preg_match('/Order/', get_class($order))) {
-            return false;
+        $currentPoint = null;
+        $usePoint = null;
+        $addPoint = null;
+
+        $builder = $this->buildForm($builder);
+
+        // 非会員受注の場合は制御を行わない.
+        if (!$Customer instanceof Customer) {
+            return;
         }
 
-        $hasCustomer = $order->getCustomer();
+        $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
+            $Customer->getId()
+        );
+        $currentPoint = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
+            $Customer->getId(),
+            $orderIds
+        );
+        $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($Order);
+        $usePoint = - ($usePoint);
 
-        // 初期値・取得値設定処理
-        // 初回のダミーエンティティにはカスタマー情報を含まない
-        $lastUsePoint = 0;
-        if (!empty($order) && !empty($hasCustomer)) {
-            $lastUsePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($order));
-        }
+        // 受注編集時
+        if ($Order->getId()) {
+            $addPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder($Order);
 
-        // カスタマー保有ポイント取得
-        if (!empty($hasCustomer)) {
-            $hasPoint = $this->app['eccube.plugin.point.repository.pointcustomer']->getLastPointById(
-                $hasCustomer->getId()
+            // 確定ステータスの場合
+            if ($this->app['eccube.plugin.point.repository.pointstatus']->isFixedStatus($Order)) {
+                $builder->addEventListener(
+                    FormEvents::POST_SUBMIT,
+                    function (FormEvent $event) use ($currentPoint, $usePoint, $addPoint) {
+                        $form = $event->getForm();
+                        $recalcCurrentPoint = $currentPoint + $usePoint - $addPoint;
+                        $inputUsePoint = $form['plg_use_point']->getData();
+                        $inputAddPoint = $form['plg_add_point']->getData();
+                        if ($inputUsePoint > $recalcCurrentPoint + $inputAddPoint) {
+                            $error = new FormError('保有ポイント以内になるよう調整してください');
+                            $form['plg_use_point']->addError($error);
+                            $form['plg_add_point']->addError($error);
+                        }
+                    }
+                );
+            // 非確定ステータスの場合
+            } else {
+                $builder->addEventListener(
+                    FormEvents::POST_SUBMIT,
+                    function (FormEvent $event) use ($currentPoint) {
+                        $form = $event->getForm();
+                        $inputUsePoint = $form['plg_use_point']->getData();
+                        if ($inputUsePoint > $currentPoint) {
+                            $error = new FormError('保有ポイント以内で入力してください');
+                            $form['plg_use_point']->addError($error);
+                        }
+                    }
+                );
+            }
+        // 新規受注登録
+        } else {
+            $builder->addEventListener(
+                FormEvents::POST_SUBMIT,
+                function (FormEvent $event) use ($currentPoint) {
+                    $form = $event->getForm();
+                    $inputUsePoint = $form['plg_use_point']->getData();
+                    if ($inputUsePoint > $currentPoint) {
+                        $error = new FormError('保有ポイント以内で入力してください');
+                        $form['plg_use_point']->addError($error);
+                    }
+                }
             );
-            // 入力の上限になるので、保有ポイント+現在の利用ポイントを設定する
-            $hasPoint += $lastUsePoint;
         }
 
-        // 0値設定
-        if (!isset($hasPoint) && empty($hasPoint)) {
-            $hasPoint = 0;
-        }
+        $builder->get('plg_use_point')->setData($usePoint);
+        $builder->get('plg_add_point')->setData($addPoint);
+    }
 
-        // ポイント付与率項目拡張
+    protected function buildForm($builder)
+    {
         $builder->add(
             'plg_use_point',
-            'text',
+            'integer',
             array(
                 'label' => '利用ポイント',
                 'required' => false,
                 'mapped' => false,
-                'data' => $lastUsePoint,
-                'empty_data' => null,
                 'attr' => array(
-                    'placeholder' => '手動調整可能なカスタマーの利用ポイント',
                     'class' => 'form-control',
                 ),
                 'constraints' => array(
-                    new Assert\Regex(
-                        array(
-                            'pattern' => "/^\d+?$/u",
-                            'message' => '数字で入力してください。',
-                        )
-                    ),
-                    new Assert\LessThanOrEqual(
-                        array(
-                            'value' => $hasPoint,
-                            'message' => '利用ポイントは保有ポイント以内で入力してください。',
-                        )
-                    ),
-                    new Assert\Range(
-                        array(
-                            'min' => 0,
-                            'max' => 100000,
-                        )
-                    ),
+                    new Assert\GreaterThanOrEqual(array('value' => 0)),
+                ),
+            )
+        )->add(
+            'plg_add_point',
+            'integer',
+            array(
+                'label' => '加算ポイント',
+                'required' => false,
+                'mapped' => false,
+                'attr' => array(
+                    'class' => 'form-control',
+                ),
+                'constraints' => array(
+                    new Assert\GreaterThanOrEqual(array('value' => 0)),
                 ),
             )
         );
+
+        return $builder;
     }
 
     /**
      * Twigの拡張
      *  - フォーム追加項目を挿入
      * @param TemplateEvent $event
-     * @return bool
      */
     public function createTwig(TemplateEvent $event)
     {
-        // ポイント情報基本設定確認
-        if (empty($this->pointInfo)) {
-            return false;
+        $parameters = $event->getParameters();
+
+        $Order = $parameters['Order'];
+        $Customer = $Order->getCustomer();
+
+        // 新規受注登録時、会員情報が設定されていない場合はポイント関連の情報は表示しない.
+        if (!$Customer instanceof Customer) {
+            return;
         }
 
-        // オーダーエンティティを取得
-        $args = $event->getParameters();
-        // オーダーが取得判定
-        if (!isset($args['Order'])) {
-            return false;
-        }
-
-        // フォームの有無を判定
-        if (!isset($args['form'])) {
-            return false;
-        }
-
-        $order = $args['Order'];
-
-        // 商品が一点もない際は、ポイント利用欄を表示しない
-        if (count($order->getOrderDetails()) < 1) {
-            $args['form']->children['plg_use_point']->vars['block_prefixes'][1] = 'hidden';
-        }
-
-        $hasCustomer = $order->getCustomer();
-
-        // 初回アクセスのダミーエンティティではカスタマー情報は含まない
-        if (empty($hasCustomer)) {
-            return false;
-        }
-
-        // 利用ポイントをエンティティにセット
-        $pointUse = new PointUse();
-
-        // 手動調整ポイントを取得
-        $usePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($order));
-
-        // 計算ヘルパー取得判定
-        if (is_null($this->calculator)) {
-            return true;
-        }
-
-        // 計算に必要なエンティティを登録
-        $this->calculator->addEntity('Order', $order);
-        $this->calculator->addEntity('Customer', $order->getCustomer());
-        $this->calculator->setUsePoint($usePoint);
-
-        // 合計金額がマイナスかどうかを判定
-        $errorFlg = false;
-        if (!$this->app['eccube.service.shopping']->isDiscount($order, $this->calculator->getConversionPoint())) {
-            $errorFlg = true;
-        }
-
-        // 利用ポイントを格納
-        $pointUse->setPlgUsePoint($usePoint);
-
-        // ポイント基本設定の確認
-        if (empty($this->pointInfo)) {
-            return false;
-        }
-
-        // 付与ポイント取得
-        $addPoint = $this->calculator->getAddPointByOrder();
-
-        // 付与ポイント取得可否判定
-        if (is_null($addPoint)) {
-            return true;
-        }
-
-        // 現在保有ポイント取得
-        $currentPoint = $this->calculator->getPoint();
-
-        //保有ポイント取得可否判定
-        if (is_null($currentPoint)) {
-            $currentPoint = 0;
-        }
-
-        // ポイント表示用変数作成
-        $point = array();
-        $point['current'] = $currentPoint;
-        $point['use'] = $usePoint;
-        $point['add'] = $addPoint;
-
-        $form = $args['form'];
-
-
-        // 合計金額エラー判定
-        $errors = array();
-        if ($errorFlg) {
-            $form['plg_use_point']->vars['errors'] = new FormError('計算でマイナス値が発生します。入力を確認してください。');
-        }
-
-        // twigパラメータにポイント情報を追加
-        // 受注商品情報に受注ポイント情報を表示
-        $snippet = $this->app->render(
+        $snippet = $this->app->renderView(
             'Point/Resource/template/admin/Event/AdminOrder/order_point.twig',
             array(
-                'form' => $args['form'],
-                'point' => $point,
+                'form' => $parameters['form'],
             )
-        )->getContent();
+        );
         $search = '<dl id="product_info_result_box__body_summary"';
         $this->replaceView($event, $snippet, $search);
+
+        // TODO 保有ポイントの表示処理
+        $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
+            $Customer->getId()
+        );
+        $currentPoint = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
+            $Customer->getId(),
+            $orderIds
+        );
     }
 
     /**
@@ -264,19 +219,7 @@ class  AdminOrder extends AbstractWorkPlace
      */
     public function save(EventArgs $event)
     {
-
-        $this->app['monolog.point.admin']->addInfo('save start');
-
-        // 必要情報をセット
         $this->targetOrder = $event->getArgument('TargetOrder');
-
-        if (empty($this->targetOrder)) {
-            return false;
-        }
-
-        if (!$event->hasArgument('form')) {
-            return false;
-        }
 
         if ($event->getArgument('form')->has('plg_use_point')) {
             $this->usePoint = $event->getArgument('form')->get('plg_use_point')->getData();
@@ -306,14 +249,6 @@ class  AdminOrder extends AbstractWorkPlace
                     $this->targetOrder
                 );
 
-                $this->app['monolog.point.admin']->addInfo('save add point', array(
-                        'customer_id' => $this->customer->getId(),
-                        'order_id' => $this->targetOrder->getId(),
-                        'before point' => $beforeAddPoint,
-                        'add point' => $newAddPoint,
-                    )
-                );
-
                 // 更新前の付与ポイントと新しい付与ポイントに相違があった際はアップデート処理
                 if ($beforeAddPoint != $newAddPoint) {
                     $this->updateOrderEvent($newAddPoint, $beforeAddPoint);
@@ -329,9 +264,6 @@ class  AdminOrder extends AbstractWorkPlace
 
         // 利用ポイントの更新
         $this->pointUseEvent($event);
-
-
-        $this->app['monolog.point.admin']->addInfo('save end');
     }
 
     /**
@@ -340,9 +272,6 @@ class  AdminOrder extends AbstractWorkPlace
      */
     public function delete(EventArgs $event)
     {
-
-        $this->app['monolog.point.admin']->addInfo('updateOrderEvent start');
-
         // 必要情報をセット
         $this->targetOrder = $event->getArgument('Order');
         if (empty($this->targetOrder)) {
@@ -396,14 +325,6 @@ class  AdminOrder extends AbstractWorkPlace
             $this->history->saveAddPointByOrderEdit($beforeAddPoint * -1);
         }
 
-        $this->app['monolog.point.admin']->addInfo('updateOrderEvent add point', array(
-                'customer_id' => $this->customer->getId(),
-                'order_id' => $this->targetOrder->getId(),
-                'before point' => $beforeAddPoint,
-                'add point' => $newAddPoint,
-            )
-        );
-
         // 新しい加算ポイントの保存
         $this->history->refreshEntity();
         $this->history->addEntity($this->targetOrder);
@@ -426,9 +347,6 @@ class  AdminOrder extends AbstractWorkPlace
         $this->history->addEntity($this->targetOrder);
         $this->history->addEntity($this->customer);
         $this->history->saveSnapShot($point);
-
-        $this->app['monolog.point.admin']->addInfo('updateOrderEvent end');
-
     }
 
     /**

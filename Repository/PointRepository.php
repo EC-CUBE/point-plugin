@@ -13,6 +13,7 @@ namespace Plugin\Point\Repository;
 
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
+use Eccube\Entity\Customer;
 use Eccube\Entity\Master\OrderStatus;
 use Eccube\Entity\Order;
 use Plugin\Point\Helper\PointHistoryHelper\PointHistoryHelper;
@@ -129,32 +130,29 @@ class PointRepository extends EntityRepository
      * @param Order $order
      * @return int 利用ポイント
      */
-    public function getLatestUsePoint(Order $order)
+    public function getLatestUsePoint(Order $Order)
     {
-        $customer = $order->getCustomer();
-        if (empty($customer)) {
+        $Customer = $Order->getCustomer();
+
+        if (!$Customer instanceof Customer) {
             return 0;
         }
+
         try {
             // 履歴情報をもとに現在利用ポイントを計算し取得
             $qb = $this->createQueryBuilder('p')
-                //->addSelect('o')
                 ->where('p.customer_id = :customerId')
                 ->andWhere('p.order_id = :orderId')
                 ->andWhere('p.plg_point_type = :pointType')
-                ->setParameter('customerId', $order->getCustomer()->getId())
-                ->setParameter('orderId', $order->getId())
+                ->setParameter('customerId', $Customer->getId())
+                ->setParameter('orderId', $Order->getId())
                 ->setParameter('pointType', PointHistoryHelper::STATE_USE)
                 ->orderBy('p.plg_point_id', 'desc')
                 ->setMaxResults(1);
-            $max_use_point = $qb->getQuery()->getResult();
 
-            // 取得値判定
-            if (count($max_use_point) < 1) {
-                return 0;
-            }
+            $Point = $qb->getQuery()->getSingleResult();
 
-            return $max_use_point[0]->getPlgDynamicPoint();
+            return $Point->getPlgDynamicPoint();
         } catch (NoResultException $e) {
             return 0;
         }

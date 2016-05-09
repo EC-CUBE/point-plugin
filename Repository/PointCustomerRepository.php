@@ -1,5 +1,4 @@
 <?php
-
 /*
 * This file is part of EC-CUBE
 *
@@ -73,9 +72,10 @@ class PointCustomerRepository extends EntityRepository
     }
 
     /**
-     * 会員IDをもとに一番最後に保存した保有ポイントを取得
-     * @param $customerId
-     * @return null
+     * 会員IDをもとに一番最後に保存した保有ポイントを取得.
+     *
+     * @param $customerId 会員ID
+     * @return null|integer
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function getLastPointById($customerId)
@@ -87,32 +87,17 @@ class PointCustomerRepository extends EntityRepository
 
         try {
             // 会員IDをもとに最終保存の保有ポイントを取得
-            $qb = $this->createLastPointBaseQuery();
+            $qb = $this->createQueryBuilder('pc');
             $qb->where('pc.customer_id = :customerId')
                 ->setParameter('customerId', $customerId)
-                ->orderBy('pc.create_date', 'desc')
+                ->orderBy('pc.plg_point_customer_id', 'desc')
                 ->setMaxResults(1);
 
-            $result = $qb->getQuery()->getOneOrNullResult();
+            $PointCustomer = $qb->getQuery()->getSingleResult();
 
-            if (is_null($result)) {
-                return null;
-            }
-
-            return $result->getPlgPointCurrent();
+            return $PointCustomer->getPlgPointCurrent();
         } catch (NoResultException $e) {
             return null;
         }
-    }
-
-    /**
-     * 最終データ取得時の共通QueryBuilder作成
-     * @return \Doctrine\ORM\QueryBuilder
-     */
-    protected function createLastPointBaseQuery()
-    {
-        // 最終データ取得共通クエリビルダーを作成
-        return $this->createQueryBuilder('pc')
-            ->orderBy('pc.update_date', 'DESC');
     }
 }

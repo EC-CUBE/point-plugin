@@ -46,9 +46,9 @@ class EventRoutineWorksHelper
      * @param Request $request
      * @return mixed
      */
-    public function createForm(FormBuilder $builder, Request $request)
+    public function createForm(FormBuilder $builder, Request $request, EventArgs $event)
     {
-        return $this->place->createForm($builder, $request);
+        return $this->place->createForm($builder, $request, $event);
     }
 
     /**

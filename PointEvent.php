@@ -163,8 +163,7 @@ class PointEvent
         // フックポイント汎用処理サービス取得 ( 会員登録編集画面用/初期化 )
         //$this->setHelper(self::HELPER_ADMIN_ORDER);
         $helper = $this->app['eccube.plugin.point.hookpoint.routinework'](new AdminOrder());
-        $helper->createForm($event->getArgument('builder'), $this->app['request']);
-
+        $helper->createForm($event->getArgument('builder'), $this->app['request'], $event);
 
         // ポイント付与率保存処理
         //$this->createForm($event);
