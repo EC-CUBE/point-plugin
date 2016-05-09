@@ -13,8 +13,6 @@ namespace Plugin\Point\Repository;
 
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
-use Eccube\Common\Constant;
-use Plugin\Point\Entity\PointStatus;
 
 /**
  * Class PointStatusRepository

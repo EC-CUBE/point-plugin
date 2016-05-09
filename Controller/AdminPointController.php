@@ -48,6 +48,8 @@ class AdminPointController
             throw new HttpException\NotFoundHttpException();
         }
 
+        $app['monolog.point.admin']->addInfo('index start');
+
         // 最終保存のポイント設定情報取得
         $PointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
 
@@ -70,6 +72,14 @@ class AdminPointController
             if ($status) {
                 $app->addSuccess('admin.point.save.complete', 'admin');
 
+                $app['monolog.point.admin']->addInfo('index status', array(
+                        'status' => $status,
+                        'saveData' => $app['serializer']->serialize($saveData, 'json'),
+                    )
+                );
+
+                $app['monolog.point.admin']->addInfo('index end');
+
                 return $app->redirect($app->url('point_info'));
             } else {
                 $app->addError('admin.point.save.error', 'admin');
@@ -81,6 +91,8 @@ class AdminPointController
         foreach ($this->app['eccube.repository.order_status']->findAllArray() as $id => $node) {
             $orderStatus[$id] = $node['name'];
         }
+
+        $app['monolog.point.admin']->addInfo('index end');
 
         return $app->render(
             'Point/Resource/template/admin/pointinfo.twig',

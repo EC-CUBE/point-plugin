@@ -13,8 +13,8 @@ namespace Plugin\Point\Helper\PointHistoryHelper;
 
 use Doctrine\DBAL\Exception\DatabaseObjectNotFoundException;
 use Eccube\Entity\Order;
-use Plugin\Point\Entity\PointSnapshot;
 use Plugin\Point\Entity\Point;
+use Plugin\Point\Entity\PointSnapshot;
 use Plugin\Point\Entity\PointStatus;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 

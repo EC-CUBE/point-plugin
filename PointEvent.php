@@ -13,7 +13,6 @@ namespace Plugin\Point;
 use Eccube\Application;
 use Eccube\Event\EventArgs;
 use Eccube\Event\TemplateEvent;
-use HttpException\NotFoundHttpException;
 use Plugin\Point\Event\WorkPlace\AdminCustomer;
 use Plugin\Point\Event\WorkPlace\AdminOrder;
 use Plugin\Point\Event\WorkPlace\AdminOrderProgress;

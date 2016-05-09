@@ -12,12 +12,6 @@
 namespace Plugin\Point\Event\WorkPlace;
 
 use Eccube\Event\EventArgs;
-use Eccube\Event\TemplateEvent;
-use Plugin\Point\Entity\PointUse;
-use Symfony\Component\Form\FormBuilder;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -41,6 +35,9 @@ class FrontShoppingComplete extends AbstractWorkPlace
      */
     public function save(EventArgs $event)
     {
+
+        $this->app['monolog.point']->addInfo('save start');
+
         // オーダー判定
         $order = $event->getArgument('Order');
         if (empty($order)) {
@@ -126,6 +123,15 @@ class FrontShoppingComplete extends AbstractWorkPlace
             // TODO: ポイントがマイナス！
         }
 
+        $this->app['monolog.point']->addInfo('save add point', array(
+                'customer_id' => $order->getCustomer()->getId(),
+                'order_id' => $order->getId(),
+                'current point ' => $calculateCurrentPoint,
+                'add point' => $addPoint,
+                'use point' => $usePoint,
+            )
+        );
+
         // 会員ポイント更新
         $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
             $calculateCurrentPoint,
@@ -141,5 +147,8 @@ class FrontShoppingComplete extends AbstractWorkPlace
         $this->app['eccube.plugin.point.history.service']->addEntity($order);
         $this->app['eccube.plugin.point.history.service']->addEntity($order->getCustomer());
         $this->app['eccube.plugin.point.history.service']->saveSnapShot($point);
+
+        $this->app['monolog.point']->addInfo('save end');
+
     }
 }

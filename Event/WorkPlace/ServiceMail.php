@@ -12,11 +12,6 @@
 namespace Plugin\Point\Event\WorkPlace;
 
 use Eccube\Event\EventArgs;
-use Eccube\Event\TemplateEvent;
-use Symfony\Component\Form\FormBuilder;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -35,6 +30,9 @@ class ServiceMail extends AbstractWorkPlace
      */
     public function save(EventArgs $event)
     {
+
+        $this->app['monolog.point']->addInfo('save start');
+
         // 基本情報の取得
         $message = $event->getArgument('message');
         $order = $event->getArgument('Order');
@@ -73,6 +71,14 @@ class ServiceMail extends AbstractWorkPlace
         $pointMessage['point'] = $point;
         $pointMessage['use'] = $usePoint;
 
+        $this->app['monolog.point']->addInfo('save add point', array(
+                'customer_id' => $order->getCustomer()->getId(),
+                'order_id' => $order->getId(),
+                'add point' => $addPoint,
+                'use point' => $usePoint,
+            )
+        );
+
         // メールボディ取得
         $body = $this->app->renderView(
             $mailTemplate->getFileName(),
@@ -93,12 +99,15 @@ class ServiceMail extends AbstractWorkPlace
         $snipet .= '***********************************************'.PHP_EOL;
         $snipet .= '　ポイント情報                                 '.PHP_EOL;
         $snipet .= '***********************************************'.PHP_EOL;
-        $snipet .= '加算ポイント :'.$pointMessage['use'].PHP_EOL;
+        $snipet .= '加算ポイント：'.$pointMessage['use'].PHP_EOL;
         $snipet .= PHP_EOL;
         $replace = $search[0][0].$snipet;
         $body = preg_replace('/'.$search[0][0].'/u', $replace, $body);
 
         // メッセージにメールボディをセット
         $message->setBody($body);
+
+        $this->app['monolog.point']->addInfo('save end');
+
     }
 }

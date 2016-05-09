@@ -17,8 +17,6 @@ use Plugin\Point\Entity\PointUse;
 use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -266,6 +264,9 @@ class  AdminOrder extends AbstractWorkPlace
      */
     public function save(EventArgs $event)
     {
+
+        $this->app['monolog.point.admin']->addInfo('save start');
+
         // 必要情報をセット
         $this->targetOrder = $event->getArgument('TargetOrder');
 
@@ -305,6 +306,14 @@ class  AdminOrder extends AbstractWorkPlace
                     $this->targetOrder
                 );
 
+                $this->app['monolog.point.admin']->addInfo('save add point', array(
+                        'customer_id' => $this->customer->getId(),
+                        'order_id' => $this->targetOrder->getId(),
+                        'before point' => $beforeAddPoint,
+                        'add point' => $newAddPoint,
+                    )
+                );
+
                 // 更新前の付与ポイントと新しい付与ポイントに相違があった際はアップデート処理
                 if ($beforeAddPoint != $newAddPoint) {
                     $this->updateOrderEvent($newAddPoint, $beforeAddPoint);
@@ -320,6 +329,9 @@ class  AdminOrder extends AbstractWorkPlace
 
         // 利用ポイントの更新
         $this->pointUseEvent($event);
+
+
+        $this->app['monolog.point.admin']->addInfo('save end');
     }
 
     /**
@@ -328,6 +340,9 @@ class  AdminOrder extends AbstractWorkPlace
      */
     public function delete(EventArgs $event)
     {
+
+        $this->app['monolog.point.admin']->addInfo('updateOrderEvent start');
+
         // 必要情報をセット
         $this->targetOrder = $event->getArgument('Order');
         if (empty($this->targetOrder)) {
@@ -381,6 +396,14 @@ class  AdminOrder extends AbstractWorkPlace
             $this->history->saveAddPointByOrderEdit($beforeAddPoint * -1);
         }
 
+        $this->app['monolog.point.admin']->addInfo('updateOrderEvent add point', array(
+                'customer_id' => $this->customer->getId(),
+                'order_id' => $this->targetOrder->getId(),
+                'before point' => $beforeAddPoint,
+                'add point' => $newAddPoint,
+            )
+        );
+
         // 新しい加算ポイントの保存
         $this->history->refreshEntity();
         $this->history->addEntity($this->targetOrder);
@@ -403,6 +426,9 @@ class  AdminOrder extends AbstractWorkPlace
         $this->history->addEntity($this->targetOrder);
         $this->history->addEntity($this->customer);
         $this->history->saveSnapShot($point);
+
+        $this->app['monolog.point.admin']->addInfo('updateOrderEvent end');
+
     }
 
     /**

@@ -10,13 +10,21 @@
 */
 namespace Plugin\Point\ServiceProvider;
 
-use Plugin\Point\Doctrine\Listener\ORMListener;
+use Eccube\Application;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\FingersCrossed\ErrorLevelActivationStrategy;
+use Monolog\Handler\FingersCrossedHandler;
+use Monolog\Handler\RotatingFileHandler;
+use Monolog\Processor\IntrospectionProcessor;
+use Monolog\Processor\ProcessIdProcessor;
+use Monolog\Processor\WebProcessor;
 use Plugin\Point\Helper\EventRoutineWorksHelper\EventRoutineWorksHelper;
 use Plugin\Point\Helper\EventRoutineWorksHelper\EventRoutineWorksHelperFactory;
 use Plugin\Point\Helper\PointCalculateHelper\PointCalculateHelper;
 use Plugin\Point\Helper\PointHistoryHelper\PointHistoryHelper;
 use Silex\Application as BaseApplication;
 use Silex\ServiceProviderInterface;
+use Symfony\Bridge\Monolog\Logger;
 
 /**
  * Class PointServiceProvider
@@ -106,7 +114,7 @@ class PointServiceProvider implements ServiceProviderInterface
             $types[] = new \Plugin\Point\Form\Type\PointInfoType($app);
 
             return $types;
-            })
+        })
         );
 
         /**
@@ -174,6 +182,13 @@ class PointServiceProvider implements ServiceProviderInterface
                 }
             )
         );
+
+        // ログファイル設定
+        $app['monolog.point'] = $this->initLogger($app, 'point');
+
+        // ログファイル管理画面用設定
+        $app['monolog.point.admin'] = $this->initLogger($app, 'point_admin');
+
     }
 
     /**
@@ -184,4 +199,65 @@ class PointServiceProvider implements ServiceProviderInterface
     public function boot(BaseApplication $app)
     {
     }
+
+    /**
+     * ポイントプラグイン用ログファイルの初期設定
+     *
+     * @param BaseApplication $app
+     * @param $logFileName
+     * @return \Closure
+     */
+    protected function initLogger(BaseApplication $app, $logFileName)
+    {
+
+        return $app->share(function ($app) use ($logFileName) {
+            $logger = new $app['monolog.logger.class']('plugin.point');
+            $file = $app['config']['root_dir'].'/app/log/'.$logFileName.'.log';
+            $RotateHandler = new RotatingFileHandler($file, $app['config']['log']['max_files'], Logger::INFO);
+            $RotateHandler->setFilenameFormat(
+                $logFileName.'_{date}',
+                'Y-m-d'
+            );
+
+            $token = substr($app['session']->getId(), 0, 8);
+            $format = "[%datetime%] [".$token."] %channel%.%level_name%: %message% %context% %extra%\n";
+            // $RotateHandler->setFormatter(new LineFormatter($format, null, false, true));
+            $RotateHandler->setFormatter(new LineFormatter($format));
+
+            $logger->pushHandler(
+                new FingersCrossedHandler(
+                    $RotateHandler,
+                    new ErrorLevelActivationStrategy(Logger::INFO)
+                )
+            );
+
+            $logger->pushProcessor(function ($record) {
+                // 出力ログからファイル名を削除し、lineを最終項目にセットしなおす
+                unset($record['extra']['file']);
+                $line = $record['extra']['line'];
+                unset($record['extra']['line']);
+                $record['extra']['line'] = $line;
+
+                return $record;
+            });
+
+            $ip = new IntrospectionProcessor();
+            $logger->pushProcessor($ip);
+
+            $web = new WebProcessor();
+            $logger->pushProcessor($web);
+
+            // $uid = new UidProcessor(8);
+            // $logger->pushProcessor($uid);
+
+            $process = new ProcessIdProcessor();
+            $logger->pushProcessor($process);
+
+
+            return $logger;
+        });
+
+    }
+
+
 }

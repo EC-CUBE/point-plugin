@@ -20,6 +20,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * ポイント設定画面用コントローラー
  * Class FrontPointController
+ *
  * @package Plugin\Point\Controller
  */
 class FrontPointController
@@ -37,6 +38,7 @@ class FrontPointController
 
     /**
      * 利用ポイント入力画面
+     *
      * @param Application $app
      * @param Request $request
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
@@ -47,6 +49,8 @@ class FrontPointController
         if (!$this->app->isGranted('IS_AUTHENTICATED_FULLY')) {
             throw new HttpException\NotFoundHttpException;
         }
+
+        $app['monolog.point']->addInfo('usePoint start');
 
         // カートサービス取得
         $cartService = $this->app['eccube.service.cart'];
@@ -153,6 +157,13 @@ class FrontPointController
 
         // 保存処理
         if ($form->isSubmitted() && $form->isValid() && !$errorFlg) {
+
+            $app['monolog.point']->addInfo('usePoint data', array(
+                    'customer_id' => $Order->getCustomer()->getId(),
+                    'use point' => $usePoint,
+                )
+            );
+
             // 最終保存ポイントと現在ポイントに相違があれば利用ポイント保存
             if ($lastPreUsePoint != $usePoint) {
                 if ($calculator->setDiscount($lastPreUsePoint)) {
@@ -198,6 +209,8 @@ class FrontPointController
                 }
             }
 
+            $app['monolog.point']->addInfo('usePoint end');
+
             return $this->app->redirect($this->app->url('shopping'));
         }
 
@@ -209,6 +222,8 @@ class FrontPointController
         if ($errorFlg) {
             $form['plg_use_point']->addError(new FormError('計算でマイナス値が発生します。入力を確認してください。'));
         }
+
+        $app['monolog.point']->addInfo('usePoint end');
 
         return $app->render(
             'Point/Resource/template/default/point_use.twig',

@@ -12,7 +12,7 @@ namespace Eccube\Tests\Repository;
 
 use Eccube\Application;
 use Eccube\Tests\EccubeTestCase;
-use Plugin\Point\Entity\Point;
+
 /**
  * Class PointInfoRepositoryTest
  *

@@ -12,11 +12,8 @@
 namespace Plugin\Point\Event\WorkPlace;
 
 use Eccube\Event\EventArgs;
-use Eccube\Event\TemplateEvent;
 use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -84,6 +81,9 @@ class  AdminCustomer extends AbstractWorkPlace
      */
     public function save(EventArgs $event)
     {
+
+        $this->app['monolog.point.admin']->addInfo('save start');
+
         // フォーム情報取得処理
         $form = $event->getArgument('form');
 
@@ -132,6 +132,15 @@ class  AdminCustomer extends AbstractWorkPlace
             $customer->getId(),
             $orderIds
         );
+
+        $this->app['monolog.point.admin']->addInfo('save add point', array(
+                'customer_id' => $customer->getId(),
+                'status' => $status,
+                'current point' => $calculateCurrentPoint,
+                'add point' => $pointCurrent,
+            )
+        );
+
         $this->app['eccube.plugin.point.history.service']->addEntity($customer);
         $this->app['eccube.plugin.point.history.service']->saveManualpoint($calculateCurrentPoint * -1);
         $this->app['eccube.plugin.point.history.service']->refreshEntity();
@@ -149,5 +158,7 @@ class  AdminCustomer extends AbstractWorkPlace
         $this->app['eccube.plugin.point.history.service']->refreshEntity();
         $this->app['eccube.plugin.point.history.service']->addEntity($customer);
         $this->app['eccube.plugin.point.history.service']->saveSnapShot($point);
+
+        $this->app['monolog.point.admin']->addInfo('save end');
     }
 }

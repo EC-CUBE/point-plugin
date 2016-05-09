@@ -12,11 +12,8 @@
 namespace Plugin\Point\Event\WorkPlace;
 
 use Eccube\Event\EventArgs;
-use Eccube\Event\TemplateEvent;
 use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -83,6 +80,9 @@ class  AdminProduct extends AbstractWorkPlace
      */
     public function save(EventArgs $event)
     {
+
+        $this->app['monolog.point.admin']->addInfo('save start');
+
         // フォーム情報取得処理
         $form = $event->getArgument('form');
 
@@ -103,6 +103,13 @@ class  AdminProduct extends AbstractWorkPlace
         $status = $this->app['eccube.plugin.point.repository.pointproductrate']
             ->isSamePoint($pointRate, $productId);
 
+        $this->app['monolog.point.admin']->addInfo('save add product point', array(
+                'product_id' => $productId,
+                'status' => $status,
+                'add point' => $pointRate,
+            )
+        );
+
         // 前回入力値と同じ値であれば登録をキャンセル
         if ($status) {
             return true;
@@ -117,5 +124,7 @@ class  AdminProduct extends AbstractWorkPlace
 
         // ポイント付与保存処理
         $this->app['eccube.plugin.point.repository.pointproductrate']->savePointProductRate($pointRate, $product);
+
+        $this->app['monolog.point.admin']->addInfo('save end');
     }
 }

@@ -11,7 +11,7 @@
 */
 namespace Plugin\Point\Helper\EventRoutineWorksHelper;
 
-use \Eccube\Event\EventArgs;
+use Eccube\Event\EventArgs;
 use Eccube\Event\TemplateEvent;
 use Plugin\Point\Event\WorkPlace\AbstractWorkPlace;
 use Symfony\Component\Form\FormBuilder;
