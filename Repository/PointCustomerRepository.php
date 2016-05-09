@@ -34,22 +34,13 @@ class PointCustomerRepository extends EntityRepository
             return false;
         }
 
+        $PointCustomer = new PointCustomer();
+        $PointCustomer->setPlgPointCurrent($point);
+        $PointCustomer->setCustomer($customer);
 
-        // エンティティにフォーム取得値とリレーションオブジェクトを設定
-        $pointCustomerEntity = new PointCustomer();
-        $pointCustomerEntity->setPlgPointCurrent($point);
-        $pointCustomerEntity->setCustomer($customer);
-
-        try {
-            // DB更新
-            $em = $this->getEntityManager();
-            $em->persist($pointCustomerEntity);
-            $em->flush();
-
-            return $pointCustomerEntity;
-        } catch (NoResultException $e) {
-            throw new NoResultException();
-        }
+        $em = $this->getEntityManager();
+        $em->persist($PointCustomer);
+        $em->flush($PointCustomer);
     }
 
     /**
