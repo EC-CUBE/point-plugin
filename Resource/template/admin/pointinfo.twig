@@ -31,7 +31,7 @@
                     </div><!-- /.box-header -->
                     <div class="box-body">
                         <div class="form-group">
-                            <div class="col-sm-3 col-lg-3">ポイント確定タイミング{#{{ orderStatus[status] }}#}</div>
+                            <div class="col-sm-3 col-lg-3">ポイント確定タイミング</div>
                             <div class="col-sm-9 col-lg-9">
                                 {{ form_widget(form.plg_add_point_status) }}
                                 {{ form_errors(form.plg_add_point_status) }}
@@ -76,7 +76,7 @@
                 </div><!-- /.box -->
                 <div id="point_info_box" class="box accordion">
                     <div id="point_info_box__toggle" class="box-header toggle">
-                        <h3 class="box-title">ポイント利用時のご注意
+                        <h3 class="box-title">ポイント機能利用時のご注意
                             <svg class="cb cb-angle-down icon_down">
                                 <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#cb-angle-down"></use>
                             </svg>
@@ -97,7 +97,7 @@
                         <div class="box-body">
                             <div class="row text-center">
                                 <div class="col-sm-6 col-sm-offset-3 col-md-12 col-md-offset-0">
-                                    <button class="btn btn-primary btn-block btn-lg" onclick="document.form1.submit();">
+                                    <button class="btn btn-primary btn-block btn-lg" type="submit">
                                         登録
                                     </button>
                                 </div>

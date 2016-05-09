@@ -14,6 +14,7 @@ namespace Plugin\Point\Repository;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
+use Plugin\Point\Entity\PointInfo;
 
 /**
  * Class PointInfoRepository
@@ -42,11 +43,15 @@ class PointInfoRepository extends EntityRepository
      * @return bool
      * @throws NoResultException
      */
-    public function save(\Plugin\Point\Entity\PointInfo $PointInfo)
+    public function save(\Plugin\Point\Entity\PointInfo $src)
     {
+        $dist = new PointInfo();
+        $dist->copyProperties($src, array('plg_point_info_id'));
+        $dist->setCreateDate(new \DateTime());
+        $dist->setUpdateDate(new \DateTime());
         $em = $this->getEntityManager();
-        $em->persist($PointInfo);
-        $em->flush($PointInfo);
+        $em->persist($dist);
+        $em->flush($dist);
     }
 
     /**
