@@ -30,35 +30,18 @@ class FrontMyPage extends AbstractWorkPlace
      */
     public function createTwig(TemplateEvent $event)
     {
-        $pointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
+        $PointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
 
-        $point_rate = 0;
-        if (!empty($pointInfo)) {
-            $point_rate = (integer)$pointInfo->getPlgPointConversionRate();
-        }
+        $pointRate = $PointInfo->getPlgPointConversionRate();
 
         // ポイント計算ヘルパーを取得
-        $calculator = null;
         $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
 
-        // ヘルパーの取得判定
-        if (empty($calculator)) {
-            return false;
-        }
-
         // カスタマー情報を取得
-        $customer = $this->app['security']->getToken()->getUser();
-
-        if (empty($customer)) {
-            return false;
-        }
-
-        if (empty($pointInfo)) {
-            return false;
-        }
+        $Customer = $this->app->user();
 
         // 計算に必要なエンティティを登録
-        $calculator->addEntity('Customer', $customer);
+        $calculator->addEntity('Customer', $Customer);
 
         // 会員保有ポイントを取得
         $currentPoint = $calculator->getPoint();
@@ -69,19 +52,18 @@ class FrontMyPage extends AbstractWorkPlace
         }
 
         // 仮ポイント取得
-        $previsionAddPoint = $calculator->getProvisionalAddPoint();
-
+        $provisionalAddPoint = $calculator->getProvisionalAddPoint();
 
         // 仮ポイント取得判定
-        if (empty($previsionAddPoint)) {
-            $previsionAddPoint = 0;
+        if (empty($provisionalAddPoint)) {
+            $provisionalAddPoint = 0;
         }
 
         // ポイント表示用変数作成
         $point = array();
         $point['current'] = $currentPoint;
-        $point['pre'] = $previsionAddPoint;
-        $point['rate'] = $point_rate;
+        $point['pre'] = $provisionalAddPoint;
+        $point['rate'] = $pointRate;
 
         // 使用ポイントボタン付与
         // twigコードにポイント表示欄を追加
