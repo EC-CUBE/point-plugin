@@ -188,21 +188,28 @@ class  AdminOrder extends AbstractWorkPlace
         $Order = $parameters['Order'];
         $Customer = $Order->getCustomer();
 
-        // 新規受注登録時、会員情報が設定されていない場合はポイント関連の情報は表示しない.
+        // 会員情報が設定されていない場合はポイント関連の情報は表示しない.
         if (!$Customer instanceof Customer) {
             return;
         }
 
-        $snippet = $this->app->renderView(
-            'Point/Resource/template/admin/Event/AdminOrder/order_point.twig',
-            array(
-                'form' => $parameters['form'],
-            )
-        );
-        $search = '<dl id="product_info_result_box__body_summary"';
-        $this->replaceView($event, $snippet, $search);
+        $parameters = $event->getParameters();
+        $source = $event->getSource();
 
-        // TODO 保有ポイントの表示処理
+        // フォーム項目の追加.
+        $search = '<dl id="product_info_result_box__body_summary"';
+        $view = 'Point/Resource/template/admin/Event/AdminOrder/order_point.twig';
+        $snippet = $this->app['twig']->getLoader()->getSource($view);
+        $replace = $snippet.$search;
+        $source = str_replace($search, $replace, $source);
+
+        // 保有ポイントの追加
+        $search = '<div id="product_info_box"';
+        $view = 'Point/Resource/template/admin/Event/AdminOrder/order_current_point.twig';
+        $snippet = $this->app['twig']->getLoader()->getSource($view);
+        $replace = $snippet.$search;
+        $source = str_replace($search, $replace, $source);
+
         $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
             $Customer->getId()
         );
@@ -210,6 +217,10 @@ class  AdminOrder extends AbstractWorkPlace
             $Customer->getId(),
             $orderIds
         );
+
+        $parameters['currentPoint'] = $currentPoint;
+        $event->setParameters($parameters);
+        $event->setSource($source);
     }
 
     /**
