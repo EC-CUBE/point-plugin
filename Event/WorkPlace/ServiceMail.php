@@ -36,8 +36,6 @@ class ServiceMail extends AbstractWorkPlace
         // 基本情報の取得
         $message = $event->getArgument('message');
         $order = $event->getArgument('Order');
-        $mailTemplate = $event->getArgument('MailTemplate');
-
 
         // 必要情報判定
         if (empty($message) || empty($order)) {
@@ -63,16 +61,9 @@ class ServiceMail extends AbstractWorkPlace
 
         // 計算値取得
         $addPoint = $calculator->getAddPointByOrder();
-        $point = $calculator->getPoint();
-
-        // ポイント配列作成
-        $pointMessage = array();
-        $pointMessage['add'] = $addPoint;
-        $pointMessage['point'] = $point;
-        $pointMessage['use'] = $usePoint;
 
         $this->app['monolog.point']->addInfo('save add point', array(
-                'customer_id' => $order->getCustomer()->getId(),
+                'customer_id' => $customer->getId(),
                 'order_id' => $order->getId(),
                 'add point' => $addPoint,
                 'use point' => $usePoint,
@@ -80,28 +71,21 @@ class ServiceMail extends AbstractWorkPlace
         );
 
         // メールボディ取得
-        $body = $this->app->renderView(
-            $mailTemplate->getFileName(),
-            array(
-                'header' => $mailTemplate->getHeader(),
-                'footer' => $mailTemplate->getFooter(),
-                'Order' => $order,
-            )
-        );
+        $body = $message->getBody();
 
         // 情報置換用のキーを取得
         $search = array();
         preg_match_all('/合　計.*\\n/u', $body, $search);
 
         // メール本文置換
-        $snipet = PHP_EOL;
-        $snipet .= PHP_EOL;
-        $snipet .= '***********************************************'.PHP_EOL;
-        $snipet .= '　ポイント情報                                 '.PHP_EOL;
-        $snipet .= '***********************************************'.PHP_EOL;
-        $snipet .= '加算ポイント：'.number_format($pointMessage['add']).PHP_EOL;
-        $snipet .= PHP_EOL;
-        $replace = $search[0][0].$snipet;
+        $snippet = PHP_EOL;
+        $snippet .= PHP_EOL;
+        $snippet .= '***********************************************'.PHP_EOL;
+        $snippet .= '　ポイント情報                                 '.PHP_EOL;
+        $snippet .= '***********************************************'.PHP_EOL;
+        $snippet .= '加算ポイント：'.number_format($addPoint).PHP_EOL;
+        $snippet .= PHP_EOL;
+        $replace = $search[0][0].$snippet;
         $body = preg_replace('/'.$search[0][0].'/u', $replace, $body);
 
         // メッセージにメールボディをセット

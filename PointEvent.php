@@ -15,6 +15,7 @@ use Eccube\Event\EventArgs;
 use Eccube\Event\TemplateEvent;
 use Plugin\Point\Event\WorkPlace\AdminCustomer;
 use Plugin\Point\Event\WorkPlace\AdminOrder;
+use Plugin\Point\Event\WorkPlace\AdminOrderMail;
 use Plugin\Point\Event\WorkPlace\AdminOrderProgress;
 use Plugin\Point\Event\WorkPlace\AdminProduct;
 use Plugin\Point\Event\WorkPlace\FrontCart;
@@ -218,6 +219,16 @@ class PointEvent
     }
 
     /**
+     * メール通知
+     * @param EventArgs $event
+     */
+    public function onAdminOrderMailIndexComplete(EventArgs $event)
+    {
+        $helper = $this->app['eccube.plugin.point.hookpoint.routinework'](new AdminOrderMail());
+        $helper->save($event);
+    }
+
+    /**
      * 商品購入確認完了
      *  - 利用ポイント・保有ポイント・仮付与ポイント保存
      *  - フロント画面 > 商品購入確認完了
@@ -395,6 +406,16 @@ class PointEvent
 
         // ポイント関連保存処理
         //$this->createTwig($event);
+    }
+
+    /**
+     * メール通知
+     * @param TemplateEvent $event
+     */
+    public function onRenderAdminOrderMailConfirm(TemplateEvent $event)
+    {
+        $helper = $this->app['eccube.plugin.point.hookpoint.routinework'](new AdminOrderMail());
+        $helper->createTwig($event);
     }
 
     /**
