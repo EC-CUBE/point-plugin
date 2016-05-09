@@ -62,6 +62,7 @@ class FrontPointController
         }
 
         // 受注情報が取得される
+        /** @var \Eccube\Entity\Order $Order */
         $Order = $this->app['eccube.service.shopping']->getOrder($this->app['config']['order_processing']);
 
         // 受注情報がない場合はエラー表示
@@ -151,7 +152,11 @@ class FrontPointController
         // 合計金額がマイナスかどうかを判定
         $errorFlg = false;
 
-        if (!$this->app['eccube.service.shopping']->isDiscount($Order, $calculator->getconversionpoint())) {
+        // 値引き前合計金額
+        $total = $Order->getSubtotal() + $Order->getCharge() + $Order->getDeliveryFeeTotal();
+
+        // 値引き前合計金額と比較
+        if ($total < $calculator->getConversionPoint()) {
             $errorFlg = true;
         }
 
@@ -196,6 +201,8 @@ class FrontPointController
 
                     if ($calculateCurrentPoint < 0) {
                         // TODO: ポイントがマイナス！
+                        // ポイントがマイナスの時はメール送信
+                        $app['eccube.plugin.point.mail.helper']->sendPointNotifyMail($Order, $calculateCurrentPoint, $usePoint);
                     }
 
                     // 会員ポイント更新
@@ -214,9 +221,6 @@ class FrontPointController
             return $this->app->redirect($this->app->url('shopping'));
         }
 
-        // 合計金額を取得
-        $total = $Order->getTotal();
-
         // 合計金額エラー
         $errors = array();
         if ($errorFlg) {
@@ -231,8 +235,8 @@ class FrontPointController
                 'form' => $form->createView(),  // フォーム
                 'usePoint' => $usePoint,        // 利用ポイント
                 'pointRate' => $pointRate,      // 換算レート
-                'point' => $point - $usePoint,  // 保有ポイント
-                'total' => $total,              // 合計金額
+                'point' => $point,  // 保有ポイント
+                'total' => $total, // 値引き前合計金額
             )
         );
     }

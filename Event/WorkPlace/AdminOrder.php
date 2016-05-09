@@ -599,6 +599,8 @@ class  AdminOrder extends AbstractWorkPlace
 
         if ($currentPoint < 0) {
             // TODO: ポイントがマイナス！
+            // ポイントがマイナスの時はメール送信
+            $this->app['eccube.plugin.point.mail.helper']->sendPointNotifyMail($this->targetOrder, $currentPoint, $this->usePoint);
         }
 
         return $currentPoint;

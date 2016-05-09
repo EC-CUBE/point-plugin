@@ -99,7 +99,7 @@ class ServiceMail extends AbstractWorkPlace
         $snipet .= '***********************************************'.PHP_EOL;
         $snipet .= '　ポイント情報                                 '.PHP_EOL;
         $snipet .= '***********************************************'.PHP_EOL;
-        $snipet .= '加算ポイント：'.$pointMessage['use'].PHP_EOL;
+        $snipet .= '加算ポイント：'.number_format($pointMessage['add']).PHP_EOL;
         $snipet .= PHP_EOL;
         $replace = $search[0][0].$snipet;
         $body = preg_replace('/'.$search[0][0].'/u', $replace, $body);

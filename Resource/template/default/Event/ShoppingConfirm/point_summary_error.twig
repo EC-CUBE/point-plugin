@@ -1,10 +1,10 @@
 <br/>
 <dl id="summary_box__customer_point">
-    <dt class="text-primary">今回利用ポイント</dt>
-    <dd class="text-primary">{{ point.use_error }}</dd>
+    <dt>今回利用ポイント</dt>
+    <dd class="text-primary">{{ point.use_error|number_format }}</dd>
 </dl>
 <dl id="summary_box__customer_point">
-    <dt class="text-primary">加算予定ポイント</dt>
-    <dd>{{ point.add }}</dd>
+    <dt>加算ポイント</dt>
+    <dd>{{ point.add|number_format }}</dd>
 </dl>
 
