@@ -319,6 +319,6 @@ class PointHistoryHelper
         }
         /** @var PointStatus $pointStatus */
         $pointStatus->setDelFlg(1);
-        $this->app['orm.em']->flush();
+        $this->app['orm.em']->flush($pointStatus);
     }
 }

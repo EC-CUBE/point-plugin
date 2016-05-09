@@ -83,7 +83,6 @@ class  AdminOrder extends AbstractWorkPlace
         }
 
         $currentPoint = $this->calculateCurrentPoint($Customer);
-        dump($currentPoint);
         $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($Order);
         $usePoint = -($usePoint);
 
@@ -267,36 +266,31 @@ class  AdminOrder extends AbstractWorkPlace
     public function delete(EventArgs $event)
     {
         $Order = $event->getArgument('Order');
+        $Customer = $Order->getCustomer();
 
-//        // 必要情報をセット
-//        $this->targetOrder = $event->getArgument('Order');
-//        if (empty($this->targetOrder)) {
-//            return;
-//        }
-//        $this->customer = $event->getArgument('Customer');
-//        if (empty($this->customer)) {
-//            return;
-//        }
-//
-//        // ポイントステータスを削除にする
-//        $this->history->deletePointStatus($this->targetOrder);
-//
-//        // 会員ポイントの再計算
-//        $this->history->refreshEntity();
-//        $this->history->addEntity($this->targetOrder);
-//        $this->history->addEntity($this->customer);
-//        $currentPoint = $this->calculateCurrentPoint($this->customer);
-//        $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
-//            $currentPoint,
-//            $this->customer
-//        );
-//
-//        // SnapShot保存
-//        $point = array();
-//        $point['current'] = $currentPoint;
-//        $point['use'] = 0;
-//        $point['add'] = 0;
-//        $this->saveAdjustUseOrderSnapShot($this->targetOrder, $this->customer, $point);
+        // 会員情報が設定されていない場合はポイント関連の処理は行わない
+        if (!$Customer instanceof Customer) {
+            return;
+        }
+        // ポイントステータスを削除にする
+        $this->history->deletePointStatus($Order);
+
+        // 会員ポイントの再計算
+        $this->history->refreshEntity();
+        $this->history->addEntity($Order);
+        $this->history->addEntity($Customer);
+        $currentPoint = $this->calculateCurrentPoint($Customer);
+        $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
+            $currentPoint,
+            $Customer
+        );
+
+        // SnapShot保存
+        $point = array();
+        $point['current'] = $currentPoint;
+        $point['use'] = 0;
+        $point['add'] = 0;
+        $this->saveAdjustUseOrderSnapShot($Order, $Customer, $point);
     }
 
     /**
