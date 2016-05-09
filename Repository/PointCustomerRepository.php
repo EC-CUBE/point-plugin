@@ -41,6 +41,8 @@ class PointCustomerRepository extends EntityRepository
         $em = $this->getEntityManager();
         $em->persist($PointCustomer);
         $em->flush($PointCustomer);
+
+        return $PointCustomer;
     }
 
     /**
