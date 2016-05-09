@@ -172,25 +172,6 @@ class PointEvent
     /**
      * 受注ステータス変更時ポイント付与
      *  - 判定・更新処理
-     *  - 更新処理前
-     *  - 管理画面 > 受注登録 ( 編集 )
-     * @param EventArgs $event
-     */
-    // @todo need delete
-    public function onAdminOrderEditIndexProgress(EventArgs $event)
-    {
-        // フックポイント汎用処理サービス取得 ( 会員登録編集画面用/終了 )
-        //$this->setHelper(self::HELPER_ADMIN_ORDER_PROGRESS);
-
-        $helper = $this->app['eccube.plugin.point.hookpoint.routinework'](new AdminOrderProgress());
-        $helper->save($event);
-        // ポイント付与率保存処理
-        //$this->save($event);
-    }
-
-    /**
-     * 受注ステータス変更時ポイント付与
-     *  - 判定・更新処理
      *  - 管理画面 > 受注登録 ( 編集 )
      * @param EventArgs $event
      */
