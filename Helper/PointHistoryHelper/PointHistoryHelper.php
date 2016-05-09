@@ -288,16 +288,20 @@ class PointHistoryHelper
     public function fixPointStatus()
     {
         $orderId = $this->entities['Order']->getId();
-        $pointStatus = $this->app['eccube.plugin.point.repository.pointstatus']->findOneBy(
+        $PointStatus = $this->app['eccube.plugin.point.repository.pointstatus']->findOneBy(
             array('order_id' => $orderId)
         );
-        if (!$pointStatus) {
-            throw new NotFoundHttpException();
+        if (!$PointStatus instanceof PointStatus) {
+            $PointStatus = new PointStatus();
+            $PointStatus->setDelFlg(0);
+            $PointStatus->setOrderId($this->entities['Order']->getId());
+            $PointStatus->setCustomerId($this->entities['Customer']->getId());
+            $this->app['orm.em']->persist($PointStatus);
         }
         /** @var PointStatus $pointStatus */
-        $pointStatus->setStatus($this->app['eccube.plugin.point.repository.pointstatus']->getFixStatusValue());
-        $pointStatus->setPointFixDate(new \DateTime());
-        $this->app['orm.em']->flush();
+        $PointStatus->setStatus($this->app['eccube.plugin.point.repository.pointstatus']->getFixStatusValue());
+        $PointStatus->setPointFixDate(new \DateTime());
+        $this->app['orm.em']->flush($PointStatus);
     }
 
     /**
