@@ -27,17 +27,19 @@ class  AdminCustomer extends AbstractWorkPlace
 {
     /**
      * 会員保有ポイント追加
-     * @param FormBuilder $builder
+     *
+     * @param EventArgs $event
      * @param Request $request
      */
-    public function createForm(FormBuilder $builder, Request $request)
+    public function createForm(EventArgs $event, Request $request)
     {
-        $customerId = $builder->getForm()->getData()->getId();
+        $builder = $event->getArgument('builder');
+        $Customer = $event->getArgument('Customer');
 
         // 登録済み情報取得処理
         $lastPoint = null;
-        if (!is_null($customerId)) {
-            $lastPoint = $this->app['eccube.plugin.point.repository.pointcustomer']->getLastPointById($customerId);
+        if (!is_null($Customer->getId())) {
+            $lastPoint = $this->app['eccube.plugin.point.repository.pointcustomer']->getLastPointById($Customer->getId());
         }
 
         $data = is_null($lastPoint) ? '' : $lastPoint;

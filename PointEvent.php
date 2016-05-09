@@ -63,7 +63,7 @@ class PointEvent
     public function onAdminProductEditInitialize(EventArgs $event)
     {
         $helper = new AdminProduct();
-        $helper->createForm($event->getArgument('builder'), $this->app['request'], $event);
+        $helper->createForm($event, $this->app['request']);
     }
 
     /**
@@ -87,7 +87,7 @@ class PointEvent
     public function onAdminCustomerEditIndexInitialize(EventArgs $event)
     {
         $helper = new AdminCustomer();
-        $helper->createForm($event->getArgument('builder'), $this->app['request'], $event);
+        $helper->createForm($event, $this->app['request']);
     }
 
     /**
@@ -111,7 +111,7 @@ class PointEvent
     public function onAdminOrderEditIndexInitialize(EventArgs $event)
     {
         $helper = new AdminOrder();
-        $helper->createForm($event->getArgument('builder'), $this->app['request'], $event);
+        $helper->createForm($event, $this->app['request']);
     }
 
     /**
