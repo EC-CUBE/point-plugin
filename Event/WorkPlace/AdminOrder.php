@@ -82,7 +82,7 @@ class  AdminOrder extends AbstractWorkPlace
             return;
         }
 
-        $currentPoint = $this->calculateCurrentPoint($Customer);
+        $currentPoint = $this->calculateCurrentPoint($Order, $Customer);
         $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($Order);
         $usePoint = -($usePoint);
 
@@ -279,7 +279,7 @@ class  AdminOrder extends AbstractWorkPlace
         $this->history->refreshEntity();
         $this->history->addEntity($Order);
         $this->history->addEntity($Customer);
-        $currentPoint = $this->calculateCurrentPoint($Customer);
+        $currentPoint = $this->calculateCurrentPoint($Order, $Customer);
         $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
             $currentPoint,
             $Customer
@@ -315,7 +315,7 @@ class  AdminOrder extends AbstractWorkPlace
         $this->history->saveAddPointByOrderEdit($newAddPoint);
 
         // 会員の保有ポイント保存
-        $currentPoint = $this->calculateCurrentPoint($Customer);
+        $currentPoint = $this->calculateCurrentPoint($Order, $Customer);
         $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
             $currentPoint,
             $Customer
@@ -349,7 +349,7 @@ class  AdminOrder extends AbstractWorkPlace
         $this->fixPointStatus($Order, $Customer);
 
         // 会員の保有ポイント更新
-        $currentPoint = $this->calculateCurrentPoint($Customer);
+        $currentPoint = $this->calculateCurrentPoint($Order, $Customer);
         $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
             $currentPoint,
             $Customer
@@ -400,7 +400,7 @@ class  AdminOrder extends AbstractWorkPlace
         $this->history->saveUsePointByOrderEdit($usePoint * -1);
 
         // 会員ポイントの更新
-        $currentPoint = $this->calculateCurrentPoint($Customer);
+        $currentPoint = $this->calculateCurrentPoint($Order, $Customer);
         $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
             $currentPoint,
             $Customer
@@ -457,7 +457,7 @@ class  AdminOrder extends AbstractWorkPlace
      * 現在保有ポイントをログから再計算
      * @return int 保有ポイント
      */
-    protected function calculateCurrentPoint(Customer $Customer)
+    protected function calculateCurrentPoint(Order $Order, Customer $Customer)
     {
         $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
             $Customer->getId()
@@ -470,7 +470,7 @@ class  AdminOrder extends AbstractWorkPlace
         if ($currentPoint < 0) {
             // TODO: ポイントがマイナス！
             // ポイントがマイナスの時はメール送信
-            $this->app['eccube.plugin.point.mail.helper']->sendPointNotifyMail($this->targetOrder, $currentPoint, $this->usePoint);
+            $this->app['eccube.plugin.point.mail.helper']->sendPointNotifyMail($Order, $currentPoint);
         }
 
         return $currentPoint;
