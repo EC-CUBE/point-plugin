@@ -20,6 +20,7 @@ use Monolog\Processor\ProcessIdProcessor;
 use Monolog\Processor\WebProcessor;
 use Plugin\Point\Helper\EventRoutineWorksHelper\EventRoutineWorksHelper;
 use Plugin\Point\Helper\EventRoutineWorksHelper\EventRoutineWorksHelperFactory;
+use Plugin\Point\Helper\MailHelper;
 use Plugin\Point\Helper\PointCalculateHelper\PointCalculateHelper;
 use Plugin\Point\Helper\PointHistoryHelper\PointHistoryHelper;
 use Silex\Application as BaseApplication;
@@ -162,6 +163,15 @@ class PointServiceProvider implements ServiceProviderInterface
         $app['eccube.plugin.point.history.service'] = $app->share(
             function () {
                 return new PointHistoryHelper();
+            }
+        );
+
+        /**
+         * メール送信ヘルパー登録
+         */
+        $app['eccube.plugin.point.mail.helper'] = $app->share(
+            function () use ($app) {
+                return new MailHelper($app);
             }
         );
 

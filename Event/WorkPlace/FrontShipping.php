@@ -30,6 +30,9 @@ class FrontShipping extends AbstractWorkPlace
      */
     public function save(EventArgs $event)
     {
+
+        $this->app['monolog.point']->addInfo('save start');
+
         // 必要エンティティの確認
         if (!$event->hasArgument('Order')) {
             return false;
@@ -57,5 +60,7 @@ class FrontShipping extends AbstractWorkPlace
         if ($calculator->calculateTotalDiscountOnChangeConditions()) {
             $this->app->addError('お支払い金額がマイナスになったため、ポイントをキャンセルしました。', 'front.request');
         }
+
+        $this->app['monolog.point']->addInfo('save end');
     }
 }

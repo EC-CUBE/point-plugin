@@ -102,7 +102,7 @@ class FrontShoppingComplete extends AbstractWorkPlace
         $this->app['eccube.plugin.point.history.service']->addEntity($order->getCustomer());
         $this->app['eccube.plugin.point.history.service']->saveAddPoint($addPoint);
 
-		// ポイントステータスのレコードを生成
+        // ポイントステータスのレコードを生成
         $this->app['eccube.plugin.point.history.service']->savePointStatus();
 
         // 付与ポイント受注ステータスが新規であれば、ポイントを確定状態にする
@@ -121,6 +121,8 @@ class FrontShoppingComplete extends AbstractWorkPlace
 
         if ($calculateCurrentPoint < 0) {
             // TODO: ポイントがマイナス！
+            // ポイントがマイナスの時はメール送信
+            $this->app['eccube.plugin.point.mail.helper']->sendPointNotifyMail($order, $calculateCurrentPoint, $usePoint);
         }
 
         $this->app['monolog.point']->addInfo('save add point', array(
