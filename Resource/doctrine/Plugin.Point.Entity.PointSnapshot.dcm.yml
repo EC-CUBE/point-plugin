@@ -1,7 +1,7 @@
 Plugin\Point\Entity\PointSnapshot:
     type: entity
     table: plg_point_snapshot
-    repositoryClass: Plugin\Point\Repository\PointSnapshot
+    repositoryClass: Plugin\Point\Repository\PointSnapshotRepository
     id:
         plg_point_snapshot_id:
             type: integer

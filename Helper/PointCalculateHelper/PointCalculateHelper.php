@@ -49,7 +49,7 @@ class PointCalculateHelper
         // ポイント情報基本設定取得
         $this->pointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
 
-        if(empty($this->pointInfo)){
+        if (empty($this->pointInfo)) {
             return false;
         }
         // ポイント換算値
@@ -274,7 +274,7 @@ class PointCalculateHelper
         }
 
         $this->addPoint = 0;
-        $basicRate =  $this->pointInfo->getPlgBasicPointRate() / 100;
+        $basicRate = $this->pointInfo->getPlgBasicPointRate() / 100;
 
         foreach ($this->entities['Cart']->getCartItems() as $cartItem) {
             $rate = $basicRate;
@@ -557,6 +557,9 @@ class PointCalculateHelper
      */
     public function calculateTotalDiscountOnChangeConditions()
     {
+
+        $this->app['monolog.point']->addInfo('calculateTotalDiscountOnChangeConditions start');
+
         // 必要エンティティを判定
         if (!$this->hasEntities('Order')) {
             throw new EntityNotFoundException();
@@ -572,46 +575,25 @@ class PointCalculateHelper
         $order = $this->entities['Order'];
         $customer = $this->entities['Customer'];
 
+        $totalAmount = $order->getTotalPrice();
+
+        if ($totalAmount >= 0) {
+            return false;
+        }
+
         // 最終保存仮利用ポイント
         $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($order);
-
-        // 値引きを除いた支払い合計を取得
-        $totalPrice = $order->getTotalPrice();
-        $discount = $order->getDiscount();
-        $totalAmount = $totalPrice + $discount;
 
         // 最終ポイント利用額を算出
         $pointDiscount = (int)$this->getRoundValue($usePoint * $this->pointInfo->getPlgPointConversionRate());
 
-        // 現在値引き額とポイント値引き額を比較し、大きい値を計算対象とする
-        $calcDiscount = 0;
-        $isDiffFlg = false;
-        if ($discount > $pointDiscount) {
-            $calcDiscount = $discount;
-            $isDiffFlg = true;
-        } elseif ($discount == $pointDiscount) {
-            $calcDiscount = $discount;
-        } else {
-            $calcDiscount = $pointDiscount;
-        }
-
-        // 総合計金額がマイナスになるかどうかを判定
-        if (($totalAmount - $calcDiscount) >= 0) {
-            return false;
-        }
-
-        // 上記マイナスであれば、ポイントキャンセル処理
-        // 現在値引きが利用ポイントより大きい場合
-        if ($isDiffFlg) {
-            $discount = $discount - $pointDiscount;
-        } elseif ($discount == $pointDiscount) {
-            $discount = 0;
-        } else {
-            $discount = $pointDiscount;
-        }
+        $this->app['monolog.point']->addInfo('discount', array(
+            'total' => $totalAmount,
+            'pointDiscount' => $pointDiscount,
+        ));
 
         // 利用ポイント差し引き値引き額をセット
-        $order->setDiscount($discount);
+        $this->app['eccube.service.shopping']->setDiscount($order, $pointDiscount);
 
         // 利用ポイント打ち消し
         if (!empty($lastPreUsePoint)) {
@@ -635,6 +617,8 @@ class PointCalculateHelper
 
         if ($calculateCurrentPoint < 0) {
             // TODO: ポイントがマイナス！
+            // ポイントがマイナスの時はメール送信
+            $this->app['eccube.plugin.point.mail.helper']->sendPointNotifyMail($order, $calculateCurrentPoint, $usePoint);
         }
 
         // 会員ポイント更新
@@ -646,8 +630,9 @@ class PointCalculateHelper
         // 利用ポイント打ち消しf後の受注情報更新
         $newOrder = $this->app['eccube.service.shopping']->calculatePrice($order);
 
-        $this->app['orm.em']->persist($newOrder);
-        $this->app['orm.em']->flush();
+        $this->app['orm.em']->flush($newOrder);
+
+        $this->app['monolog.point']->addInfo('calculateTotalDiscountOnChangeConditions end');
 
         return true;
     }
