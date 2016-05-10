@@ -314,7 +314,7 @@ class PointEvent
     public function onRenderHistory(TemplateEvent $event)
     {
         // ログイン判定
-        if (!$this->isAuthRouteFront()) {
+        if ($this->isAuthRouteFront()) {
             $helper = new FrontHistory();
             $helper->createTwig($event);
         }
