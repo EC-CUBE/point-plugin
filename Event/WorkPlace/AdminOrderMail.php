@@ -44,15 +44,8 @@ class  AdminOrderMail extends AbstractWorkPlace
 
         $body = $args['body'];
 
-        // 計算ヘルパーの取得
-        $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
-
-        // 計算に必要なエンティティの設定
-        $calculator->addEntity('Order', $Order);
-        $calculator->addEntity('Customer', $Customer);
-
-        // 計算値取得
-        $addPoint = $calculator->getAddPointByOrder();
+        // 加算ポイント取得.
+        $addPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder($Order);
 
         $body = $this->getBody($body, $addPoint);
 
@@ -84,15 +77,8 @@ class  AdminOrderMail extends AbstractWorkPlace
 
         $body = $MailHistory->getMailBody();
 
-        // 計算ヘルパーの取得
-        $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
-
-        // 計算に必要なエンティティの設定
-        $calculator->addEntity('Order', $Order);
-        $calculator->addEntity('Customer', $Customer);
-
-        // 計算値取得
-        $addPoint = $calculator->getAddPointByOrder();
+        // 加算ポイント取得.
+        $addPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder($Order);
 
         $body = $this->getBody($body, $addPoint);
 
