@@ -29,9 +29,8 @@ class  AdminProduct extends AbstractWorkPlace
      * 商品フォームポイント付与率項目追加
      *
      * @param EventArgs $event
-     * @param Request $request
      */
-    public function createForm(EventArgs $event, Request $request)
+    public function createForm(EventArgs $event)
     {
         $builder = $event->getArgument('builder');
         $Product = $event->getArgument('Product');

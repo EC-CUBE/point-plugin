@@ -40,9 +40,8 @@ abstract class AbstractWorkPlace
      * フォーム拡張処理
      *
      * @param EventArgs $event
-     * @param Request $request
      */
-    public function createForm(EventArgs $event, Request $request){
+    public function createForm(EventArgs $event){
         throw new MethodNotAllowedException();
     }
 

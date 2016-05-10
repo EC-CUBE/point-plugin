@@ -29,9 +29,8 @@ class  AdminCustomer extends AbstractWorkPlace
      * 会員保有ポイント追加
      *
      * @param EventArgs $event
-     * @param Request $request
      */
-    public function createForm(EventArgs $event, Request $request)
+    public function createForm(EventArgs $event)
     {
         $builder = $event->getArgument('builder');
         $Customer = $event->getArgument('Customer');
