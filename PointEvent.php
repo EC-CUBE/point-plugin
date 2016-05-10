@@ -36,12 +36,6 @@ use Plugin\Point\Event\WorkPlace\ServiceMail;
  */
 class PointEvent
 {
-    /**
-     * ヘルパー呼び出し用
-     * サービス
-     */
-    const HELPER_SERVICE_MAIL = 'ServiceMail';
-
 
     /** @var  \Eccube\Application $app */
     protected $app;
@@ -143,7 +137,7 @@ class PointEvent
      */
     public function onAdminOrderMailIndexComplete(EventArgs $event)
     {
-        $helper = $this->app['eccube.plugin.point.hookpoint.routinework'](new AdminOrderMail());
+        $helper = new AdminOrderMail();
         $helper->save($event);
     }
 
@@ -268,7 +262,7 @@ class PointEvent
      */
     public function onRenderAdminOrderMailConfirm(TemplateEvent $event)
     {
-        $helper = $this->app['eccube.plugin.point.hookpoint.routinework'](new AdminOrderMail());
+        $helper = new AdminOrderMail();
         $helper->createTwig($event);
     }
 
