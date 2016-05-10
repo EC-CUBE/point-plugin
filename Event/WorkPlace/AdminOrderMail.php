@@ -19,6 +19,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * フックポイント汎用処理具象クラス
  *  - 拡張元 : メール通知
  * Class AdminOrderMail
+ *
  * @package Plugin\Point\Event\WorkPlace
  */
 class  AdminOrderMail extends AbstractWorkPlace
@@ -35,7 +36,19 @@ class  AdminOrderMail extends AbstractWorkPlace
 
         $args = $event->getParameters();
 
-        $Order = $args['Order'];
+        if (array_key_exists('Order', $args)) {
+            // 個別メール通知
+            $Order = $args['Order'];
+
+        } else {
+            // メール一括通知
+            $ids = $args['ids'];
+
+            $tmp = explode(',', $ids);
+            dump($tmp);
+
+            $Order = $this->app['eccube.repository.order']->find($tmp[0]);
+        }
 
         $Customer = $Order->getCustomer();
         if (empty($Customer)) {
@@ -67,25 +80,64 @@ class  AdminOrderMail extends AbstractWorkPlace
 
         $this->app['monolog.point.admin']->addInfo('save start');
 
-        $Order = $event->getArgument('Order');
-        $MailHistory = $event->getArgument('MailHistory');
 
-        $Customer = $Order->getCustomer();
-        if (empty($Customer)) {
-            return false;
+        $MailHistories = array();
+        if ($event->hasArgument('Order')) {
+            // 個別メール通知
+            $Order = $event->getArgument('Order');
+            $MailHistory = $event->getArgument('MailHistory');
+
+            $Customer = $Order->getCustomer();
+            if (empty($Customer)) {
+                return false;
+            }
+
+            $MailHistories[] = $MailHistory;
+
+        } else {
+            // メール一括通知
+
+            $ids = $event->getRequest()->get('ids');
+
+            $ids = explode(',', $ids);
+
+            foreach ($ids as $value) {
+
+                $Order = $this->app['eccube.repository.order']->find($value);
+                $Customer = $Order->getCustomer();
+                if (empty($Customer)) {
+                    continue;
+                }
+
+                $MailHistory = $this->app['eccube.repository.mail_history']->findOneBy(array('Order' => $Order), array('id' => 'DESC'));
+
+                if (!$MailHistory) {
+                    continue;
+                }
+
+                $MailHistories[] = $MailHistory;
+
+            }
+
         }
 
-        $body = $MailHistory->getMailBody();
 
-        // 加算ポイント取得.
-        $addPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder($Order);
+        foreach ($MailHistories as $MailHistory) {
 
-        $body = $this->getBody($body, $addPoint);
+            $body = $MailHistory->getMailBody();
 
-        // メッセージにメールボディをセット
-        $MailHistory->setMailBody($body);
+            $Order = $MailHistory->getOrder();
 
-        $this->app['orm.em']->flush($MailHistory);
+            // 加算ポイント取得.
+            $addPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder($Order);
+
+            $body = $this->getBody($body, $addPoint);
+
+            // メッセージにメールボディをセット
+            $MailHistory->setMailBody($body);
+
+            $this->app['orm.em']->flush($MailHistory);
+        }
 
 
         $this->app['monolog.point.admin']->addInfo('save end');
