@@ -5,6 +5,7 @@ sudo: false
 cache:
   directories:
     - $HOME/.composer/cache
+    - /home/travis/.composer/cache
 
 php:
   - 5.3
