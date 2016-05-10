@@ -38,11 +38,11 @@ abstract class AbstractWorkPlace
 
     /**
      * フォーム拡張処理
-     * @param FormBuilder $builder
+     *
+     * @param EventArgs $event
      * @param Request $request
-     * @return mixed
      */
-    public function createForm(FormBuilder $builder, Request $request, EventArgs $event = null){
+    public function createForm(EventArgs $event, Request $request){
         throw new MethodNotAllowedException();
     }
 

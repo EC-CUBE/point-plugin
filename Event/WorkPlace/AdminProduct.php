@@ -27,18 +27,20 @@ class  AdminProduct extends AbstractWorkPlace
 {
     /**
      * 商品フォームポイント付与率項目追加
-     * @param FormBuilder $builder
+     *
+     * @param EventArgs $event
      * @param Request $request
      */
-    public function createForm(FormBuilder $builder, Request $request)
+    public function createForm(EventArgs $event, Request $request)
     {
-        $productId = $builder->getForm()->getData()->getId();
+        $builder = $event->getArgument('builder');
+        $Product = $event->getArgument('Product');
 
         // 登録済み情報取得処理
         $lastPointProduct = null;
-        if (!is_null($productId)) {
+        if (!is_null($Product->getId())) {
             $lastPointProduct = $this->app['eccube.plugin.point.repository.pointproductrate']->getLastPointProductRateById(
-                $productId
+                $Product->getId()
             );
         }
 
@@ -52,9 +54,6 @@ class  AdminProduct extends AbstractWorkPlace
                     'required' => false,
                     'mapped' => false,
                     'data' => $lastPointProduct,
-                    'attr' => array(
-                        'placeholder' => '設定されていると本商品のみ設定値をもとにポイントを計算します。',
-                    ),
                     'constraints' => array(
                         new Assert\Regex(
                             array(
@@ -80,31 +79,22 @@ class  AdminProduct extends AbstractWorkPlace
      */
     public function save(EventArgs $event)
     {
-
         $this->app['monolog.point.admin']->addInfo('save start');
 
         // フォーム情報取得処理
         $form = $event->getArgument('form');
 
-        if (empty($form)) {
-            return false;
-        }
-
         // ポイント付与率取得
         $pointRate = $form->get('plg_point_product_rate')->getData();
 
-        // 商品ID取得
-        $productId = $form->getData()->getId();
-        if(empty($productId)){
-            $productId = 0;
-        }
+        $Product = $event->getArgument('Product');
 
         // 前回入力値と比較
         $status = $this->app['eccube.plugin.point.repository.pointproductrate']
-            ->isSamePoint($pointRate, $productId);
+            ->isSamePoint($pointRate, $Product->getId());
 
         $this->app['monolog.point.admin']->addInfo('save add product point', array(
-                'product_id' => $productId,
+                'product_id' => $Product->getId(),
                 'status' => $status,
                 'add point' => $pointRate,
             )
@@ -115,15 +105,8 @@ class  AdminProduct extends AbstractWorkPlace
             return true;
         }
 
-        // プロダクトエンティティを取得
-        $product = $event->getArgument('Product');
-
-        if (empty($product)) {
-            return false;
-        }
-
         // ポイント付与保存処理
-        $this->app['eccube.plugin.point.repository.pointproductrate']->savePointProductRate($pointRate, $product);
+        $this->app['eccube.plugin.point.repository.pointproductrate']->savePointProductRate($pointRate, $Product);
 
         $this->app['monolog.point.admin']->addInfo('save end');
     }
