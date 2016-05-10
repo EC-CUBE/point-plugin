@@ -5,6 +5,7 @@ sudo: false
 cache:
   directories:
     - $HOME/.composer/cache
+    - /home/travis/.composer/cache
 
 php:
   - 5.3
@@ -38,6 +39,7 @@ before_script:
   - sh -c "if [ ! '${ECCUBE_VERSION}' = 'master' ]; then  git checkout -b ${ECCUBE_VERSION} refs/tags/${ECCUBE_VERSION}; fi"
   # update composer
   - composer selfupdate
+  - composer global require hirak/prestissimo
   - composer install --dev --no-interaction -o
   # install ec-cube
   - sh eccube_install.sh ${DB} none
