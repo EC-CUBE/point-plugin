@@ -15,6 +15,7 @@ use Eccube\Event\EventArgs;
 use Eccube\Event\TemplateEvent;
 use Plugin\Point\Event\WorkPlace\AdminCustomer;
 use Plugin\Point\Event\WorkPlace\AdminOrder;
+use Plugin\Point\Event\WorkPlace\AdminOrderMail;
 use Plugin\Point\Event\WorkPlace\AdminProduct;
 use Plugin\Point\Event\WorkPlace\FrontCart;
 use Plugin\Point\Event\WorkPlace\FrontDelivery;
@@ -35,12 +36,6 @@ use Plugin\Point\Event\WorkPlace\ServiceMail;
  */
 class PointEvent
 {
-    /**
-     * ヘルパー呼び出し用
-     * サービス
-     */
-    const HELPER_SERVICE_MAIL = 'ServiceMail';
-
 
     /** @var  \Eccube\Application $app */
     protected $app;
@@ -134,6 +129,16 @@ class PointEvent
     {
         $helper = new AdminOrder();
         $helper->delete($event);
+    }
+
+    /**
+     * メール通知
+     * @param EventArgs $event
+     */
+    public function onAdminOrderMailIndexComplete(EventArgs $event)
+    {
+        $helper = new AdminOrderMail();
+        $helper->save($event);
     }
 
     /**
@@ -249,6 +254,16 @@ class PointEvent
             $helper = new FrontMyPage();
             $helper->createTwig($event);
         }
+    }
+
+    /**
+     * メール通知
+     * @param TemplateEvent $event
+     */
+    public function onRenderAdminOrderMailConfirm(TemplateEvent $event)
+    {
+        $helper = new AdminOrderMail();
+        $helper->createTwig($event);
     }
 
     /**

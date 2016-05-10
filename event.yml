@@ -21,6 +21,10 @@ admin.order.edit.index.complete:
 admin.order.delete.complete:
     - [onAdminOrderDeleteComplete, NORMAL]
 
+## 管理画面 > メール通知
+admin.order.mail.index.complete:
+    - [onAdminOrderMailIndexComplete, NORMAL]
+
 # フロント画面
 ## フロント画面 > 商品購入確認完了(ポイント利用処理)
 front.shopping.confirm.processing:
@@ -51,6 +55,11 @@ front.shopping.shipping.edit.complete:
 ## 管理画面 > 受注編集
 Admin/Order/edit.twig:
     - [onRenderAdminOrderEdit, NORMAL]
+
+## 管理画面 > メール通知
+Admin/Order/mail_confirm.twig:
+    - [onRenderAdminOrderMailConfirm, NORMAL]
+
 ## マイページ
 Mypage/index.twig:
     - [onRenderMyPageIndex, NORMAL]
@@ -75,3 +84,7 @@ Mypage/history.twig:
 ## 受注メール
 mail.order:
     - [onMailOrderComplete, NORMAL]
+
+##  メール通知
+mail.admin.order:
+   - [onMailOrderComplete, NORMAL]
