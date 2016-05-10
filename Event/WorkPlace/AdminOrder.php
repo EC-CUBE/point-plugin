@@ -61,11 +61,10 @@ class  AdminOrder extends AbstractWorkPlace
     /**
      * 受注登録・編集
      *
-     * @param FormBuilder $builder
+     * @param EventArgs $event
      * @param Request $request
-     * @param EventArgs|null $event
      */
-    public function createForm(FormBuilder $builder, Request $request, EventArgs $event = null)
+    public function createForm(EventArgs $event, Request $request)
     {
         $builder = $this->buildForm($event->getArgument('builder'));
         $Order = $event->getArgument('TargetOrder');
