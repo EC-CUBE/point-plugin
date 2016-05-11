@@ -11,9 +11,7 @@
 */
 namespace Plugin\Point\Helper\PointCalculateHelper;
 
-use Doctrine\ORM\EntityNotFoundException;
 use Plugin\Point\Entity\PointInfo;
-use Symfony\Component\Form\Exception\LogicException;
 
 /**
  * ポイント計算サービスクラス
@@ -49,7 +47,7 @@ class PointCalculateHelper
         // ポイント情報基本設定取得
         $this->pointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
 
-        if (empty($this->pointInfo)) {
+        if (empty($this->pointInfo)) { // XXX ここのチェックは意味が無い
             return false;
         }
         // ポイント換算値
@@ -270,7 +268,7 @@ class PointCalculateHelper
         // カートエンティティチェック
         if (empty($this->entities['Cart'])) {
             $this->app['monolog']->critical('cart not found.');
-            throw new LogicException();
+            throw new \LogicException('cart not found.');
         }
 
         $this->addPoint = 0;
@@ -435,8 +433,9 @@ class PointCalculateHelper
     {
         // 基本情報が設定されているか確認
         if (is_null($this->pointInfo->getPlgCalculationType())) {
+            // XXX PointInfo::plg_calculation_type は nullable: false なので通らないはず
             $this->app['monolog']->critical('calculation type not found.');
-            throw new LogicException();
+            throw new \LogicException('calculation type not found.');
         }
 
         // 利用ポイントがない場合は処理しない.
@@ -553,7 +552,7 @@ class PointCalculateHelper
      * マイナス値が発生しないか判定
      *  - マイナス値が発生した際は、ポイントをキャンセル
      * @return bool
-     * @throws EntityNotFoundException
+     * @throws \LogicException
      */
     public function calculateTotalDiscountOnChangeConditions()
     {
@@ -562,14 +561,16 @@ class PointCalculateHelper
 
         // 必要エンティティを判定
         if (!$this->hasEntities('Order')) {
-            throw new EntityNotFoundException();
+            $this->app['monolog']->critical('Order not found.');
+            throw new \LogicException('Order not found.');
         }
         if (!$this->hasEntities('Customer')) {
-            throw new EntityNotFoundException();
+            $this->app['monolog']->critical('Customer not found.');
+            throw new \LogicException('Customer not found.');
         }
         // ポイント基本設定の確認
         if (empty($this->pointInfo)) {
-            throw new EntityNotFoundException();
+            throw new \LogicException('PointInfo not found.');
         }
 
         $order = $this->entities['Order'];
