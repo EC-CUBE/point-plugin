@@ -58,7 +58,7 @@ class FrontHistory extends AbstractWorkPlace
         $calculator->setUsePoint($usePoint);
 
         // 付与ポイント取得
-        $addPoint = $calculator->getAddPointByOrder();
+        $addPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder($parameters['Order']);
 
         // 付与ポイント取得判定
         if (empty($addPoint)) {
