@@ -328,6 +328,17 @@ class PointCalculateHelperTest extends EccubeTestCase
         }
     }
 
+    public function testGetAddPointByCartWithNotfound()
+    {
+        try {
+            $calculater = $this->app['eccube.plugin.point.calculate.helper.factory'];
+            $calculater->getAddPointByCart();
+            $this->fail('Throwable to \LogicException');
+        } catch (\LogicException $e) {
+            $this->assertEquals('cart not found.', $e->getMessage());
+        }
+    }
+
     public function testGetAddPointByProduct()
     {
         $testData = array(
@@ -385,6 +396,50 @@ class PointCalculateHelperTest extends EccubeTestCase
             $this->expected = $data[6];
             $this->actual = $point['max'];
             $this->verify('index ' . $i . ' max failed.');
+        }
+    }
+
+    public function testCalculateTotalDiscountOnChangeConditionsWithException()
+    {
+        try {
+            $calculater = $this->app['eccube.plugin.point.calculate.helper.factory'];
+            $calculater->calculateTotalDiscountOnChangeConditions();
+            $this->fail('Throwable to \LogicException');
+        } catch (\LogicException $e) {
+            $this->assertEquals('Order not found.', $e->getMessage());
+        }
+
+        $Customer = $this->createCustomer();
+        $Order = $this->createOrder($Customer);
+        try {
+            $calculater = $this->app['eccube.plugin.point.calculate.helper.factory'];
+            $calculater->addEntity('Order', $Order);
+            $calculater->calculateTotalDiscountOnChangeConditions();
+            $this->fail('Throwable to \LogicException');
+        } catch (\LogicException $e) {
+            $this->assertEquals('Customer not found.', $e->getMessage());
+        }
+    }
+
+    public function testCalculateTotalDiscountOnChangeConditionsWithPointInfoNotfound()
+    {
+        // PointInfo が削除される. イレギュラー.
+        $PointInfos = $this->app['eccube.plugin.point.repository.pointinfo']->findAll();
+        foreach ($PointInfos as $PointInfo) {
+            $this->app['orm.em']->remove($PointInfo);
+            $this->app['orm.em']->flush($PointInfo);
+        }
+        $Customer = $this->createCustomer();
+        $Order = $this->createOrder($Customer);
+
+        try {
+            $calculater = $this->app['eccube.plugin.point.calculate.helper.factory'];
+            $calculater->addEntity('Order', $Order);
+            $calculater->addEntity('Customer', $Customer);
+            $calculater->calculateTotalDiscountOnChangeConditions();
+            $this->fail('Throwable to \LogicException');
+        } catch (\LogicException $e) {
+            $this->assertEquals('PointInfo not found.', $e->getMessage());
         }
     }
 }
