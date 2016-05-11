@@ -25,6 +25,9 @@ admin.order.delete.complete:
 admin.order.mail.index.complete:
     - [onAdminOrderMailIndexComplete, NORMAL]
 
+admin.order.mail.mail.all.complete:
+    - [onAdminOrderMailIndexComplete, NORMAL]
+
 # フロント画面
 ## フロント画面 > 商品購入確認完了(ポイント利用処理)
 front.shopping.confirm.processing:
@@ -58,6 +61,9 @@ Admin/Order/edit.twig:
 
 ## 管理画面 > メール通知
 Admin/Order/mail_confirm.twig:
+    - [onRenderAdminOrderMailConfirm, NORMAL]
+
+Admin/Order/mail_all_confirm.twig:
     - [onRenderAdminOrderMailConfirm, NORMAL]
 
 ## マイページ
