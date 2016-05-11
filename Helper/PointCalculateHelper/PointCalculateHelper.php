@@ -53,7 +53,6 @@ class PointCalculateHelper
         // ポイント換算値
         $this->basicRate = $this->pointInfo->getPlgBasicPointRate();
         $this->entities = array();
-        // 使用ポイントをセッションから取得
         $this->usePoint = 0;
     }
 
@@ -123,7 +122,13 @@ class PointCalculateHelper
             return false;
         }
 
+        // 利用ポイントがマイナスの場合は false
+        if ($usePoint < 0) {
+            return false;
+        }
+
         $this->usePoint = $usePoint;
+        return true;
     }
 
     /**

@@ -133,7 +133,7 @@ class PointCalculateHelperTest extends EccubeTestCase
             // 端数計算方法
             $PointInfo->setPlgRoundType($data[2]);
             // 利用ポイント
-            $calculater->setUsePoint($data[3]);
+            $this->assertTrue($calculater->setUsePoint($data[3]));
             // 加算ポイント
             $calculater->setAddPoint($data[4]);
             // 期待値
@@ -250,7 +250,7 @@ class PointCalculateHelperTest extends EccubeTestCase
             // 端数計算方法
             $PointInfo->setPlgRoundType($data[2]);
             // 利用ポイント
-            $calculater->setUsePoint($data[3]);
+            $this->assertTrue($calculater->setUsePoint($data[3]));
             // ポイント減算方式
             $PointInfo->setPlgCalculationType($data[4]);
 
@@ -531,6 +531,23 @@ class PointCalculateHelperTest extends EccubeTestCase
         } catch (\LogicException $e) {
             $this->assertEquals('PointInfo not found.', $e->getMessage());
         }
+    }
+
+    public function testSetUsePoint()
+    {
+        $calculater = $this->app['eccube.plugin.point.calculate.helper.factory'];
+
+        $this->expected = false;
+        $this->actual = $calculater->setUsePoint(-1);
+        $this->verify();
+
+        $this->expected = true;
+        $this->actual = $calculater->setUsePoint(0);
+        $this->verify();
+
+        $this->expected = true;
+        $this->actual = $calculater->setUsePoint(1);
+        $this->verify();
     }
 
     /**
