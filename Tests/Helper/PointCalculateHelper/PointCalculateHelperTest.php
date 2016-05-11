@@ -399,6 +399,52 @@ class PointCalculateHelperTest extends EccubeTestCase
         }
     }
 
+    public function testCalculateTotalDiscountOnChangeConditions()
+    {
+        $Customer = $this->createCustomer();
+        $Order = $this->createOrder($Customer);
+
+        // ポイント利用以外のプラグインで、お支払い金額がマイナスになった場合
+        $totalAmount = $Order->getTotalPrice();
+        $this->app['eccube.service.shopping']->setDiscount($Order, $totalAmount + 1); // 支払い金額 + 1円を値引きする
+        $this->app['orm.em']->flush();
+
+        $calculater = $this->app['eccube.plugin.point.calculate.helper.factory'];
+        $calculater->addEntity('Order', $Order);
+        $calculater->addEntity('Customer', $Customer);
+
+        $this->expected = true;
+        $this->actual = $calculater->calculateTotalDiscountOnChangeConditions();
+        $this->verify('ポイント利用以外のプラグインで、お支払い金額がマイナスになった場合は true');
+
+        $this->expected = -1;
+        $this->actual = $Order->getTotalPrice();
+        $this->verify('お支払い金額は '.$this->actual.' 円');
+    }
+
+    public function testCalculateTotalDiscountOnChangeConditionsWithAmountPlus()
+    {
+        $Customer = $this->createCustomer();
+        $Order = $this->createOrder($Customer);
+
+        // ポイント利用以外のプラグインで、お支払い金額が 0 になった場合
+        $totalAmount = $Order->getTotalPrice();
+        $this->app['eccube.service.shopping']->setDiscount($Order, $totalAmount); // 支払い金額分を値引きする
+        $this->app['orm.em']->flush();
+
+        $calculater = $this->app['eccube.plugin.point.calculate.helper.factory'];
+        $calculater->addEntity('Order', $Order);
+        $calculater->addEntity('Customer', $Customer);
+
+        $this->expected = false;
+        $this->actual = $calculater->calculateTotalDiscountOnChangeConditions();
+        $this->verify('ポイント利用以外のプラグインで、お支払い金額が 0 になった場合は false');
+
+        $this->expected = 0;
+        $this->actual = $Order->getTotalPrice();
+        $this->verify('お支払い金額は '.$this->actual.' 円');
+    }
+
     public function testCalculateTotalDiscountOnChangeConditionsWithException()
     {
         try {
