@@ -48,7 +48,7 @@ class FrontShoppingComplete extends AbstractWorkPlace
         // 計算に必要なエンティティを登録
         $calculator->addEntity('Order', $Order);
         $calculator->addEntity('Customer', $Order->getCustomer());
-        $calculator->setUsePoint($usePoint);
+        $calculator->setUsePoint($usePoint * -1);
 
         // 加算ポイント取得
         $addPoint = $calculator->getAddPointByOrder();
