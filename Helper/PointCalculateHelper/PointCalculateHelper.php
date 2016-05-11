@@ -598,8 +598,8 @@ class PointCalculateHelper
         // 利用ポイント差し引き値引き額をセット
         $this->app['eccube.service.shopping']->setDiscount($order, $pointDiscount);
 
-        // 利用ポイント打ち消し
-        if (!empty($lastPreUsePoint)) {
+        // 履歴を保存するために、利用ポイントを一旦記録しておく
+        if (!empty($usePoint)) {
             $this->app['eccube.plugin.point.history.service']->addEntity($order);
             $this->app['eccube.plugin.point.history.service']->addEntity($customer);
             $this->app['eccube.plugin.point.history.service']->savePreUsePoint($usePoint);

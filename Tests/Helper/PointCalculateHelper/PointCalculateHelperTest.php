@@ -12,7 +12,9 @@ namespace Eccube\Tests\Helper\PointCalculateHelper;
 
 use Eccube\Application;
 use Eccube\Tests\EccubeTestCase;
+use Plugin\Point\Entity\Point;
 use Plugin\Point\Entity\PointInfo;
+use Plugin\Point\Helper\PointHistoryHelper\PointHistoryHelper;
 
 /**
  * Class PointCalculateHelperTest
@@ -422,6 +424,48 @@ class PointCalculateHelperTest extends EccubeTestCase
         $this->verify('お支払い金額は '.$this->actual.' 円');
     }
 
+    /**
+     * 10ポイント利用しようとしたが、お支払い金額がマイナスになっている場合
+     */
+    public function testCalculateTotalDiscountOnChangeConditionsWithUsePoint()
+    {
+        $Customer = $this->createCustomer();
+        $Order = $this->createOrder($Customer);
+
+        // ポイント利用以外のプラグインで、お支払い金額がマイナスになった場合
+        $totalAmount = $Order->getTotalPrice();
+        $this->app['eccube.service.shopping']->setDiscount($Order, $totalAmount + 1); // 支払い金額 + 1円を値引きする
+        $this->app['orm.em']->flush();
+
+        $calculater = $this->app['eccube.plugin.point.calculate.helper.factory'];
+        $calculater->addEntity('Order', $Order);
+        $calculater->addEntity('Customer', $Customer);
+
+        $PointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
+         // 10ポイント利用する
+        $this->createPreUsePoint($PointInfo, $Customer, $Order, 10);
+
+        $this->expected = true;
+        $this->actual = $calculater->calculateTotalDiscountOnChangeConditions();
+        $this->verify('ポイント利用以外のプラグインで、お支払い金額がマイナスになった場合は true');
+
+        $this->expected = -11;
+        $this->actual = $Order->getTotalPrice();
+        $this->verify('お支払い金額は '.$this->actual.' 円');
+
+        // 保有ポイントは 0 になっているはず
+        $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
+            $Customer->getId()
+        );
+        $this->actual = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
+            $Customer->getId(),
+            $orderIds
+        );
+
+        $this->expected = 0;
+        $this->verify('保有ポイントは '.$this->actual);
+    }
+
     public function testCalculateTotalDiscountOnChangeConditionsWithAmountPlus()
     {
         $Customer = $this->createCustomer();
@@ -487,5 +531,27 @@ class PointCalculateHelperTest extends EccubeTestCase
         } catch (\LogicException $e) {
             $this->assertEquals('PointInfo not found.', $e->getMessage());
         }
+    }
+
+    /**
+     * 仮利用ポイントの登録
+     * @param Customer $customer
+     * @param Order $order
+     * @param int $pointValue
+     * @return Point
+     */
+    private function createPreUsePoint($PointInfo, $Customer, $Order, $pointValue = -10)
+    {
+        $Point = new Point();
+        $Point
+            ->setCustomer($Customer)
+            ->setPlgDynamicPoint($pointValue)
+            ->setPlgPointType(PointHistoryHelper::STATE_PRE_USE)
+            ->setPointInfo($PointInfo)
+            ->setOrder($Order);
+
+        $this->app['orm.em']->persist($Point);
+        $this->app['orm.em']->flush();
+        return $Point;
     }
 }
