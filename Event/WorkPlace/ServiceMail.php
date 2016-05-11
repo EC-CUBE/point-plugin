@@ -60,7 +60,7 @@ class ServiceMail extends AbstractWorkPlace
         $calculator->addEntity('Customer', $customer);
 
         // 計算値取得
-        $addPoint = $calculator->getAddPointByOrder();
+        $addPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder($order);
 
         $this->app['monolog.point']->addInfo('save add point', array(
                 'customer_id' => $customer->getId(),
