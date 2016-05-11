@@ -204,7 +204,7 @@ class PointHistoryHelper
         $this->entities['Point']->setPlgPointId(null);
         $this->entities['Point']->setCustomer($this->entities['Customer']);
         $this->entities['Point']->setPointInfo($this->entities['PointInfo']);
-        $this->entities['Point']->setPlgDynamicPoint($point);
+        $this->entities['Point']->setPlgDynamicPoint((integer)$point);
         $this->entities['Point']->setPlgPointActionName($this->historyActionType.$this->currentActionName);
         $this->entities['Point']->setPlgPointType($this->historyType);
         try {
