@@ -450,9 +450,11 @@ class PointCalculateHelper
 
         // 利用ポイント数 ＊ ポイント金額換算率 ＝ ポイント値引額
         $pointDiscount = $this->usePoint * $this->pointInfo->getPlgPointConversionRate();
-        $basicRate = ($this->basicRate / 100) + 1;
+
+        $basicRate = $this->pointInfo->getPlgBasicPointRate() / 100;
         // 加算ポイント - ポイント値引き額 * 基本ポイント付与率 = 減算後加算ポイント
         $addPoint = $this->addPoint - $pointDiscount * $basicRate;
+
 
         if ($addPoint < 0) {
             $addPoint = 0;
