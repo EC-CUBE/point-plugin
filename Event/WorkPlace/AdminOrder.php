@@ -243,6 +243,9 @@ class  AdminOrder extends AbstractWorkPlace
             $this->updateAddPoint($Order, $Customer, $addPoint, $beforeAddPoint);
         }
 
+        // ポイントステータスのレコード作成
+        $this->createPointStatus($Order, $Customer);
+
         // 利用ポイントの更新
         $this->updateUsePoint($Order, $Customer, $usePoint);
 
@@ -472,5 +475,26 @@ class  AdminOrder extends AbstractWorkPlace
         }
 
         return $currentPoint;
+    }
+
+    /**
+     * ポイントステータスのレコードを作成する
+     * @param $Order 受注
+     * @param $Customer 会員
+     */
+    private function createPointStatus($Order, $Customer)
+    {
+        // すでに存在するなら何もしない
+        $existedStatus = $this->app['eccube.plugin.point.repository.pointstatus']->findOneBy(
+            array('order_id' => $Order->getId())
+        );
+        if (!empty($existedStatus)) {
+            return;
+        }
+
+        // レコード作成
+        $this->history->addEntity($Order);
+        $this->history->addEntity($Customer);
+        $this->history->savePointStatus();
     }
 }

@@ -12,6 +12,7 @@ use Eccube\Tests\EccubeTestCase;
 use Eccube\Tests\Web\AbstractWebTestCase;
 use Eccube\Tests\Web\Admin\AbstractAdminWebTestCase;
 use Plugin\Point\Entity\PointInfo;
+use Plugin\Point\Entity\PointStatus;
 use Plugin\Point\Helper\PointCalculateHelper\PointCalculateHelper;
 use Symfony\Component\Form\Form;
 use Symfony\Component\BrowserKit\Cookie;
@@ -167,6 +168,41 @@ class PointRepositoryJoinTest extends AbstractWebTestCase
         $this->assertEquals(0, $this->getProvisionalPoint($customer));
     }
 
+    // 受注登録で受注作成
+    public function testCreateOrderByOrderEditWithFixedStatus()
+    {
+        // 受注情報を登録する
+        $customer = $this->createCustomer();
+        $order = $this->DoCreateNewOrder($customer);
+        //$order = $this->DoOrder($customer);
+
+        // 検証（ポイントステータスのレコードが作成されていること）
+        // https://github.com/EC-CUBE/point-plugin/issues/44
+        $existedStatus = $this->app['eccube.plugin.point.repository.pointstatus']->findOneBy(
+            array('order_id' => $order->getId())
+        );
+        $this->assertEquals(1, $existedStatus->getStatus());
+        $this->assertNotEmpty($existedStatus);
+    }
+
+    // 受注登録で受注作成（未確定ステータス）
+    public function testCreateOrderByOrderEditWithUnfixedStatus()
+    {
+        // ポイント設定を変更
+        $this->updatePointSettings($this->pointFixStatus);
+
+        // 受注情報を登録する
+        $customer = $this->createCustomer();
+        $order = $this->DoCreateNewOrder($customer);
+
+        // 検証（ポイントステータスのレコードが作成されていること）
+        // https://github.com/EC-CUBE/point-plugin/issues/44
+        $existedStatus = $this->app['eccube.plugin.point.repository.pointstatus']->findOneBy(
+            array('order_id' => $order->getId())
+        );
+        $this->assertEquals(0, $existedStatus->getStatus());
+        $this->assertNotEmpty($existedStatus);
+    }
 
     /**
      * オーダーから加算ポイントを取得する
@@ -250,6 +286,44 @@ class PointRepositoryJoinTest extends AbstractWebTestCase
             null
         );
         $this->app['eccube.event.dispatcher']->dispatch(EccubeEvents::SERVICE_SHOPPING_NOTIFY_COMPLETE, $event);
+
+        return $order;
+    }
+
+    /**
+     * 受注を受注登録から作成する
+     * @return Order
+     */
+    private function DoCreateNewOrder($customer)
+    {
+        $order = $this->createOrder($customer);
+        $order->getOrderStatus()->setId($this->app['config']['order_new']);
+
+        // ログイン
+        $this->logInAsAdmin($customer);
+
+        // 初期化イベント
+        $builder = $this->app['form.factory']->createBuilder('order', $order);
+        $this->app['request'] = new Request();
+        $event = new EventArgs(
+            array(
+                'builder' => $builder,
+                'TargetOrder' => $order,
+            ),
+            null
+        );
+        $this->app['eccube.event.dispatcher']->dispatch(EccubeEvents::ADMIN_ORDER_EDIT_INDEX_INITIALIZE, $event);
+
+        // 反映イベント
+        $event = new EventArgs(
+            array(
+                'form' => $builder->getForm(),
+                'TargetOrder' => $order,
+                'Customer' => $customer,
+            ),
+            null
+        );
+        $this->app['eccube.event.dispatcher']->dispatch(EccubeEvents::ADMIN_ORDER_EDIT_INDEX_COMPLETE, $event);
 
         return $order;
     }
