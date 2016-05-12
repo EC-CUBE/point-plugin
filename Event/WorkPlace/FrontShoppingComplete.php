@@ -100,6 +100,12 @@ class FrontShoppingComplete extends AbstractWorkPlace
         );
 
         if ($calculateCurrentPoint < 0) {
+
+            $this->app['monolog.point']->addInfo('save current point', array(
+                    'current point' => $calculateCurrentPoint,
+                )
+            );
+
             // TODO: ポイントがマイナス！
             // ポイントがマイナスの時はメール送信
             $this->app['eccube.plugin.point.mail.helper']->sendPointNotifyMail($Order, $calculateCurrentPoint, $usePoint);

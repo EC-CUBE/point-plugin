@@ -35,7 +35,7 @@ class PointCustomerRepository extends EntityRepository
         }
 
         $PointCustomer = new PointCustomer();
-        $PointCustomer->setPlgPointCurrent($point);
+        $PointCustomer->setPlgPointCurrent((integer)$point);
         $PointCustomer->setCustomer($customer);
 
         $em = $this->getEntityManager();
