@@ -24,7 +24,7 @@
                             利用する場合は、以下のボックス内に保有ポイント以内で値を入力してください。
                         </p>
                         <p class="col-sm-10">
-                            現在の保有ポイントは「<strong class="text-primary">{{ point|number_format }}pt</strong>」です。<br/>
+                            現在の保有ポイントは「<strong class="text-primary">{{ point >= 0 ? point|number_format  : 0 }}pt</strong>」です。<br/>
                             今回ご購入合計金額 <strong class="text-primary">{{ total|price }} </strong>(送料、手数料込)
                         </p>
                     </div>
