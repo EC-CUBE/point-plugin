@@ -454,6 +454,8 @@ class PointCalculateHelper
         // 加算ポイント - ポイント値引き額 * 基本ポイント付与率 = 減算後加算ポイント
         $addPoint = $this->addPoint - $pointDiscount * $basicRate;
 
+        echo 'value'.$addPoint;
+
         if ($addPoint < 0) {
             $addPoint = 0;
         }
