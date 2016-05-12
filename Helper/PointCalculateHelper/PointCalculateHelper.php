@@ -354,8 +354,6 @@ class PointCalculateHelper
             $this->addPoint += ($node->getProductClass()->getPrice02() * $rate) * $node->getQuantity();
         }
 
-        echo 'nomalAdd'.$this->addPoint.'\\n';
-
         // 減算処理の場合減算値を返却
         if ($this->isSubtraction() && !empty($this->usePoint)) {
             return $this->getSubtractionCalculate();
@@ -452,9 +450,8 @@ class PointCalculateHelper
 
         // 利用ポイント数 ＊ ポイント金額換算率 ＝ ポイント値引額
         $pointDiscount = $this->usePoint * $this->pointInfo->getPlgPointConversionRate();
-        echo 'usePoint'.$pointDiscount.'\\n';
 
-        $basicRate = $this->basicRate / 100;
+        $basicRate = $this->pointInfo->getPlgBasicPointRate() / 100;
         // 加算ポイント - ポイント値引き額 * 基本ポイント付与率 = 減算後加算ポイント
         $addPoint = $this->addPoint - $pointDiscount * $basicRate;
 
