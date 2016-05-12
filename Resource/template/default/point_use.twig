@@ -20,8 +20,8 @@
                 <div id="detail_box__body" class="col-sm-10 col-sm-offset-1">
                     <div class="row  text-center">
                         <p class="col-sm-10">
-                            1ポイントを<span class="text-primary">{{ pointRate|price }}</span>として使用する事ができます。<br/>
-                            使用する場合は、以下のボックス内に保有ポイント以内で値を入力してください。
+                            1ポイントを<span class="text-primary">{{ pointRate|price }}</span>として利用する事ができます。<br/>
+                            利用する場合は、以下のボックス内に保有ポイント以内で値を入力してください。
                         </p>
                         <p class="col-sm-10">
                             現在の保有ポイントは「<strong class="text-primary">{{ point >= 0 ? point|number_format  : 0 }}pt</strong>」です。<br/>
@@ -34,14 +34,14 @@
                             <dd class="form-group input_name">
                                 {{ form_widget(form.children.plg_use_point) }}
                                 {{ form_errors(form.children.plg_use_point) }}
-                                <span>Ptを使用する。</span>
+                                <span>ptを利用する。</span>
                             </dd>
                         </dl>
                     </div>
                     <div id="detail_box__button_menu" class="row no-padding">
                         <div class="btn_group col-sm-offset-4 col-sm-4">
                             <p id="detail_box__insert_button">
-                                <button type="submit" class="btn btn-primary btn-block">登録する</button>
+                                <button type="submit" class="btn btn-primary btn-block">ポイントを利用する</button>
                             </p>
                             <p id="detail_box__back_button"><a href="{{ url('shopping') }}" class="btn btn-info btn-block">戻る</a></p>
                         </div>

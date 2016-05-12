@@ -19,12 +19,15 @@ use Symfony\Component\Validator\Constraints as Assert;
  *  - 拡張元 : 受注メール
  *  - 拡張項目 : メール内容
  * Class ServiceMail
+ *
  * @package Plugin\Point\Event\WorkPlace
  */
 class ServiceMail extends AbstractWorkPlace
 {
+
     /**
      * メール本文の置き換え
+     *
      * @param EventArgs $event
      * @return bool
      */
@@ -60,7 +63,7 @@ class ServiceMail extends AbstractWorkPlace
         $calculator->addEntity('Customer', $customer);
 
         // 計算値取得
-        $addPoint = $calculator->getAddPointByOrder();
+        $addPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder($order);
 
         $this->app['monolog.point']->addInfo('save add point', array(
                 'customer_id' => $customer->getId(),
@@ -83,7 +86,9 @@ class ServiceMail extends AbstractWorkPlace
         $snippet .= '***********************************************'.PHP_EOL;
         $snippet .= '　ポイント情報                                 '.PHP_EOL;
         $snippet .= '***********************************************'.PHP_EOL;
-        $snippet .= '加算ポイント：'.number_format($addPoint).PHP_EOL;
+        $snippet .= PHP_EOL;
+        $snippet .= '利用ポイント：'.number_format($usePoint).' pt'.PHP_EOL;
+        $snippet .= '加算ポイント：'.number_format($addPoint).' pt'.PHP_EOL;
         $snippet .= PHP_EOL;
         $replace = $search[0][0].$snippet;
         $body = preg_replace('/'.$search[0][0].'/u', $replace, $body);

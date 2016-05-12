@@ -53,7 +53,6 @@ class PointCalculateHelper
         // ポイント換算値
         $this->basicRate = $this->pointInfo->getPlgBasicPointRate();
         $this->entities = array();
-        // 使用ポイントをセッションから取得
         $this->usePoint = 0;
     }
 
@@ -123,7 +122,13 @@ class PointCalculateHelper
             return false;
         }
 
+        // 利用ポイントがマイナスの場合は false
+        if ($usePoint < 0) {
+            return false;
+        }
+
         $this->usePoint = $usePoint;
+        return true;
     }
 
     /**
@@ -548,10 +553,12 @@ class PointCalculateHelper
     }
 
     /**
-     * 値引きを差し引いた合計金額から利用ポイント換算金額を差し引き
-     * マイナス値が発生しないか判定
-     *  - マイナス値が発生した際は、ポイントをキャンセル
-     * @return bool
+     * ポイント利用以外で, 支払い金額がマイナスの場合にポイントを打ち消す.
+     *
+     * ポイント利用以外の割引が発生し、支払い金額がマイナスになった場合は、
+     * ポイント利用をできないようにする.
+     *
+     * @return bool ポイント利用可能な場合 true, 支払い金額がマイナスでポイント利用不可の場合は false を返し、ポイントを打ち消す
      * @throws \LogicException
      */
     public function calculateTotalDiscountOnChangeConditions()
@@ -577,7 +584,7 @@ class PointCalculateHelper
         $customer = $this->entities['Customer'];
 
         $totalAmount = $order->getTotalPrice();
-
+        // $totalAmount が正の整数の場合はポイント利用可能なので false を返す.
         if ($totalAmount >= 0) {
             return false;
         }
@@ -595,13 +602,6 @@ class PointCalculateHelper
 
         // 利用ポイント差し引き値引き額をセット
         $this->app['eccube.service.shopping']->setDiscount($order, $pointDiscount);
-
-        // 利用ポイント打ち消し
-        if (!empty($lastPreUsePoint)) {
-            $this->app['eccube.plugin.point.history.service']->addEntity($order);
-            $this->app['eccube.plugin.point.history.service']->addEntity($customer);
-            $this->app['eccube.plugin.point.history.service']->savePreUsePoint($usePoint);
-        }
         // キャンセルのために「0」でログテーブルを更新
         $this->app['eccube.plugin.point.history.service']->addEntity($order);
         $this->app['eccube.plugin.point.history.service']->addEntity($customer);

@@ -408,7 +408,7 @@ class  AdminOrder extends AbstractWorkPlace
         $point = array();
         $point['current'] = $currentPoint;
         $point['use'] = ($beforeUsePoint - $usePoint) * -1;
-        $point['add'] = $this->calculator->getAddPointByOrder();
+        $point['add'] = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder($Order);;
         $this->saveAdjustUseOrderSnapShot($Order, $Customer, $point);
     }
 
