@@ -57,10 +57,14 @@ class  AdminOrderMail extends AbstractWorkPlace
 
         $body = $args['body'];
 
+        // 利用ポイント取得
+        $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($Order);
+        $usePoint = $usePoint * -1;
+
         // 加算ポイント取得.
         $addPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder($Order);
 
-        $body = $this->getBody($body, $addPoint);
+        $body = $this->getBody($body, $usePoint, $addPoint);
 
         $args['body'] = $body;
 
@@ -128,10 +132,14 @@ class  AdminOrderMail extends AbstractWorkPlace
 
             $Order = $MailHistory->getOrder();
 
+            // 利用ポイント取得
+            $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($Order);
+            $usePoint = $usePoint * -1;
+
             // 加算ポイント取得.
             $addPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder($Order);
 
-            $body = $this->getBody($body, $addPoint);
+            $body = $this->getBody($body, $usePoint, $addPoint);
 
             // メッセージにメールボディをセット
             $MailHistory->setMailBody($body);
@@ -148,10 +156,11 @@ class  AdminOrderMail extends AbstractWorkPlace
      * 本文を置換
      *
      * @param $body
+     * @param $usePoint
      * @param $addPoint
      * @return mixed
      */
-    private function getBody($body, $addPoint)
+    private function getBody($body, $usePoint, $addPoint)
     {
 
         // 情報置換用のキーを取得
@@ -164,7 +173,9 @@ class  AdminOrderMail extends AbstractWorkPlace
         $snippet .= '***********************************************'.PHP_EOL;
         $snippet .= '　ポイント情報                                 '.PHP_EOL;
         $snippet .= '***********************************************'.PHP_EOL;
-        $snippet .= '加算ポイント：'.number_format($addPoint).PHP_EOL;
+        $snippet .= PHP_EOL;
+        $snippet .= '利用ポイント：'.number_format($usePoint).' pt'.PHP_EOL;
+        $snippet .= '加算ポイント：'.number_format($addPoint).' pt'.PHP_EOL;
         $snippet .= PHP_EOL;
         $replace = $search[0][0].$snippet;
         return preg_replace('/'.$search[0][0].'/u', $replace, $body);
