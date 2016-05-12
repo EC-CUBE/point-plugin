@@ -36,14 +36,7 @@ class FrontProductDetail extends AbstractWorkPlace
 
         // 商品の加算ポイントを取得する
         $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
-        $calculator->addEntity('Product', $Product);
-        $point = $calculator->getAddPointByProduct();
-
-        if (empty($point)) {
-            $point = array();
-            $point['min'] = 0;
-            $point['max'] = 0;
-        }
+        $point = $calculator->getAddPointByProduct($Product);
 
         $snippet = $this->app->render(
             'Point/Resource/template/default/Event/ProductDetail/detail_point.twig',

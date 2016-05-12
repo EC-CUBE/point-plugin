@@ -370,8 +370,6 @@ class PointCalculateHelperTest extends EccubeTestCase
         /** @var $PointInfo \Plugin\Point\Entity\PointInfo **/
         $PointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
 
-        $calculater->addEntity('Product', $Product);
-
         $max = count($testData);
         for ($i = 0; $i < $max; $i++) {
             $data = $testData[$i];
@@ -387,7 +385,7 @@ class PointCalculateHelperTest extends EccubeTestCase
             $ProductClasses[0]->setPrice02($data[3]);
             $ProductClasses[1]->setPrice02($data[4]);
 
-            $point = $calculater->getAddPointByProduct();
+            $point = $calculater->getAddPointByProduct($Product);
 
             // min
             $this->expected = $data[5];
