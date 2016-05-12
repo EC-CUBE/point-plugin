@@ -11,6 +11,7 @@
 */
 namespace Plugin\Point\Helper\PointCalculateHelper;
 
+use Eccube\Entity\Product;
 use Plugin\Point\Entity\PointInfo;
 
 /**
@@ -363,43 +364,33 @@ class PointCalculateHelper
     }
 
     /**
-     * 商品情報から付与ポイントを返却
-     * @return array|bool
+     * 商品情報から加算ポイントを算出する.
+     *
+     * 商品毎の付与率がnullの場合は基本ポイント付与率で算出する
+     * 商品毎の付与率が設定されている場合(0も含む)は、商品毎の付与率で算出する
+     *
+     * @return array
      */
-    public function getAddPointByProduct()
+    public function getAddPointByProduct(Product $Product)
     {
-        // 必要エンティティを判定
-        if (!$this->hasEntities('Product')) {
-            return false;
-        }
-
-        // 商品毎のレートが設定されているか確認
-        $pointRate = $this->app['eccube.plugin.point.repository.pointproductrate']->getLastPointProductRateById(
-            $this->entities['Product']->getId()
+        // 商品毎の付与率を取得.
+        $productRate = $this->app['eccube.plugin.point.repository.pointproductrate']->getLastPointProductRateById(
+            $Product->getId()
         );
-        // サイト全体でのポイント設定
-        $basicPointRate = $this->pointInfo->getPlgBasicPointRate();
-
-        // 基本付与率の設定判定
-        if (empty($basicPointRate)) {
-            return false;
-        }
+        // 基本ポイント付与率を取得
+        $basicRate = $this->pointInfo->getPlgBasicPointRate();
 
         // 商品毎の付与率あればそちらを優先
-        // なければサイト設定ポイントを利用
-        $calculateRate = $basicPointRate;
-        if (!is_null($pointRate)) {
-            $calculateRate = $pointRate;
+        // なければ基本ポイント付与率を利用
+        $calculateRate = $basicRate;
+        if (!is_null($productRate)) {
+            $calculateRate = $productRate;
         }
 
-        // 金額の取得
-        $min_price = $this->entities['Product']->getPrice02Min();
-        $max_price = $this->entities['Product']->getPrice02Max();
-
-        // 返却値生成
+        // 商品規格の販売価格(税抜)に応じて最小値と最大値を返却.
         $rate = array();
-        $rate['min'] = (integer)$this->getRoundValue($min_price * ($calculateRate / 100));
-        $rate['max'] = (integer)$this->getRoundValue($max_price * ($calculateRate / 100));
+        $rate['min'] = (integer)$this->getRoundValue($Product->getPrice02Min() * ($calculateRate / 100));
+        $rate['max'] = (integer)$this->getRoundValue($Product->getPrice02Max() * ($calculateRate / 100));
 
         return $rate;
     }
