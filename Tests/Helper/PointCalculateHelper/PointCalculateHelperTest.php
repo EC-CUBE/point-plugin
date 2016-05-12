@@ -93,8 +93,8 @@ class PointCalculateHelperTest extends EccubeTestCase
             array(1, 1, 1, 49, 50, 50),
             array(1, 1, 2, 49, 50, 50),
             array(1, 1, 0, 50, 50, 49),
-            array(1, 1, 1, 50, 50, 0),
-            array(1, 1, 2, 50, 50, 0),
+            array(1, 1, 1, 50, 50, 50),
+            array(1, 1, 2, 50, 50, 50),
             array(5, 5, 0, 0, 0, 0),
             array(5, 5, 1, 0, 0, 0),
             array(5, 5, 2, 0, 0, 0),
@@ -107,12 +107,12 @@ class PointCalculateHelperTest extends EccubeTestCase
             array(5, 5, 0, 1, 50, 49),
             array(5, 5, 1, 1, 50, 50),
             array(5, 5, 2, 1, 50, 50),
-            array(5, 5, 0, 49, 50, 0),
-            array(5, 5, 1, 49, 50, 0),
-            array(5, 5, 2, 49, 50, 0),
-            array(5, 5, 0, 50, 50, 0),
-            array(5, 5, 1, 50, 50, 0),
-            array(5, 5, 2, 50, 50, 0)
+            array(5, 5, 0, 49, 50, 37),
+            array(5, 5, 1, 49, 50, 38),
+            array(5, 5, 2, 49, 50, 38),
+            array(5, 5, 0, 50, 50, 37),
+            array(5, 5, 1, 50, 50, 38),
+            array(5, 5, 2, 50, 50, 38)
         );
 
         /** @var $calculater \Plugin\Point\Helper\PointCalculateHelper\PointCalculateHelper **/
@@ -166,7 +166,7 @@ class PointCalculateHelperTest extends EccubeTestCase
             6 => array(1, 1, 0, 0, 0, null, 5000, 1, 50),
             7 => array(1, 1, 1, 0, 0, null, 5000, 1, 50),
             8 => array(1, 1, 2, 0, 0, null, 5000, 1, 50),
-            9 => array(1, 1, 0, 50, 0, null, 5000, 1, 50),
+            9 => array(1, 1, 0, 50, 0, null, 5000, 1, 49),
             10 => array(1, 1, 1, 50, 0, null, 5000, 1, 50),
             11 => array(1, 1, 2, 50, 0, null, 5000, 1, 50),
             12 => array(1, 1, 0, 0, 1, 0, 5000, 1, 0),
@@ -190,7 +190,7 @@ class PointCalculateHelperTest extends EccubeTestCase
             30 => array(1, 1, 0, 0, 0, 1, 5000, 1, 50),
             31 => array(1, 1, 1, 0, 1, 1, 5000, 1, 50),
             32 => array(1, 1, 2, 0, 1, 1, 5000, 1, 50),
-            33 => array(1, 1, 0, 50, 0, 1, 5000, 1, 49),
+            33 => array(1, 1, 0, 50, 0, 1, 5000, 1, 50),
             34 => array(1, 1, 1, 50, 0, 1, 5000, 1, 50),
             35 => array(1, 1, 2, 50, 0, 1, 5000, 1, 50),
             36 => array(5, 5, 0, 0, 1, null, 5000, 1, 250),
@@ -202,9 +202,9 @@ class PointCalculateHelperTest extends EccubeTestCase
             42 => array(5, 5, 0, 0, 0, null, 5000, 1, 250),
             43 => array(5, 5, 1, 0, 0, null, 5000, 1, 250),
             44 => array(5, 5, 2, 0, 0, null, 5000, 1, 250),
-            45 => array(5, 5, 0, 50, 0, null, 5000, 1, 237),
-            46 => array(5, 5, 1, 50, 0, null, 5000, 1, 238),
-            47 => array(5, 5, 2, 50, 0, null, 5000, 1, 238),
+            45 => array(5, 5, 0, 50, 0, null, 5000, 1, 250),
+            46 => array(5, 5, 1, 50, 0, null, 5000, 1, 250),
+            47 => array(5, 5, 2, 50, 0, null, 5000, 1, 250),
             48 => array(5, 5, 0, 0, 1, 0, 5000, 1, 0),
             49 => array(5, 5, 1, 0, 1, 0, 5000, 1, 0),
             50 => array(5, 5, 2, 0, 1, 0, 5000, 1, 0),
@@ -226,9 +226,9 @@ class PointCalculateHelperTest extends EccubeTestCase
             66 => array(5, 5, 0, 0, 0, 1, 5000, 1, 50),
             67 => array(5, 5, 1, 0, 0, 1, 5000, 1, 50),
             68 => array(5, 5, 2, 0, 0, 1, 5000, 1, 50),
-            69 => array(5, 5, 0, 50, 0, 1, 5000, 1, 37),
-            70 => array(5, 5, 1, 50, 0, 1, 5000, 1, 38),
-            71 => array(5, 5, 2, 50, 0, 1, 5000, 1, 38),
+            69 => array(5, 5, 0, 50, 0, 1, 5000, 1, 50),
+            70 => array(5, 5, 1, 50, 0, 1, 5000, 1, 50),
+            71 => array(5, 5, 2, 50, 0, 1, 5000, 1, 50),
         );
 
         // テストデータ生成
