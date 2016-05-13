@@ -70,7 +70,7 @@ class Version20160428120000 extends AbstractMigration
             $schema->dropTable(self::PLG_POINT_ABUSE);
 
             if ($this->connection->getDatabasePlatform()->getName() == 'postgresql') {
-                $schema->dropSequence('plg_point_abuse_point_status_id_seq');
+                $schema->dropSequence('plg_point_abuse_point_abuse_id_seq');
             }
         }
     }
