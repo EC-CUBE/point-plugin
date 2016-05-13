@@ -29,6 +29,15 @@ class PointAbuse extends \Eccube\Entity\AbstractEntity
     private $order_id;
 
     /**
+     * PointAbuse constructor.
+     * @param int $order_id
+     */
+    public function __construct($order_id)
+    {
+        $this->order_id = $order_id;
+    }
+
+    /**
      * Set point_status_id
      *
      * @param int $point_abuse_id

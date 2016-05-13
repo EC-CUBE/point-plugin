@@ -106,7 +106,8 @@ class PointEvent
     public function onAdminOrderEditIndexInitialize(EventArgs $event)
     {
         $helper = new AdminOrder();
-        $helper->createForm($event, $this->app['request']);
+        $helper->createForm($event);
+        $helper->checkAbuseOrder($event->getArgument('OriginOrder'));
     }
 
     /**

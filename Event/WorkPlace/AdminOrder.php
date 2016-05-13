@@ -333,6 +333,18 @@ class  AdminOrder extends AbstractWorkPlace
     }
 
     /**
+     * 不適切な利用があった受注の場合の処理
+     * @param Order $Order
+     */
+    public function checkAbuseOrder(Order $Order)
+    {
+        $result = $this->app['eccube.plugin.point.repository.pointabuse']->findBy(array('order_id' => $Order->getId()));
+        if (!empty($result)) {
+            $this->app->addWarning('この受注は、ポイントを重複利用して購入された可能性があります。', 'admin');
+        }
+    }
+
+    /**
      * ポイント確定時処理
      *  -   受注ステータス判定でポイントの付与が確定した際の処理
      * @param $event
