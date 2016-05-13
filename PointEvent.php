@@ -188,9 +188,26 @@ class PointEvent
             return;
         }
 
-        // エラー文言の挿入
+        // エラーメッセージの挿入
         $search = '{% block main %}';
-        $replace = $search . '★★★★★★★★不正検知しました！！！(' . $orderId . ')★★★★★★★★';
+        $script =
+            '<script>
+            $(function() {
+                $("#deliveradd_input_box__message").children().remove();
+                
+                var error = \'\
+                 <div class="message">\
+                      <p class="errormsg bg-danger">\
+                          <svg class="cb cb-warning"><use xlink:href="#cb-warning" /></svg>\
+                          ご注文中に問題が発生した可能性があります。お手数ですがお問い合わせをお願いします。(受注番号：{{ orderId }})\
+                      </p>\
+                 </div>\';
+                
+                $("#deliveradd_input_box__message").append(error);
+            });
+            </script>
+            ';
+        $replace = $search.$script;
         $source = str_replace($search, $replace, $event->getSource());
         $event->setSource($source);
     }
