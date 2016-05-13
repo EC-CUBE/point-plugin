@@ -201,7 +201,7 @@ class PointEventTest extends AbstractWebTestCase
         // XXX Request に依存しているためテストが書けない
         try {
             $PointEvent = $this->eventCallable();
-            $PoipntEvent->onRenderCart($this->TemplateEvent);
+            $PointEvent->onRenderCart($this->TemplateEvent);
         } catch (\Exception $e) {
         }
     }
