@@ -16,6 +16,7 @@ class Version20160428120000 extends AbstractMigration
 {
     // テーブル名称
     const PLG_POINT_STATUS = 'plg_point_status';
+    const PLG_POINT_ABUSE = 'plg_point_abuse';
 
     /**
      * インストール時処理
@@ -36,6 +37,18 @@ class Version20160428120000 extends AbstractMigration
         );
         $tool = new SchemaTool($em);
         $tool->createSchema($classes);
+
+        // 不適切な受注記録テーブル
+        if ($schema->hasTable(self::PLG_POINT_ABUSE)) {
+            return true;
+        }
+        $app = Application::getInstance();
+        $em = $app['orm.em'];
+        $classes = array(
+            $em->getMetadataFactory()->getMetadataFor('Plugin\Point\Entity\PointAbuse'),
+        );
+        $tool = new SchemaTool($em);
+        $tool->createSchema($classes);
     }
 
     /**
@@ -50,6 +63,14 @@ class Version20160428120000 extends AbstractMigration
 
             if ($this->connection->getDatabasePlatform()->getName() == 'postgresql') {
                 $schema->dropSequence('plg_point_status_point_status_id_seq');
+            }
+        }
+
+        if ($schema->hasTable(self::PLG_POINT_ABUSE)) {
+            $schema->dropTable(self::PLG_POINT_ABUSE);
+
+            if ($this->connection->getDatabasePlatform()->getName() == 'postgresql') {
+                $schema->dropSequence('plg_point_abuse_point_abuse_id_seq');
             }
         }
     }

@@ -12,6 +12,8 @@
 namespace Plugin\Point\Event\WorkPlace;
 
 use Eccube\Event\EventArgs;
+use Eccube\Event\TemplateEvent;
+use Plugin\Point\Entity\PointAbuse;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -106,9 +108,12 @@ class FrontShoppingComplete extends AbstractWorkPlace
                 )
             );
 
-            // TODO: ポイントがマイナス！
             // ポイントがマイナスの時はメール送信
             $this->app['eccube.plugin.point.mail.helper']->sendPointNotifyMail($Order, $calculateCurrentPoint, $usePoint);
+            // テーブルに記憶
+            $pointAbuse = new PointAbuse($Order->getId());
+            $this->app['orm.em']->persist($pointAbuse);
+            $this->app['orm.em']->flush($pointAbuse);
         }
 
         $this->app['monolog.point']->addInfo('save add point', array(
@@ -138,5 +143,38 @@ class FrontShoppingComplete extends AbstractWorkPlace
 
         $this->app['monolog.point']->addInfo('save end');
 
+    }
+
+    /**
+     * Twig拡張処理
+     * @param TemplateEvent $event
+     * @return void
+     */
+    public function createTwig(TemplateEvent $event)
+    {
+        // 不適切な受注記録に、今回の受注が含まれているか？
+        $parameters = $event->getParameters();
+        $orderId = $parameters['orderId'];
+        $result = $this->app['eccube.plugin.point.repository.pointabuse']->findBy(array('order_id' => $orderId));
+        if (empty($result)) {
+            return;
+        }
+
+        // エラーメッセージの挿入
+        $search = '{% block main %}';
+        $script = <<<__EOL__
+{% block javascript %}
+            <script>
+            $(function() {
+                $("#deliveradd_input_box__message").children("h2.heading01").remove();
+                $("#deliveradd_input_box__message").prepend('<div class="message"><p class="errormsg bg-danger">ご注文中に問題が発生した可能性があります。お手数ですがお問い合わせをお願いします。(受注番号：{{ orderId }})</p></div>');
+            });
+            </script>
+{% endblock %}
+__EOL__;
+
+        $replace = $search.$script;
+        $source = str_replace($search, $replace, $event->getSource());
+        $event->setSource($source);
     }
 }

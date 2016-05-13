@@ -13,6 +13,7 @@ namespace Plugin\Point;
 use Eccube\Application;
 use Eccube\Event\EventArgs;
 use Eccube\Event\TemplateEvent;
+use Eccube\Exception\ShoppingException;
 use Plugin\Point\Event\WorkPlace\AdminCustomer;
 use Plugin\Point\Event\WorkPlace\AdminOrder;
 use Plugin\Point\Event\WorkPlace\AdminOrderMail;
@@ -27,6 +28,7 @@ use Plugin\Point\Event\WorkPlace\FrontShipping;
 use Plugin\Point\Event\WorkPlace\FrontShopping;
 use Plugin\Point\Event\WorkPlace\FrontShoppingComplete;
 use Plugin\Point\Event\WorkPlace\ServiceMail;
+use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 
 
 /**
@@ -106,7 +108,8 @@ class PointEvent
     public function onAdminOrderEditIndexInitialize(EventArgs $event)
     {
         $helper = new AdminOrder();
-        $helper->createForm($event, $this->app['request']);
+        $helper->createForm($event);
+        $helper->checkAbuseOrder($event->getArgument('OriginOrder'));
     }
 
     /**
@@ -168,6 +171,19 @@ class PointEvent
         if ($this->isAuthRouteFront()) {
             $helper = new FrontShoppingComplete();
             $helper->save($event);
+        }
+    }
+
+    /**
+     * 商品購入完了画面
+     * @param TemplateEvent $event
+     */
+    public function onRenderShoppingComplete(TemplateEvent $event)
+    {
+        // ログイン判定
+        if ($this->isAuthRouteFront()) {
+            $helper = new FrontShoppingComplete();
+            $helper->createTwig($event);
         }
     }
 

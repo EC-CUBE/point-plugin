@@ -73,6 +73,13 @@ class PointServiceProvider implements ServiceProviderInterface
             }
         );
 
+        /** 不適切な受注記録テーブル用リポジトリ */
+        $app['eccube.plugin.point.repository.pointabuse'] = $app->share(
+            function () use ($app) {
+                return $app['orm.em']->getRepository('Plugin\Point\Entity\PointAbuse');
+            }
+        );
+
         /** ポイント機能基本情報テーブル用リポジトリ */
         $app['eccube.plugin.point.repository.pointinfo'] = $app->share(
             function () use ($app) {
