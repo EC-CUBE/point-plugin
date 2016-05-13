@@ -13,6 +13,7 @@ namespace Plugin\Point;
 use Eccube\Application;
 use Eccube\Event\EventArgs;
 use Eccube\Event\TemplateEvent;
+use Eccube\Exception\ShoppingException;
 use Plugin\Point\Event\WorkPlace\AdminCustomer;
 use Plugin\Point\Event\WorkPlace\AdminOrder;
 use Plugin\Point\Event\WorkPlace\AdminOrderMail;
@@ -27,6 +28,7 @@ use Plugin\Point\Event\WorkPlace\FrontShipping;
 use Plugin\Point\Event\WorkPlace\FrontShopping;
 use Plugin\Point\Event\WorkPlace\FrontShoppingComplete;
 use Plugin\Point\Event\WorkPlace\ServiceMail;
+use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 
 
 /**
@@ -170,6 +172,27 @@ class PointEvent
             $helper = new FrontShoppingComplete();
             $helper->save($event);
         }
+    }
+
+    /**
+     * 商品購入完了画面
+     * @param TemplateEvent $event
+     */
+    public function onRenderShoppingComplete(TemplateEvent $event)
+    {
+        // 不適切な受注記録に、今回の受注が含まれているか？
+        $parameters = $event->getParameters();
+        $orderId = $parameters['orderId'];
+        $result = $this->app['eccube.plugin.point.repository.pointabuse']->findBy(array('order_id' => $orderId));
+        if (empty($result)) {
+            return;
+        }
+
+        // エラー文言の挿入
+        $search = '{% block main %}';
+        $replace = $search . '★★★★★★★★不正検知しました！！！(' . $orderId . ')★★★★★★★★';
+        $source = str_replace($search, $replace, $event->getSource());
+        $event->setSource($source);
     }
 
     /**

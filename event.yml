@@ -35,6 +35,9 @@ front.shopping.confirm.processing:
 ## フロント画面 > 商品購入完了(ポイント登録)
 service.shopping.notify.complete:
     - [onServiceShoppingNotifyComplete, NORMAL]
+## フロント画面 > 商品購入完了の画面
+Shopping/complete.twig:
+    - [onRenderShoppingComplete, NORMAL]
 
 ## 配送先関連
 front.mypage.delivery.edit.complete:

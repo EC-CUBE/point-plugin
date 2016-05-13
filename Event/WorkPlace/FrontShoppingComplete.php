@@ -12,6 +12,7 @@
 namespace Plugin\Point\Event\WorkPlace;
 
 use Eccube\Event\EventArgs;
+use Plugin\Point\Entity\PointAbuse;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -106,9 +107,12 @@ class FrontShoppingComplete extends AbstractWorkPlace
                 )
             );
 
-            // TODO: ポイントがマイナス！
             // ポイントがマイナスの時はメール送信
             $this->app['eccube.plugin.point.mail.helper']->sendPointNotifyMail($Order, $calculateCurrentPoint, $usePoint);
+            // テーブルに記憶
+            $pointAbuse = new PointAbuse($Order->getId());
+            $this->app['orm.em']->persist($pointAbuse);
+            $this->app['orm.em']->flush($pointAbuse);
         }
 
         $this->app['monolog.point']->addInfo('save add point', array(
