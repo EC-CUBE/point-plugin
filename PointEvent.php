@@ -190,23 +190,17 @@ class PointEvent
 
         // エラーメッセージの挿入
         $search = '{% block main %}';
-        $script =
-            '<script>
+        $script = <<<__EOL__
+{% block javascript %}
+            <script>
             $(function() {
-                $("#deliveradd_input_box__message").children().remove();
-                
-                var error = \'\
-                 <div class="message">\
-                      <p class="errormsg bg-danger">\
-                          <svg class="cb cb-warning"><use xlink:href="#cb-warning" /></svg>\
-                          ご注文中に問題が発生した可能性があります。お手数ですがお問い合わせをお願いします。(受注番号：{{ orderId }})\
-                      </p>\
-                 </div>\';
-                
-                $("#deliveradd_input_box__message").append(error);
+                $("#deliveradd_input_box__message").children("h2.heading01").remove();
+                $("#deliveradd_input_box__message").prepend('<div class="message"><p class="errormsg bg-danger">ご注文中に問題が発生した可能性があります。お手数ですがお問い合わせをお願いします。(受注番号：{{ orderId }})</p></div>');
             });
             </script>
-            ';
+{% endblock %}
+__EOL__;
+
         $replace = $search.$script;
         $source = str_replace($search, $replace, $event->getSource());
         $event->setSource($source);
