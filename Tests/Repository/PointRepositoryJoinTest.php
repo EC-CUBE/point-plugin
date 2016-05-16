@@ -309,6 +309,7 @@ class PointRepositoryJoinTest extends AbstractWebTestCase
             array(
                 'builder' => $builder,
                 'TargetOrder' => $order,
+                'OriginOrder' => $order,
             ),
             null
         );
