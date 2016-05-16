@@ -548,6 +548,81 @@ class PointCalculateHelperTest extends EccubeTestCase
         $this->verify();
     }
 
+    public function testGetConversionPoint()
+    {
+        $Customer = $this->createCustomer();
+        $Order = $this->createOrder($Customer);
+
+        $calculater = $this->app['eccube.plugin.point.calculate.helper.factory'];
+        $calculater->addEntity('Order', $Order);
+        $calculater->addEntity('Customer', $Customer);
+        $calculater->setUsePoint(200);
+
+        $this->expected = 200;
+        $this->actual = $calculater->getConversionPoint();
+        $this->verify();
+    }
+
+    public function testSetDiscount()
+    {
+        $Customer = $this->createCustomer();
+        $Order = $this->createOrder($Customer);
+        $Order->setDiscount(90); // ポイント値引き10円 + その他値引き90円
+
+        $calculater = $this->app['eccube.plugin.point.calculate.helper.factory'];
+        $calculater->addEntity('Order', $Order);
+        $calculater->addEntity('Customer', $Customer);
+        $calculater->setUsePoint(10); // ポイント利用10pt
+
+        $this->expected = true;
+        $this->actual = $calculater->setDiscount(0);
+        $this->verify('10pt 利用しているかどうか');
+
+        $this->expected = 100;
+        $this->actual = $Order->getDiscount();
+        $this->verify('値引き額が正しいかどうか');
+    }
+
+    public function testSetDiscount2()
+    {
+        $Customer = $this->createCustomer();
+        $Order = $this->createOrder($Customer);
+        $Order->setDiscount(10); // その他値引き10円
+
+        $calculater = $this->app['eccube.plugin.point.calculate.helper.factory'];
+        $calculater->addEntity('Order', $Order);
+        $calculater->addEntity('Customer', $Customer);
+        $calculater->setUsePoint(90); // ポイント利用90pt
+
+        $this->expected = true;
+        $this->actual = $calculater->setDiscount(0);
+        $this->verify('同一受注の前回利用ポイントは 0');
+
+        $this->expected = 100;
+        $this->actual = $Order->getDiscount();
+        $this->verify('値引き額が正しいかどうか');
+    }
+
+    public function testSetDiscount3()
+    {
+        $Customer = $this->createCustomer();
+        $Order = $this->createOrder($Customer);
+        $Order->setDiscount(0); // その他値引き0円
+
+        $calculater = $this->app['eccube.plugin.point.calculate.helper.factory'];
+        $calculater->addEntity('Order', $Order);
+        $calculater->addEntity('Customer', $Customer);
+        $calculater->setUsePoint(10); // ポイント利用10pt
+
+        $this->expected = true;
+        $this->actual = $calculater->setDiscount(0); // 前回自分でポイントを使ったかどうか？
+        $this->verify('同一受注の前回利用ポイントは 0');
+
+        $this->expected = 10;
+        $this->actual = $Order->getDiscount();
+        $this->verify('値引き額が正しいかどうか');
+    }
+
     /**
      * 仮利用ポイントの登録
      * @param Customer $customer

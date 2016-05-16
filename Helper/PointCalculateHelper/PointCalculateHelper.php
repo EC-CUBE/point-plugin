@@ -503,8 +503,13 @@ class PointCalculateHelper
     /**
      * 受注情報と、利用ポイント・換算値から値引き額を計算し、
      * 受注情報の更新を行う
-     * @param $lastUsePoint
-     * @return bool
+     *
+     * 購入途中で何回もポイント履歴が発生するケースがあるため, 前回保存した履歴
+     * と今回のポイント差分を算出し,差分が発生している場合は true を返し値引き額
+     * を保存する.
+     *
+     * @param integer $lastUsePoint 同じ受注で保存した履歴の最終ポイント数
+     * @return bool 差分が無い場合は false を返す
      */
     public function setDiscount($lastUsePoint)
     {

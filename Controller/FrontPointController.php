@@ -178,12 +178,6 @@ class FrontPointController
 
                     // 履歴情報登録
                     // 利用ポイント
-                    // 再入力時は、以前利用ポイントを打ち消し
-                    if (!empty($lastPreUsePoint)) {
-                        $this->app['eccube.plugin.point.history.service']->addEntity($Order);
-                        $this->app['eccube.plugin.point.history.service']->addEntity($Order->getCustomer());
-                        $this->app['eccube.plugin.point.history.service']->savePreUsePoint($lastPreUsePoint);
-                    }
                     // ユーザー入力値保存
                     $this->app['eccube.plugin.point.history.service']->refreshEntity();
                     $this->app['eccube.plugin.point.history.service']->addEntity($Order);
