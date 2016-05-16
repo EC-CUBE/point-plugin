@@ -55,6 +55,7 @@ class PointEventTest extends AbstractWebTestCase
                 'builder' => $builder,
                 'form' => $builder->getForm(),
                 'TargetOrder' => $this->Order,
+                'OriginOrder' => $this->Order,
                 'Order' => $this->Order,
                 'Customer' => $this->Customer,
                 'Product' => $this->Product,
