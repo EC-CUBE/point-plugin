@@ -41,26 +41,20 @@ class FrontShoppingComplete extends AbstractWorkPlace
 
         $Order = $event->getArgument('Order');
 
-        // 使用ポイントをエンティティに格納
+        // 利用ポイントを取得
         $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($Order);
 
-        // 計算判定取得
+        // 加算ポイントを算出
         $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
-
-        // 計算に必要なエンティティを登録
         $calculator->addEntity('Order', $Order);
         $calculator->addEntity('Customer', $Order->getCustomer());
         $calculator->setUsePoint($usePoint * -1);
-
-        // 加算ポイント取得
         $addPoint = $calculator->getAddPointByOrder();
-
-        // 加算ポイント取得可否判定
         if (is_null($addPoint)) {
             $addPoint = 0;
         }
 
-        // ポイント付与受注ステータスが「新規」の場合、付与ポイントを確定
+		// ポイント付与受注ステータスが「新規」の場合、付与ポイントを確定
         $add_point_flg = false;
         $pointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
         // ポイント機能基本設定の付与ポイント受注ステータスを取得
@@ -68,16 +62,16 @@ class FrontShoppingComplete extends AbstractWorkPlace
             $add_point_flg = true;
         }
 
-        // 履歴情報登録
-        // 利用ポイント
+        // 仮利用ポイントの相殺を登録
         $this->app['eccube.plugin.point.history.service']->addEntity($Order);
         $this->app['eccube.plugin.point.history.service']->addEntity($Order->getCustomer());
         $this->app['eccube.plugin.point.history.service']->savePreUsePoint($usePoint * -1);
+
+        // 利用ポイントを登録し、その結果 保有ポイントがマイナス(ポイント使いすぎ)になっていないか確認を行う
         $this->app['eccube.plugin.point.history.service']->refreshEntity();
         $this->app['eccube.plugin.point.history.service']->addEntity($Order);
         $this->app['eccube.plugin.point.history.service']->addEntity($Order->getCustomer());
         $this->app['eccube.plugin.point.history.service']->saveUsePoint($usePoint);
-
         // 現在ポイントを履歴から計算
         $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
             $Order->getCustomer()->getId()
@@ -88,7 +82,6 @@ class FrontShoppingComplete extends AbstractWorkPlace
         );
         // 保有ポイントマイナスのチェック
         if ($calculateCurrentPoint < 0) {
-
             $this->app['monolog.point']->addInfo('save current point', array(
                     'current point' => $calculateCurrentPoint,
                 )
@@ -96,27 +89,25 @@ class FrontShoppingComplete extends AbstractWorkPlace
 
             // ポイントがマイナスの時はメール送信
             $this->app['eccube.plugin.point.mail.helper']->sendPointNotifyMail($Order, $calculateCurrentPoint, $usePoint);
-            // テーブルに記憶
+            // ポイントがマイナスになった受注であるということを記録
             $pointAbuse = new PointAbuse($Order->getId());
             $this->app['orm.em']->persist($pointAbuse);
             $this->app['orm.em']->flush($pointAbuse);
         }
 
-        // 加算ポイント
+        // 加算ポイントを登録
         $this->app['eccube.plugin.point.history.service']->refreshEntity();
         $this->app['eccube.plugin.point.history.service']->addEntity($Order);
         $this->app['eccube.plugin.point.history.service']->addEntity($Order->getCustomer());
         $this->app['eccube.plugin.point.history.service']->saveAddPoint($addPoint);
-
-        // ポイントステータスのレコードを生成
         $this->app['eccube.plugin.point.history.service']->savePointStatus();
 
-        // 付与ポイント受注ステータスが新規であれば、ポイントを確定状態にする
+        // 確定ステータス＝新規受注であれば、加算ポイントを確定状態に変更
         if ($add_point_flg) {
             $this->app['eccube.plugin.point.history.service']->fixPointStatus();
         }
 
-        // 現在ポイントを履歴から計算
+        // 保有ポイントを再計算して、会員の保有ポイントを更新する
         $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
             $Order->getCustomer()->getId()
         );
