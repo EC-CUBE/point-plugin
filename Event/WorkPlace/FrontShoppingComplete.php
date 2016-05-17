@@ -11,6 +11,8 @@
 
 namespace Plugin\Point\Event\WorkPlace;
 
+use Eccube\Entity\Customer;
+use Eccube\Entity\Order;
 use Eccube\Event\EventArgs;
 use Eccube\Event\TemplateEvent;
 use Plugin\Point\Entity\PointAbuse;
@@ -41,79 +43,54 @@ class FrontShoppingComplete extends AbstractWorkPlace
 
         $Order = $event->getArgument('Order');
 
-        // 利用ポイントを取得
+        // 仮利用ポイントを相殺して登録
         $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($Order);
-
-        // 加算ポイントを算出
-        $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
-        $calculator->addEntity('Order', $Order);
-        $calculator->addEntity('Customer', $Order->getCustomer());
-        $calculator->setUsePoint($usePoint * -1);
-        $addPoint = $calculator->getAddPointByOrder();
-        if (is_null($addPoint)) {
-            $addPoint = 0;
-        }
-        
-        // 仮利用ポイントの相殺を登録
         $this->app['eccube.plugin.point.history.service']->addEntity($Order);
         $this->app['eccube.plugin.point.history.service']->addEntity($Order->getCustomer());
         $this->app['eccube.plugin.point.history.service']->savePreUsePoint($usePoint * -1);
-
-        // 利用ポイントを登録し、その結果 保有ポイントがマイナス(ポイント使いすぎ)になっていないか確認を行う
+        // 利用ポイントを登録
         $this->app['eccube.plugin.point.history.service']->refreshEntity();
         $this->app['eccube.plugin.point.history.service']->addEntity($Order);
         $this->app['eccube.plugin.point.history.service']->addEntity($Order->getCustomer());
         $this->app['eccube.plugin.point.history.service']->saveUsePoint($usePoint);
-        // 現在ポイントを履歴から計算
-        $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
-            $Order->getCustomer()->getId()
-        );
-        $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
-            $Order->getCustomer()->getId(),
-            $orderIds
-        );
-        // 保有ポイントマイナスのチェック
+
+        // 保有ポイントのマイナスチェック（保有ポイント以上にポイントを利用していないか？）
+        $calculateCurrentPoint = $this->calculateCurrentPoint($Order->getCustomer());
         if ($calculateCurrentPoint < 0) {
             $this->app['monolog.point']->addInfo('save current point', array(
                     'current point' => $calculateCurrentPoint,
                 )
             );
-
             // ポイントがマイナスの時はメール送信
             $this->app['eccube.plugin.point.mail.helper']->sendPointNotifyMail($Order, $calculateCurrentPoint, $usePoint);
-            // ポイントがマイナスになった受注であるということを記録
+            // 保有ポイント以上にポイントを利用した受注であるということを記録
             $pointAbuse = new PointAbuse($Order->getId());
             $this->app['orm.em']->persist($pointAbuse);
             $this->app['orm.em']->flush($pointAbuse);
         }
 
         // 加算ポイントを登録
+        $addPoint = $this->calculateAddPoint($Order, $usePoint);
         $this->app['eccube.plugin.point.history.service']->refreshEntity();
         $this->app['eccube.plugin.point.history.service']->addEntity($Order);
         $this->app['eccube.plugin.point.history.service']->addEntity($Order->getCustomer());
         $this->app['eccube.plugin.point.history.service']->saveAddPoint($addPoint);
         $this->app['eccube.plugin.point.history.service']->savePointStatus();
 
-        // 確定ステータス＝新規受注であれば、加算ポイントを確定状態に変更
+        // 加算ポイントのステータスを変更（ポイント設定が確定ステータス＝新規受注の場合）
         $pointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
         if ($pointInfo->getPlgAddPointStatus() == $this->app['config']['order_new']) {
             $this->app['eccube.plugin.point.history.service']->fixPointStatus();
         }
 
         // 保有ポイントを再計算して、会員の保有ポイントを更新する
-        $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
-            $Order->getCustomer()->getId()
-        );
-        $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
-            $Order->getCustomer()->getId(),
-            $orderIds
-        );
-        // 会員ポイント更新
+        $calculateCurrentPoint = $this->calculateCurrentPoint($Order->getCustomer());
         $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
             $calculateCurrentPoint,
             $Order->getCustomer()
         );
 
+        // ログ
         $this->app['monolog.point']->addInfo('save add point', array(
                 'customer_id' => $Order->getCustomer()->getId(),
                 'order_id' => $Order->getId(),
@@ -122,7 +99,6 @@ class FrontShoppingComplete extends AbstractWorkPlace
                 'use point' => $usePoint,
             )
         );
-
         // ポイント保存用変数作成
         $point = array();
         $point['current'] = $calculateCurrentPoint;
@@ -134,7 +110,6 @@ class FrontShoppingComplete extends AbstractWorkPlace
         $this->app['eccube.plugin.point.history.service']->saveSnapShot($point);
 
         $this->app['monolog.point']->addInfo('save end');
-
     }
 
     /**
@@ -168,5 +143,43 @@ __EOL__;
         $replace = $search.$script;
         $source = str_replace($search, $replace, $event->getSource());
         $event->setSource($source);
+    }
+
+    /**
+     * 会員の保有ポイントを計算する
+     * @param Customer $Customer
+     * @return int
+     */
+    private function calculateCurrentPoint($Customer)
+    {
+        $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
+            $Customer->getId()
+        );
+        $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
+            $Customer->getId(),
+            $orderIds
+        );
+
+        return $calculateCurrentPoint;
+    }
+
+    /**
+     * 加算ポイントを算出する
+     * @param Order $Order
+     * @param int $usePoint
+     * @return int
+     */
+    private function calculateAddPoint($Order, $usePoint)
+    {
+        $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
+        $calculator->addEntity('Order', $Order);
+        $calculator->addEntity('Customer', $Order->getCustomer());
+        $calculator->setUsePoint($usePoint * -1);
+
+        $addPoint = $calculator->getAddPointByOrder();
+        if (is_null($addPoint)) {
+            $addPoint = 0;
+        }
+        return $addPoint;
     }
 }
