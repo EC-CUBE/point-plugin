@@ -78,7 +78,31 @@ class FrontShoppingComplete extends AbstractWorkPlace
         $this->app['eccube.plugin.point.history.service']->addEntity($Order->getCustomer());
         $this->app['eccube.plugin.point.history.service']->saveUsePoint($usePoint);
 
-        // ポイントの付与
+        // 現在ポイントを履歴から計算
+        $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
+            $Order->getCustomer()->getId()
+        );
+        $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
+            $Order->getCustomer()->getId(),
+            $orderIds
+        );
+        // 保有ポイントマイナスのチェック
+        if ($calculateCurrentPoint < 0) {
+
+            $this->app['monolog.point']->addInfo('save current point', array(
+                    'current point' => $calculateCurrentPoint,
+                )
+            );
+
+            // ポイントがマイナスの時はメール送信
+            $this->app['eccube.plugin.point.mail.helper']->sendPointNotifyMail($Order, $calculateCurrentPoint, $usePoint);
+            // テーブルに記憶
+            $pointAbuse = new PointAbuse($Order->getId());
+            $this->app['orm.em']->persist($pointAbuse);
+            $this->app['orm.em']->flush($pointAbuse);
+        }
+
+        // 加算ポイント
         $this->app['eccube.plugin.point.history.service']->refreshEntity();
         $this->app['eccube.plugin.point.history.service']->addEntity($Order);
         $this->app['eccube.plugin.point.history.service']->addEntity($Order->getCustomer());
@@ -100,21 +124,11 @@ class FrontShoppingComplete extends AbstractWorkPlace
             $Order->getCustomer()->getId(),
             $orderIds
         );
-
-        if ($calculateCurrentPoint < 0) {
-
-            $this->app['monolog.point']->addInfo('save current point', array(
-                    'current point' => $calculateCurrentPoint,
-                )
-            );
-
-            // ポイントがマイナスの時はメール送信
-            $this->app['eccube.plugin.point.mail.helper']->sendPointNotifyMail($Order, $calculateCurrentPoint, $usePoint);
-            // テーブルに記憶
-            $pointAbuse = new PointAbuse($Order->getId());
-            $this->app['orm.em']->persist($pointAbuse);
-            $this->app['orm.em']->flush($pointAbuse);
-        }
+        // 会員ポイント更新
+        $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
+            $calculateCurrentPoint,
+            $Order->getCustomer()
+        );
 
         $this->app['monolog.point']->addInfo('save add point', array(
                 'customer_id' => $Order->getCustomer()->getId(),
@@ -123,12 +137,6 @@ class FrontShoppingComplete extends AbstractWorkPlace
                 'add point' => $addPoint,
                 'use point' => $usePoint,
             )
-        );
-
-        // 会員ポイント更新
-        $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
-            $calculateCurrentPoint,
-            $Order->getCustomer()
         );
 
         // ポイント保存用変数作成
