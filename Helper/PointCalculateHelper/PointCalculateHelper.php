@@ -492,14 +492,12 @@ class PointCalculateHelper
 
         $diff = $currDiscount - ($lastUsePoint * $this->pointInfo->getPlgPointConversionRate());
 
-        if ($diff >= 0) {
-            if ((integer)$currDiscount != (integer)$useDiscount) {
-                $mergeDiscount = $diff + $useDiscount;
-                if ($mergeDiscount >= 0) {
-                    $this->entities['Order']->setDiscount(abs($mergeDiscount));
+        if ((integer)$currDiscount != (integer)$useDiscount) {
+            $mergeDiscount = $diff + $useDiscount;
+            if ($mergeDiscount >= 0) {
+                $this->entities['Order']->setDiscount(abs($mergeDiscount));
 
-                    return true;
-                }
+                return true;
             }
         }
 
