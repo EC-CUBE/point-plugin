@@ -53,15 +53,7 @@ class FrontShoppingComplete extends AbstractWorkPlace
         if (is_null($addPoint)) {
             $addPoint = 0;
         }
-
-		// ポイント付与受注ステータスが「新規」の場合、付与ポイントを確定
-        $add_point_flg = false;
-        $pointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
-        // ポイント機能基本設定の付与ポイント受注ステータスを取得
-        if ($pointInfo->getPlgAddPointStatus() == $this->app['config']['order_new']) {
-            $add_point_flg = true;
-        }
-
+        
         // 仮利用ポイントの相殺を登録
         $this->app['eccube.plugin.point.history.service']->addEntity($Order);
         $this->app['eccube.plugin.point.history.service']->addEntity($Order->getCustomer());
@@ -103,7 +95,8 @@ class FrontShoppingComplete extends AbstractWorkPlace
         $this->app['eccube.plugin.point.history.service']->savePointStatus();
 
         // 確定ステータス＝新規受注であれば、加算ポイントを確定状態に変更
-        if ($add_point_flg) {
+        $pointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
+        if ($pointInfo->getPlgAddPointStatus() == $this->app['config']['order_new']) {
             $this->app['eccube.plugin.point.history.service']->fixPointStatus();
         }
 
