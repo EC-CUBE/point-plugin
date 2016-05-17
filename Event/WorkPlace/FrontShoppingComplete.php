@@ -146,7 +146,9 @@ __EOL__;
     }
 
     /**
-     * 会員の保有ポイントを計算する
+     * 会員の保有ポイントを計算する.
+     *
+     * TODO: 他のクラスでも同様の処理をしているので共通化したほうが良い
      * @param Customer $Customer
      * @return int
      */
@@ -164,7 +166,8 @@ __EOL__;
     }
 
     /**
-     * 加算ポイントを算出する
+     * 加算ポイントを算出する.
+     *
      * @param Order $Order
      * @param int $usePoint
      * @return int
