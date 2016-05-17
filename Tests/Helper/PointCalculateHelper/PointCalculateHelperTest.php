@@ -548,6 +548,100 @@ class PointCalculateHelperTest extends EccubeTestCase
         $this->verify();
     }
 
+    public function testGetConversionPoint()
+    {
+        $Customer = $this->createCustomer();
+        $Order = $this->createOrder($Customer);
+
+        $calculater = $this->app['eccube.plugin.point.calculate.helper.factory'];
+        $calculater->addEntity('Order', $Order);
+        $calculater->addEntity('Customer', $Customer);
+        $calculater->setUsePoint(200);
+
+        $this->expected = 200;
+        $this->actual = $calculater->getConversionPoint();
+        $this->verify();
+    }
+
+    public function testSetDiscount()
+    {
+        $Customer = $this->createCustomer();
+        $Order = $this->createOrder($Customer);
+        $Order->setDiscount(90); // ポイント値引き10円 + その他値引き90円
+
+        $calculater = $this->app['eccube.plugin.point.calculate.helper.factory'];
+        $calculater->addEntity('Order', $Order);
+        $calculater->addEntity('Customer', $Customer);
+        $calculater->setUsePoint(10); // ポイント利用10pt
+
+        $this->expected = true;
+        $this->actual = $calculater->setDiscount(0);
+        $this->verify('10pt 利用しているかどうか');
+
+        $this->expected = 100;
+        $this->actual = $Order->getDiscount();
+        $this->verify('値引き額が正しいかどうか');
+    }
+
+    public function testSetDiscount2()
+    {
+        $Customer = $this->createCustomer();
+        $Order = $this->createOrder($Customer);
+        $Order->setDiscount(10); // その他値引き10円
+
+        $calculater = $this->app['eccube.plugin.point.calculate.helper.factory'];
+        $calculater->addEntity('Order', $Order);
+        $calculater->addEntity('Customer', $Customer);
+        $calculater->setUsePoint(90); // ポイント利用90pt
+
+        $this->expected = true;
+        $this->actual = $calculater->setDiscount(0);
+        $this->verify('同一受注の前回利用ポイントは 0');
+
+        $this->expected = 100;
+        $this->actual = $Order->getDiscount();
+        $this->verify('値引き額が正しいかどうか');
+    }
+
+    /**
+     * 仮利用ポイントの履歴を含むテストケース
+     */
+    public function testSetDiscount3()
+    {
+        $previousUsePoint = 100; // 前回入力したポイント100
+        $usePoint = 10;         // 今回利用ポイント10
+        $otherDiscount = 5;     // その他の割引5円
+        $Customer = $this->createCustomer();
+        $Order = $this->createOrder($Customer);
+
+         // その他値引き5円 + 前回入力したポイント値引き分100円
+        $Order->setDiscount($otherDiscount + $previousUsePoint);
+
+        // 仮利用ポイントの履歴を作成する
+        $this->app['eccube.plugin.point.history.service']->addEntity($Order);
+        $this->app['eccube.plugin.point.history.service']->addEntity($Order->getCustomer());
+        $this->app['eccube.plugin.point.history.service']->savePreUsePoint($previousUsePoint * -1); // 前回入力したポイントを履歴に設定
+
+        $lastPreUsePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($Order));
+
+        $this->expected = $previousUsePoint;
+        $this->actual = $lastPreUsePoint;
+        $this->verify('前回入力したポイントは '.$this->expected.' pt');
+
+        $calculater = $this->app['eccube.plugin.point.calculate.helper.factory'];
+        $calculater->addEntity('Order', $Order);
+        $calculater->addEntity('Customer', $Customer);
+        $calculater->setUsePoint($usePoint); // ポイント利用10pt
+
+        $this->expected = true;
+        $this->actual = $calculater->setDiscount($lastPreUsePoint); // 同一受注でポイントを入力した履歴があるかどうか
+        $this->verify('同一受注の利用ポイント履歴あり');
+
+        $this->expected = $usePoint + $otherDiscount;
+        $this->actual = $Order->getDiscount();
+        $this->verify('値引き額が正しいかどうか');
+    }
+
     /**
      * 仮利用ポイントの登録
      * @param Customer $customer

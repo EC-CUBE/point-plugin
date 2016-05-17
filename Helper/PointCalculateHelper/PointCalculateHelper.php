@@ -198,29 +198,6 @@ class PointCalculateHelper
     }
 
     /**
-     * 利用ポイントが保有ポイント以内に収まっているか計算
-     * @return bool
-     */
-    protected function isInRangeCustomerPoint()
-    {
-        // 必要エンティティを判定
-        if (!$this->hasEntities('Customer')) {
-            return false;
-        }
-
-        // 現在保有ポイント
-        $customer_id = $this->entities['Customer']->getId();
-        $point = $this->app['eccube.plugin.point.repository.pointcustomer']->getLastPointById($customer_id);
-
-        // 使用ポイントが保有ポイント内か判定
-        if ($point < $this->usePoint) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
      * 仮付与ポイントを返却
      *  - 会員IDをもとに返却
      * @return int 仮付与ポイント
@@ -235,27 +212,6 @@ class PointCalculateHelper
         $customer_id = $this->entities['Customer']->getId();
         $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithUnfixedByCustomer($customer_id);
         $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->calcProvisionalAddPoint($orderIds);
-
-        return $provisionalPoint;
-    }
-
-    /**
-     * 仮付与ポイントを返却
-     *  - オーダー情報をもとに返却
-     * @return int 仮付与ポイント
-     */
-    public function getLatestAddPointByOrder()
-    {
-        // 必要エンティティを判定
-        if (!$this->hasEntities('Customer')) {
-            return 0;
-        }
-        if (!$this->hasEntities('Order')) {
-            return 0;
-        }
-
-        $order = $this->entities['Order'];
-        $provisionalPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder($order);
 
         return $provisionalPoint;
     }
@@ -503,8 +459,13 @@ class PointCalculateHelper
     /**
      * 受注情報と、利用ポイント・換算値から値引き額を計算し、
      * 受注情報の更新を行う
-     * @param $lastUsePoint
-     * @return bool
+     *
+     * 購入途中で何回もポイント履歴が発生するケースがあるため, 前回保存した履歴
+     * と今回のポイント差分を算出し,差分が発生している場合は true を返し値引き額
+     * を保存する.
+     *
+     * @param integer $lastUsePoint 同じ受注で保存した履歴の最終ポイント数
+     * @return bool 差分が無い場合は false を返す
      */
     public function setDiscount($lastUsePoint)
     {
