@@ -95,6 +95,7 @@ class PointEventTest extends AbstractWebTestCase
     {
         $builder = $this->app['form.factory']->createBuilder('admin_customer', $this->Customer);
         $builder->add('plg_point_current', 'integer');
+        $builder->get('plg_point_current')->setData(100);
         $event = new EventArgs(
             array(
                 'form' => $builder,
