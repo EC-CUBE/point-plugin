@@ -40,9 +40,6 @@ Shopping/complete.twig:
     - [onRenderShoppingComplete, NORMAL]
 
 ## 配送先関連
-front.mypage.delivery.edit.complete:
-    - [Delivery, NORMAL]
-
 front.shopping.delivery.complete:
     - [Delivery, NORMAL]
 
