@@ -13,15 +13,11 @@ use Plugin\Point\Entity\PointInfo;
  */
 class PluginManager extends AbstractPluginManager
 {
-    /** @var \Eccube\Application */
-    protected $app;
-
     /**
      * PluginManager constructor.
      */
     public function __construct()
     {
-        $this->app = \Eccube\Application::getInstance();
     }
 
     /**
@@ -53,7 +49,7 @@ class PluginManager extends AbstractPluginManager
         $this->migrationSchema($app, __DIR__.'/Resource/doctrine/migration', $config['code']);
 
         // ポイント基本設定のデフォルト値を登録
-        $PointInfo = $this->app['orm.em']
+        $PointInfo = $app['orm.em']
             ->getRepository('Plugin\Point\Entity\PointInfo')
             ->getLastInsertData();
         if (is_null($PointInfo)) {
@@ -65,12 +61,12 @@ class PluginManager extends AbstractPluginManager
                 ->setPlgRoundType(1)
                 ->setPlgCalculationType(1);
 
-            $this->app['orm.em']->persist($PointInfo);
-            $this->app['orm.em']->flush($PointInfo);
+            $app['orm.em']->persist($PointInfo);
+            $app['orm.em']->flush($PointInfo);
         }
 
         // ページレイアウトにプラグイン使用時の値を代入
-        $deviceType = $this->app['eccube.repository.master.device_type']->findOneById(10);
+        $deviceType = $app['eccube.repository.master.device_type']->findOneById(10);
         $pageLayout = new PageLayout();
         $pageLayout->setId(null);
         $pageLayout->setDeviceType($deviceType);
@@ -79,8 +75,8 @@ class PluginManager extends AbstractPluginManager
         $pageLayout->setMetaRobots('noindex');
         $pageLayout->setUrl('point_use');
         $pageLayout->setName('商品購入確認/利用ポイント');
-        $this->app['orm.em']->persist($pageLayout);
-        $this->app['orm.em']->flush($pageLayout);
+        $app['orm.em']->persist($pageLayout);
+        $app['orm.em']->flush($pageLayout);
     }
 
     /**
@@ -91,10 +87,10 @@ class PluginManager extends AbstractPluginManager
     public function disable($config, $app)
     {
         // ページ情報の削除
-        $pageLayout = $this->app['eccube.repository.page_layout']->findByUrl('point_use');
+        $pageLayout = $app['eccube.repository.page_layout']->findByUrl('point_use');
         foreach ($pageLayout as $deleteNode) {
-            $this->app['orm.em']->remove($deleteNode);
-            $this->app['orm.em']->flush($deleteNode);
+            $app['orm.em']->remove($deleteNode);
+            $app['orm.em']->flush($deleteNode);
         }
     }
 

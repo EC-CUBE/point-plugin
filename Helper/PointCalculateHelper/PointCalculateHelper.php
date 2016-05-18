@@ -559,28 +559,7 @@ class PointCalculateHelper
         $this->app['eccube.plugin.point.history.service']->addEntity($customer);
         $this->app['eccube.plugin.point.history.service']->savePreUsePoint(0);
 
-        // 現在ポイントを履歴から計算
-        $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
-            $order->getCustomer()->getId()
-        );
-        $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
-            $order->getCustomer()->getId(),
-            $orderIds
-        );
-
-        if ($calculateCurrentPoint < 0) {
-            // TODO: ポイントがマイナス！
-            // ポイントがマイナスの時はメール送信
-            $this->app['eccube.plugin.point.mail.helper']->sendPointNotifyMail($order, $calculateCurrentPoint, $usePoint);
-        }
-
-        // 会員ポイント更新
-        $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
-            $calculateCurrentPoint,
-            $customer
-        );
-
-        // 利用ポイント打ち消しf後の受注情報更新
+        // 利用ポイント打ち消し後の受注情報更新
         $newOrder = $this->app['eccube.service.shopping']->calculatePrice($order);
 
         $this->app['orm.em']->flush($newOrder);

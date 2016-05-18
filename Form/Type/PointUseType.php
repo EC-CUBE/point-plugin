@@ -59,13 +59,13 @@ class PointUseType extends AbstractType
                         new Assert\LessThanOrEqual(
                             array(
                                 'value' => $options['maxUsePoint'],
-                                'message' => '利用ポイントは合計金額以内で入力してください。',
+                                'message' => '合計金額以内で入力してください。',
                             )
                         ),
                         new Assert\LessThanOrEqual(
                             array(
                                 'value' => $options['currentPoint'],
-                                'message' => '利用ポイントは保有ポイント以内で入力してください。',
+                                'message' => '保有ポイント以内で入力してください。',
                             )
                         ),
                         new Assert\Length(
