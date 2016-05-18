@@ -183,28 +183,7 @@ class FrontPointController
                     $this->app['eccube.plugin.point.history.service']->addEntity($Order);
                     $this->app['eccube.plugin.point.history.service']->addEntity($Order->getCustomer());
                     $this->app['eccube.plugin.point.history.service']->savePreUsePoint($usePoint * -1);
-
-                    // 現在ポイントを履歴から計算
-                    $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
-                        $Order->getCustomer()->getId()
-                    );
-                    $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
-                        $Order->getCustomer()->getId(),
-                        $orderIds
-                    );
-
-                    if ($calculateCurrentPoint < 0) {
-                        // TODO: ポイントがマイナス！
-                        // ポイントがマイナスの時はメール送信
-                        $app['eccube.plugin.point.mail.helper']->sendPointNotifyMail($Order, $calculateCurrentPoint, $usePoint);
-                    }
-
-                    // 会員ポイント更新
-                    $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
-                        $calculateCurrentPoint,
-                        $Order->getCustomer()
-                    );
-
+                    
                     $this->app['orm.em']->persist($newOrder);
                     $this->app['orm.em']->flush();
                 }
