@@ -23,15 +23,11 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 class AdminPointController
 {
-    /** @var Application */
-    protected $app;
-
     /**
      * AdminPointController constructor.
      */
     public function __construct()
     {
-        $this->app = \Eccube\Application::getInstance();
     }
 
     /**
@@ -45,7 +41,7 @@ class AdminPointController
         $app['monolog.point.admin']->addInfo('index start');
 
         // 最終保存のポイント設定情報取得
-        $PointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
+        $PointInfo = $app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
 
         $form = $app['form.factory']
             ->createBuilder('admin_point_info', $PointInfo)
@@ -55,7 +51,7 @@ class AdminPointController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $PointInfo = $form->getData();
-            $this->app['eccube.plugin.point.repository.pointinfo']->save($PointInfo);
+            $app['eccube.plugin.point.repository.pointinfo']->save($PointInfo);
 
             $app->addSuccess('admin.point.save.complete', 'admin');
 

@@ -22,9 +22,6 @@ use Plugin\Point\Entity\PointInfo;
  */
 class PointInfoRepository extends EntityRepository
 {
-    /** @var \Eccube\Application */
-    protected $app;
-
     /**
      * PointInfoRepository constructor.
      * @param EntityManager $em
@@ -33,7 +30,6 @@ class PointInfoRepository extends EntityRepository
     public function __construct(EntityManager $em, \Doctrine\ORM\Mapping\ClassMetadata $class)
     {
         parent::__construct($em, $class);
-        $this->app = \Eccube\Application::getInstance();
     }
 
     /**

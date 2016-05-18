@@ -25,15 +25,11 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 class FrontPointController
 {
-    /** @var Application */
-    protected $app;
-
     /**
      * FrontPointController constructor.
      */
     public function __construct()
     {
-        $this->app = \Eccube\Application::getInstance();
     }
 
     /**
@@ -46,37 +42,37 @@ class FrontPointController
     public function usePoint(Application $app, Request $request)
     {
         // 権限判定
-        if (!$this->app->isGranted('ROLE_USER')) {
+        if (!$app->isGranted('ROLE_USER')) {
             throw new HttpException\NotFoundHttpException;
         }
 
         $app['monolog.point']->addInfo('usePoint start');
 
         // カートサービス取得
-        $cartService = $this->app['eccube.service.cart'];
+        $cartService = $app['eccube.service.cart'];
 
         // カートチェック
         if (!$cartService->isLocked()) {
             // カートが存在しない、カートがロックされていない時はエラー
-            return $this->app->redirect($this->app->url('cart'));
+            return $app->redirect($app->url('cart'));
         }
 
         // 受注情報が取得される
         /** @var \Eccube\Entity\Order $Order */
-        $Order = $this->app['eccube.service.shopping']->getOrder($this->app['config']['order_processing']);
+        $Order = $app['eccube.service.shopping']->getOrder($app['config']['order_processing']);
 
         // 受注情報がない場合はエラー表示
         if (!$Order) {
-            $this->app->addError('front.shopping.order.error');
+            $app->addError('front.shopping.order.error');
 
-            return $this->app->redirect($this->app->url('shopping_error'));
+            return $app->redirect($app->url('shopping_error'));
         }
 
         // 最終仮利用ポイントがあるかどうかの判定
-        $lastPreUsePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($Order));
+        $lastPreUsePoint = -($app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($Order));
 
         // 計算用ヘルパー呼び出し
-        $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
+        $calculator = $app['eccube.plugin.point.calculate.helper.factory'];
         // 計算ヘルパー取得判定
         if (empty($calculator)) {
             return false;
@@ -84,7 +80,7 @@ class FrontPointController
 
         // 必要エンティティ取得
         // カスタマーエンティティ
-        $customer = $this->app['security']->getToken()->getUser();
+        $customer = $app['security']->getToken()->getUser();
 
         // 計算に必要なエンティティを格納
         $calculator->addEntity('Customer', $customer);
@@ -100,7 +96,7 @@ class FrontPointController
         $addPoint = $calculator->getAddPointByOrder();
 
         // ポイント換算レート
-        $pointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
+        $pointInfo = $app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
         if (empty($pointInfo)) {
             return false;
         }
@@ -111,7 +107,7 @@ class FrontPointController
 
 
         //フォーム生成
-        $form = $this->app['form.factory']
+        $form = $app['form.factory']
             ->createBuilder()->add(
                 'plg_use_point',
                 'text',
@@ -174,24 +170,24 @@ class FrontPointController
                 if ($calculator->setDiscount($lastPreUsePoint)) {
                     $newOrder = $calculator->getEntity('Order');
                     // 値引き計算後のオーダーが返却
-                    $newOrder = $this->app['eccube.service.shopping']->calculatePrice($newOrder);
+                    $newOrder = $app['eccube.service.shopping']->calculatePrice($newOrder);
 
                     // 履歴情報登録
                     // 利用ポイント
                     // ユーザー入力値保存
-                    $this->app['eccube.plugin.point.history.service']->refreshEntity();
-                    $this->app['eccube.plugin.point.history.service']->addEntity($Order);
-                    $this->app['eccube.plugin.point.history.service']->addEntity($Order->getCustomer());
-                    $this->app['eccube.plugin.point.history.service']->savePreUsePoint($usePoint * -1);
-                    
-                    $this->app['orm.em']->persist($newOrder);
-                    $this->app['orm.em']->flush();
+                    $app['eccube.plugin.point.history.service']->refreshEntity();
+                    $app['eccube.plugin.point.history.service']->addEntity($Order);
+                    $app['eccube.plugin.point.history.service']->addEntity($Order->getCustomer());
+                    $app['eccube.plugin.point.history.service']->savePreUsePoint($usePoint * -1);
+
+                    $app['orm.em']->persist($newOrder);
+                    $app['orm.em']->flush();
                 }
             }
 
             $app['monolog.point']->addInfo('usePoint end');
 
-            return $this->app->redirect($this->app->url('shopping'));
+            return $app->redirect($app->url('shopping'));
         }
 
         // 合計金額エラー
