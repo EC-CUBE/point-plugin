@@ -152,17 +152,17 @@ class PointEventTest extends AbstractWebTestCase
     public function testEvent11()
     {
         $PointEvent = $this->eventCallable();
-        $PointEvent->Delivery($this->event);
+        $PointEvent->onFrontChangeTotal($this->event);
     }
     public function testEvent12()
     {
         $PointEvent = $this->eventCallable();
-        $PointEvent->Payment($this->event);
+        $PointEvent->onFrontChangeTotal($this->event);
     }
     public function testEvent13()
     {
         $PointEvent = $this->eventCallable();
-        $PointEvent->Shipping($this->event);
+        $PointEvent->onFrontChangeTotal($this->event);
     }
     public function testEvent14()
     {
