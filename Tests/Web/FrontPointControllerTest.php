@@ -15,6 +15,7 @@ class FrontPointControllerTest extends AbstractWebTestCase
     public function setUp()
     {
         parent::setUp();
+        $this->BaseInfo = $this->app['eccube.repository.base_info']->get();
         $this->Customer = $this->createCustomer();
         $this->initializeMailCatcher();
     }
@@ -44,11 +45,10 @@ class FrontPointControllerTest extends AbstractWebTestCase
         $crawler = $this->scenarioComplete($client, $this->app->path('shopping_confirm'));
         $this->assertTrue($client->getResponse()->isRedirect($this->app->url('shopping_complete')));
 
-        $BaseInfo = $this->app['eccube.repository.base_info']->get();
         $Messages = $this->getMailCatcherMessages();
         $Message = $this->getMailCatcherMessage($Messages[0]->id);
 
-        $this->expected = '[' . $BaseInfo->getShopName() . '] ご注文ありがとうございます';
+        $this->expected = '[' . $this->BaseInfo->getShopName() . '] ご注文ありがとうございます';
         $this->actual = $Message->subject;
         $this->verify();
 
@@ -63,16 +63,14 @@ class FrontPointControllerTest extends AbstractWebTestCase
             )
         );
 
-        $OrderNew = $this->app['eccube.repository.order_status']->find($this->app['config']['order_new']);
-        $this->expected = $OrderNew;
-        $this->actual = $Order->getOrderStatus();
-        $this->verify();
-
         $this->expected = $Customer->getName01();
         $this->actual = $Order->getName01();
         $this->verify();
 
-        $Points = $this->app['eccube.plugin.point.repository.point']->findBy(array('Customer' => $Customer));
+        $Points = $this->app['eccube.plugin.point.repository.point']->findBy(array(
+            'Customer' => $Customer,
+            'Order' => $Order
+        ));
         $provisionalPoint = array_reduce(
             array_map(
                 function ($Point) {
