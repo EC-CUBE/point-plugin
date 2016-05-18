@@ -343,6 +343,6 @@ class PointEvent
      */
     protected function isAuthRouteFront()
     {
-        return $this->app->isGranted('IS_AUTHENTICATED_FULLY');
+        return $this->app->isGranted('ROLE_USER');
     }
 }

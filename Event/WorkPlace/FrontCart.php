@@ -39,7 +39,7 @@ class FrontCart extends AbstractWorkPlace
         $point = array();
         $point['rate'] = $pointRate;
 
-        if ($this->app->isGranted('IS_AUTHENTICATED_FULLY')) {
+        if ($this->app->isGranted('ROLE_USER')) {
             $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
             $Customer = $this->app->user();
             $parameters = $event->getParameters();

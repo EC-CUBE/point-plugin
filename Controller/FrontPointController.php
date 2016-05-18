@@ -46,7 +46,7 @@ class FrontPointController
     public function usePoint(Application $app, Request $request)
     {
         // 権限判定
-        if (!$this->app->isGranted('IS_AUTHENTICATED_FULLY')) {
+        if (!$this->app->isGranted('ROLE_USER')) {
             throw new HttpException\NotFoundHttpException;
         }
 
