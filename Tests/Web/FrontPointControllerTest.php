@@ -121,7 +121,7 @@ class FrontPointControllerTest extends AbstractWebTestCase
         // ポイント利用画面
         $crawler = $client->request('GET', $this->app->path('point_use'));
         $this->assertRegexp(
-            '/現在の保有ポイントは「'.number_format($currentPoint).'pt」です。/u',
+            '/現在の保有ポイントは「'.number_format($currentPoint).' pt」です。/u',
             $crawler->filter('#detail_box')->text()
         );
 
@@ -129,7 +129,7 @@ class FrontPointControllerTest extends AbstractWebTestCase
         $crawler = $client->request(
             'POST',
             $this->app->path('point_use'),
-            array('form' =>
+            array('front_point_use' =>
                   array(
                       'plg_use_point' => $usePoint,
                       '_token' => 'dummy'
