@@ -26,6 +26,10 @@ env:
     - ECCUBE_VERSION=3.0.10 DB=mysql USER=root DBNAME=myapp_test DBPASS=' ' DBUSER=root
     - ECCUBE_VERSION=3.0.10 DB=pgsql USER=postgres DBNAME=myapp_test DBPASS=password DBUSER=postgres
 
+install:
+  - gem install mime-types -v 2.99.1
+  - gem install mailcatcher
+
 matrix:
   fast_finish: true
 
@@ -47,6 +51,7 @@ before_script:
   - php app/console plugin:develop install --path=${HOME}/${PLUGIN_CODE}.tar.gz
   # enable plugin
   - php app/console plugin:develop enable --code=${PLUGIN_CODE}
+  - mailcatcher
 
 script:
   # exec phpunit on ec-cube
