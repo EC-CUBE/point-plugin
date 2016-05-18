@@ -52,9 +52,9 @@ class PointHistoryHelper
     /**
      * PointHistoryHelper constructor.
      */
-    public function __construct()
+    public function __construct($app)
     {
-        $this->app = \Eccube\Application::getInstance();
+        $this->app = $app;
         // 全てINSERTのために保存用エンティティを再生成
         $this->refreshEntity();
         // ポイント基本情報設定値

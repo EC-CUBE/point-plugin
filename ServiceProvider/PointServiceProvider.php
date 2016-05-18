@@ -154,8 +154,8 @@ class PointServiceProvider implements ServiceProviderInterface
          * ポイント履歴ヘルパー登録
          */
         $app['eccube.plugin.point.history.service'] = $app->share(
-            function () {
-                return new PointHistoryHelper();
+            function () use ($app) {
+                return new PointHistoryHelper($app);
             }
         );
 
