@@ -17,11 +17,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * フックポイント汎用処理具象クラス
  *  - 拡張元 : 商品購入確認
- *  - 拡張項目 : 合計金額・ポイント
- * Class FrontShipping
+ *  - 拡張項目 : 住所変更、配送業者変更、支払い方法変更時に、合計金額がマイナスになるケースを検知し、ハンドリングを行う
+ * Class FrontPayment
  * @package Plugin\Point\Event\WorkPlace
  */
-class FrontShipping extends AbstractWorkPlace
+class FrontChangeTotal extends AbstractWorkPlace
 {
     /**
      * 通常はデータの保存を行うが、本処理では、合計金額判定とエラー処理
@@ -33,28 +33,12 @@ class FrontShipping extends AbstractWorkPlace
 
         $this->app['monolog.point']->addInfo('save start');
 
-        // 必要エンティティの確認
-        if (!$event->hasArgument('Order')) {
-            return false;
-        }
-        $order = $event->getArgument('Order');
+        $Order = $event->getArgument('Order');
+        $Customer = $Order->getCustomer();
 
-        // 会員情報を取得
-        $customer = $order->getCustomer();
-        if (empty($customer)) {
-            return false;
-        }
-
-        // 計算用ヘルパー呼び出し
         $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
-        // 計算ヘルパー取得判定
-        if (empty($calculator)) {
-            return false;
-        }
-
-        // 計算に必要なエンティティを登録
-        $calculator->addEntity('Order', $order);
-        $calculator->addEntity('Customer', $customer);
+        $calculator->addEntity('Order', $Order);
+        $calculator->addEntity('Customer', $Customer);
 
         // 合計金額マイナス確認
         if ($calculator->calculateTotalDiscountOnChangeConditions()) {

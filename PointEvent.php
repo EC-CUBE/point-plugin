@@ -19,6 +19,7 @@ use Plugin\Point\Event\WorkPlace\AdminOrder;
 use Plugin\Point\Event\WorkPlace\AdminOrderMail;
 use Plugin\Point\Event\WorkPlace\AdminProduct;
 use Plugin\Point\Event\WorkPlace\FrontCart;
+use Plugin\Point\Event\WorkPlace\FrontChangeTotal;
 use Plugin\Point\Event\WorkPlace\FrontDelivery;
 use Plugin\Point\Event\WorkPlace\FrontHistory;
 use Plugin\Point\Event\WorkPlace\FrontMyPage;
@@ -188,43 +189,18 @@ class PointEvent
     }
 
     /**
-     * 配送関連処理
-     *  - 配送関連変更時の合計金額判定処理
+     * 合計金額の変更時のハンドリングを行う
+     *  - 配送業者変更時の合計金額判定処理
+     *  - お届け先変更時の合計金額判定処理
+     *  - 支払い方法変更時の合計金額判定処理
+     *
      * @param TemplateEvent $event
      */
-    public function Delivery(EventArgs $event)
+    public function onFrontChangeTotal(EventArgs $event)
     {
         // ログイン判定
         if ($this->isAuthRouteFront()) {
-            $helper = new FrontDelivery();
-            $helper->save($event);
-        }
-    }
-
-    /**
-     * 支払い方法関連
-     *  - 支払い方法関連変更時の合計金額判定処理
-     * @param TemplateEvent $event
-     */
-    public function Payment(EventArgs $event)
-    {
-        // ログイン判定
-        if ($this->isAuthRouteFront()) {
-            $helper = new FrontPayment();
-            $helper->save($event);
-        }
-    }
-
-    /**
-     * 配送方法関連
-     *  - 配送方法関連変更時の合計金額判定処理
-     * @param TemplateEvent $event
-     */
-    public function Shipping(EventArgs $event)
-    {
-        // ログイン判定
-        if ($this->isAuthRouteFront()) {
-            $helper = new FrontShipping();
+            $helper = new FrontChangeTotal();
             $helper->save($event);
         }
     }

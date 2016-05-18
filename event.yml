@@ -39,19 +39,19 @@ service.shopping.notify.complete:
 Shopping/complete.twig:
     - [onRenderShoppingComplete, NORMAL]
 
-## 配送先関連
+## 配送先の変更
 front.shopping.delivery.complete:
-    - [Delivery, NORMAL]
+    - [onFrontChangeTotal, NORMAL]
 
-## 支払い方法判定
+## 支払い方法の変更
 front.shopping.payment.complete:
-    - [Payment, NORMAL]
+    - [onFrontChangeTotal, NORMAL]
 
-## 配送方法設定
+## お届け先の変更
 front.shopping.shipping.complete:
-    - [Shipping, NORMAL]
+    - [onFrontChangeTotal, NORMAL]
 front.shopping.shipping.edit.complete:
-    - [Shipping, NORMAL]
+    - [onFrontChangeTotal, NORMAL]
 
 
 # 画面レンダリング
