@@ -71,7 +71,7 @@ class FrontPointController
         // ポイントによる値引きを除外した合計金額
         $totalPriceExcludePoint = $Order->getTotalPrice() + $lastPreUsePoint * $pointRate;
 
-        // 利用できるポイント上限を表示させる.
+        // ポイントによる値引きを除外した合計金額を、換算レートで割戻し、利用できるポイントの上限値を取得する.
         $maxUsePoint = floor($totalPriceExcludePoint / $pointRate);
 
         $form = $app['form.factory']
@@ -137,8 +137,9 @@ class FrontPointController
                 'form' => $form->createView(),  // フォーム
                 'pointRate' => $pointRate,      // 換算レート
                 'currentPoint' => $currentPoint,  // 保有ポイント
-                'maxUsePoint' => ($maxUsePoint < $currentPoint) ? $maxUsePoint : $currentPoint,  // 利用ポイント上限
-                'total' => $totalPrice, // ポイント値引き前の合計金額
+                // 利用ポイント上限. 保有ポイントが小さい場合は保有ポイントを上限値として表示する
+                'maxUsePoint' => ($maxUsePoint < $currentPoint) ? $maxUsePoint : $currentPoint,
+                'total' => $totalPrice, // すべての値引きを除外した合計金額
             )
         );
     }
