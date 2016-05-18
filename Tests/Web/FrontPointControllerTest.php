@@ -129,7 +129,7 @@ class FrontPointControllerTest extends AbstractWebTestCase
         $crawler = $client->request(
             'POST',
             $this->app->path('point_use'),
-            array('form' =>
+            array('front_point_use' =>
                   array(
                       'plg_use_point' => $usePoint,
                       '_token' => 'dummy'
