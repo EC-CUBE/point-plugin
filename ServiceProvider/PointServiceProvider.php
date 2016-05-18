@@ -18,8 +18,6 @@ use Monolog\Handler\RotatingFileHandler;
 use Monolog\Processor\IntrospectionProcessor;
 use Monolog\Processor\ProcessIdProcessor;
 use Monolog\Processor\WebProcessor;
-use Plugin\Point\Helper\EventRoutineWorksHelper\EventRoutineWorksHelper;
-use Plugin\Point\Helper\EventRoutineWorksHelper\EventRoutineWorksHelperFactory;
 use Plugin\Point\Helper\MailHelper;
 use Plugin\Point\Helper\PointCalculateHelper\PointCalculateHelper;
 use Plugin\Point\Helper\PointHistoryHelper\PointHistoryHelper;
@@ -113,7 +111,7 @@ class PointServiceProvider implements ServiceProviderInterface
          */
         $app['form.types'] = $app->share($app->extend('form.types', function ($types) use ($app) {
             $types[] = new \Plugin\Point\Form\Type\PointInfoType($app);
-
+            $types[] = new \Plugin\Point\Form\Type\PointUseType($app);
             return $types;
         })
         );
