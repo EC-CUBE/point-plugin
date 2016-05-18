@@ -32,84 +32,60 @@ class FrontShopping extends AbstractWorkPlace
     {
         $args = $event->getParameters();
 
-        $order = $args['Order'];
+        $Order = $args['Order'];
+        $Customer = $Order->getCustomer();
 
-        // オーダーエンティティの確認
-        if (empty($order)) {
-            return false;
-        }
+        // ポイント利用画面で入力された利用ポイントを取得
+        $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($Order);
+        $usePoint = $usePoint * -1;
 
-        $customer = $order->getCustomer();
-
-        // カスタマーエンティティ判定
-        if (empty($customer)) {
-            return false;
-        }
-
-        // 計算判定取得
+        // 加算ポイントの取得
         $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
-
-        // 計算ヘルパー取得判定
-        if (is_null($calculator)) {
-            return true;
-        }
-
-        // 利用ポイントの確認
-        $usePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($order));
-
-        // 計算に必要なエンティティを登録
-        $calculator->setUsePoint($usePoint);
-        $calculator->addEntity('Order', $order);
-        $calculator->addEntity('Customer', $customer);
-
-        // 付与ポイント取得
+        $calculator->setUsePoint($usePoint); // calculatorに渡す際は絶対値
+        $calculator->addEntity('Order', $Order);
+        $calculator->addEntity('Customer', $Customer);
         $addPoint = $calculator->getAddPointByOrder();
 
-        //付与ポイント取得可否判定
+        // 受注明細がない場合にnullが返る. 通常では発生し得ないため. その場合は表示を行わない
         if (is_null($addPoint)) {
             return true;
         }
 
-        // 現在保有ポイント取得
+        // 現在の保有ポイント取得
         $currentPoint = $calculator->getPoint();
 
-        //保有ポイント取得可否判定
+        // 会員のポイントテーブルにレコードがない場合はnullを返す. その場合は0で表示する
         if (is_null($currentPoint)) {
             $currentPoint = 0;
         }
 
         // ポイント基本情報を取得
-        $pointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
+        $PointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
 
         // ポイント表示用変数作成
         $point = array();
-        $point['current'] = $currentPoint - $usePoint;
-        $point['use'] = 0;
-        if (!empty($usePoint)) {
-            $point['use'] = $usePoint;
-        }
+        $point['current'] = $currentPoint;
+        $point['use'] = $usePoint;
         $point['add'] = $addPoint;
-        $point['rate'] = $pointInfo->getPlgPointConversionRate();
+        $point['rate'] = $PointInfo->getPlgPointConversionRate();
 
-        // Twigデータ内IDをキーに表示項目を追加
-        // ポイント情報表示
-        $snippet = $this->app->render(
+        // 加算ポイント/利用ポイントを表示する
+        $snippet = $this->app->renderView(
             'Point/Resource/template/default/Event/ShoppingConfirm/point_summary.twig',
             array(
                 'point' => $point,
             )
-        )->getContent();
+        );
         $search = '<p id="summary_box__total_amount"';
         $this->replaceView($event, $snippet, $search);
 
-        // 使用ポイントボタン付与
-        // twigコードに利用ポイントを挿入
-        $snippet = $this->app->render(
+        // ポイント利用画面へのボタンを表示する
+        $snippet = $this->app->renderView(
             'Point/Resource/template/default/Event/ShoppingConfirm/use_point_button.twig',
             array(
                 'point' => $point,
             )
-        )->getContent();
+        );
         $search = '<h2 class="heading02">お問い合わせ欄</h2>';
         $this->replaceView($event, $snippet, $search);
     }
