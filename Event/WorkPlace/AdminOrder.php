@@ -90,12 +90,12 @@ class  AdminOrder extends AbstractWorkPlace
                     function (FormEvent $event) use ($currentPoint, $usePoint, $addPoint) {
                         $form = $event->getForm();
                         $recalcCurrentPoint = $currentPoint + $usePoint - $addPoint;
-                        $inputUsePoint = $form['plg_use_point']->getData();
-                        $inputAddPoint = $form['plg_add_point']->getData();
+                        $inputUsePoint = $form['use_point']->getData();
+                        $inputAddPoint = $form['add_point']->getData();
                         if ($inputUsePoint > $recalcCurrentPoint + $inputAddPoint) {
                             $error = new FormError('保有ポイント以内になるよう調整してください');
-                            $form['plg_use_point']->addError($error);
-                            $form['plg_add_point']->addError($error);
+                            $form['use_point']->addError($error);
+                            $form['add_point']->addError($error);
                         }
                     }
                 );
@@ -105,10 +105,10 @@ class  AdminOrder extends AbstractWorkPlace
                     FormEvents::POST_SUBMIT,
                     function (FormEvent $event) use ($currentPoint) {
                         $form = $event->getForm();
-                        $inputUsePoint = $form['plg_use_point']->getData();
+                        $inputUsePoint = $form['use_point']->getData();
                         if ($inputUsePoint > $currentPoint) {
                             $error = new FormError('保有ポイント以内で入力してください');
-                            $form['plg_use_point']->addError($error);
+                            $form['use_point']->addError($error);
                         }
                     }
                 );
@@ -119,17 +119,17 @@ class  AdminOrder extends AbstractWorkPlace
                 FormEvents::POST_SUBMIT,
                 function (FormEvent $event) use ($currentPoint) {
                     $form = $event->getForm();
-                    $inputUsePoint = $form['plg_use_point']->getData();
+                    $inputUsePoint = $form['use_point']->getData();
                     if ($inputUsePoint > $currentPoint) {
                         $error = new FormError('保有ポイント以内で入力してください');
-                        $form['plg_use_point']->addError($error);
+                        $form['use_point']->addError($error);
                     }
                 }
             );
         }
 
-        $builder->get('plg_use_point')->setData($usePoint);
-        $builder->get('plg_add_point')->setData($addPoint);
+        $builder->get('use_point')->setData($usePoint);
+        $builder->get('add_point')->setData($addPoint);
     }
 
     /**
@@ -141,7 +141,7 @@ class  AdminOrder extends AbstractWorkPlace
     protected function buildForm($builder)
     {
         $builder->add(
-            'plg_use_point',
+            'use_point',
             'integer',
             array(
                 'label' => '利用ポイント',
@@ -155,7 +155,7 @@ class  AdminOrder extends AbstractWorkPlace
                 ),
             )
         )->add(
-            'plg_add_point',
+            'add_point',
             'integer',
             array(
                 'label' => '加算ポイント',
@@ -226,11 +226,11 @@ class  AdminOrder extends AbstractWorkPlace
             return;
         }
 
-        $usePoint = $form['plg_use_point']->getData();
+        $usePoint = $form['use_point']->getData();
         if (is_null($usePoint)) {
             $usePoint = 0;
         }
-        $addPoint = $form['plg_add_point']->getData();
+        $addPoint = $form['add_point']->getData();
         if (is_null($addPoint)) {
             $addPoint = 0;
         }
