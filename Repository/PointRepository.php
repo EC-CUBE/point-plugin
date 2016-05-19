@@ -79,7 +79,8 @@ class PointRepository extends EntityRepository
             $qb = $this->createQueryBuilder('p');
             $qb->select('SUM(p.plg_dynamic_point) as point_sum')
                 ->where($qb->expr()->in('p.order_id', $orderIds))
-                ->andWhere($qb->expr()->neq('p.plg_point_type', PointHistoryHelper::STATE_USE));
+                ->andWhere($qb->expr()->neq('p.plg_point_type', PointHistoryHelper::STATE_USE))
+                ->andWhere($qb->expr()->neq('p.plg_point_type', PointHistoryHelper::STATE_PRE_USE));
 
             $point = $qb->getQuery()->getSingleScalarResult();
 
