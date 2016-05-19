@@ -210,7 +210,7 @@ class  AdminOrder extends AbstractWorkPlace
             $orderIds
         );
 
-        $parameters['currentPoint'] = $currentPoint;
+        $parameters['currentPoint'] = number_format($currentPoint);
         $event->setParameters($parameters);
         $event->setSource($source);
     }

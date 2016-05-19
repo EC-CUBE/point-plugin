@@ -3,6 +3,7 @@
 namespace Eccube\Tests\Web;
 
 use Eccube\Tests\Web\AbstractWebTestCase;
+use Plugin\Point\Tests\Util\PointTestUtil;
 
 /**
  * @see ShoppingControllerTest
@@ -107,7 +108,7 @@ class FrontPointControllerTest extends AbstractWebTestCase
         $client = $this->client;
 
         // 保有ポイントを設定する
-        $this->saveCustomerPoint($Customer, $currentPoint);
+        PointTestUtil::saveCustomerPoint($Customer, $currentPoint, $this->app);
 
         // カート画面
         $this->scenarioCartIn($client);
@@ -155,7 +156,7 @@ class FrontPointControllerTest extends AbstractWebTestCase
         $this->assertRegexp('/加算ポイント：1,100 pt/u', $body);
 
         $this->expected = $currentPoint - $usePoint;
-        $this->actual = $this->calculateCurrentPoint($Customer);
+        $this->actual = PointTestUtil::calculateCurrentPoint($Customer, $this->app);
         $this->verify('保有ポイントの合計は '.$this->expected);
     }
 
@@ -207,46 +208,5 @@ class FrontPointControllerTest extends AbstractWebTestCase
         );
 
         return $crawler;
-    }
-
-    /**
-     * 会員の保有ポイントを返す.
-     *
-     * @see Plugin\Point\Event\WorkPlace\FrontShoppingComplete::calculateCurrentPoint()
-     */
-    protected function calculateCurrentPoint($Customer)
-    {
-        $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
-            $Customer->getId()
-        );
-        $calculateCurrentPoint = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
-            $Customer->getId(),
-            $orderIds
-        );
-        return $calculateCurrentPoint;
-    }
-
-    /**
-     * 会員の保有ポイントを設定する.
-     */
-    protected function saveCustomerPoint($Customer, $currentPoint)
-    {
-        // 手動設定ポイントを登録
-        $this->app['eccube.plugin.point.history.service']->addEntity($Customer);
-        $this->app['eccube.plugin.point.history.service']->saveManualpoint($currentPoint);
-        $point = array();
-        $point['current'] = $currentPoint;
-        $point['use'] = 0;
-        $point['add'] = $currentPoint;
-
-        // 手動設定ポイントのスナップショット登録
-        $this->app['eccube.plugin.point.history.service']->refreshEntity();
-        $this->app['eccube.plugin.point.history.service']->addEntity($Customer);
-        $this->app['eccube.plugin.point.history.service']->saveSnapShot($point);
-        // 保有ポイントを登録
-        $this->app['eccube.plugin.point.repository.pointcustomer']->savePoint(
-            $currentPoint,
-            $Customer
-        );
     }
 }

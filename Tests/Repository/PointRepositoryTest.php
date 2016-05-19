@@ -312,6 +312,42 @@ class PointRepositoryTest extends EccubeTestCase
     }
 
     /**
+     * 保有ポイント集計、および未確定の加算ポイント集計で、仮利用ポイントが除外できているかどうかを確認する
+     *
+     * https://github.com/EC-CUBE/point-plugin/issues/108
+     */
+    public function testCalcPointWithPreUsePoint()
+    {
+        $customer = $this->createCustomer();
+        $order = $this->createOrder($customer);
+
+        // 準備：加算ポイント/利用ポイント手動変更の履歴追加
+        $this->createManualPoint($customer, 1000);
+        $this->createPreUsePoint($customer, $order, -50);
+        $this->createUsePoint($customer, $order, -50);
+        $this->createAddPoint($customer, $order, 50);
+
+        // 検証：保有ポイント集計で、仮利用ポイントは集計対象がら除外される
+        $value = $this->app['eccube.plugin.point.repository.point']->calcCurrentPoint(
+            $customer->getId(),
+            array($order->getId())
+        );
+
+        $this->expected = 1000;
+        $this->actual = $value;
+        $this->verify();
+
+        // 検証：未確定の加算ポイント集計で、仮利用ポイントは集計対象がら除外される
+        $value = $this->app['eccube.plugin.point.repository.point']->calcProvisionalAddPoint(
+            array($order->getId())
+        );
+
+        $this->expected = 50;
+        $this->actual = $value;
+        $this->verify();
+    }
+
+    /**
      * 加算ポイントの登録
      * @param Customer $customer
      * @param Order $order
@@ -358,12 +394,12 @@ class PointRepositoryTest extends EccubeTestCase
      * @param Customer $customer
      * @return Point
      */
-    private function createManualPoint($customer)
+    private function createManualPoint($customer, $pointValue = self::POINT_MANUAL_VALUE)
     {
         $Point = new Point();
         $Point
             ->setCustomer($customer)
-            ->setPlgDynamicPoint(self::POINT_MANUAL_VALUE)
+            ->setPlgDynamicPoint($pointValue)
             ->setPlgPointType(PointHistoryHelper::STATE_CURRENT)
             ->setPointInfo($this->pointInfo)
             ->setOrder(null);
