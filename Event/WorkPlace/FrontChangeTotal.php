@@ -33,7 +33,12 @@ class FrontChangeTotal extends AbstractWorkPlace
 
         $this->app['monolog.point']->addInfo('save start');
 
-        $Order = $event->getArgument('Order');
+        if ($event->hasArgument('Order')) {
+            $Order =  $event->getArgument('Order');
+        } else {
+            // front.shopping.shipping.edit.completeでは、Orderエンティティが取得できないため.
+            $Order = $this->app['eccube.service.shopping']->getOrder($this->app['config']['order_processing']);
+        }
         $Customer = $Order->getCustomer();
 
         $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
