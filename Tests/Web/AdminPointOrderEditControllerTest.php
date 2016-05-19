@@ -66,8 +66,8 @@ class AdminPointOrderEditControllerTest extends AbstractAdminWebTestCase
             'delivery_fee_total' => 0,
             'charge' => 0,
             'note' => $faker->text,
-            'plg_use_point' => $usePoint,
-            'plg_add_point' => $addPoint,
+            'use_point' => $usePoint,
+            'add_point' => $addPoint,
             'OrderDetails' => array(
                 array(
                     'Product' => $Product->getId(),
