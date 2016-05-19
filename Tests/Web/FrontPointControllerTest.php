@@ -28,6 +28,27 @@ class FrontPointControllerTest extends AbstractWebTestCase
     }
 
     /**
+     * カート画面のテストケース.
+     */
+    public function testPointCart()
+    {
+        $currentPoint = 1000000;
+
+        $faker = $this->getFaker();
+        $Customer = $this->logIn();
+        $client = $this->client;
+
+        // 保有ポイントを設定する
+        PointTestUtil::saveCustomerPoint($Customer, $currentPoint, $this->app);
+
+        // カート画面
+        $this->scenarioCartIn($client);
+
+        $crawler = $client->request('GET', '/cart');
+        $this->assertRegExp('/現在の保有ポイントは「'.number_format($currentPoint).'pt」です。/u', $crawler->filter('#cart_item__point_info')->text());
+    }
+
+    /**
      * ポイントを使用しないテストケース.
      */
     public function testPointShopping()
