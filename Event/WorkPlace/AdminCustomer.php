@@ -58,16 +58,20 @@ class  AdminCustomer extends AbstractWorkPlace
                         'placeholder' => '入力した値でカスタマーの保有ポイントを更新します ( pt )',
                     ),
                     'constraints' => array(
+                        new Assert\Length(
+                            array(
+                                'max' => $this->app['config']['int_len'],
+                            )
+                        ),
                         new Assert\Regex(
                             array(
                                 'pattern' => "/^\d+$/u",
                                 'message' => 'form.type.numeric.invalid',
                             )
                         ),
-                        new Assert\Range(
+                        new Assert\GreaterThanOrEqual(
                             array(
-                                'min' => 0,
-                                'max' => 100000,
+                                'value' => 0
                             )
                         ),
                     ),
