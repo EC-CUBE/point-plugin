@@ -48,7 +48,12 @@ class PointRepository extends EntityRepository
                     )
                 );
             if (!empty($orderIds)) {
-                $qb->orWhere($qb->expr()->in('p.order_id', $orderIds));
+                $qb->orWhere(
+                    $qb->expr()->andX(
+                        $qb->expr()->neq('p.plg_point_type', PointHistoryHelper::STATE_PRE_USE),
+                        $qb->expr()->in('p.order_id', $orderIds)
+                    )
+                );
             }
             // 合計ポイント
             $point = $qb->getQuery()->getSingleScalarResult();
