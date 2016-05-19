@@ -2,6 +2,7 @@
 
 namespace Plugin\Point;
 
+use Eccube\Entity\Master\DeviceType;
 use Eccube\Entity\PageLayout;
 use Eccube\Plugin\AbstractPluginManager;
 use Plugin\Point\Entity\PointInfo;
@@ -55,26 +56,25 @@ class PluginManager extends AbstractPluginManager
         if (is_null($PointInfo)) {
             $PointInfo = new PointInfo();
             $PointInfo
-                ->setPlgAddPointStatus(1)
+                ->setPlgAddPointStatus($app['config']['order_deliv'])   // ポイントの確定ステータス：発送済み
                 ->setPlgBasicPointRate(1)
                 ->setPlgPointConversionRate(1)
-                ->setPlgRoundType(1)
-                ->setPlgCalculationType(1);
+                ->setPlgRoundType(PointInfo::POINT_ROUND_CEIL) // 切り上げ
+                ->setPlgCalculationType(PointInfo::POINT_CALCULATE_NORMAL); // 減算なし
 
             $app['orm.em']->persist($PointInfo);
             $app['orm.em']->flush($PointInfo);
         }
 
         // ページレイアウトにプラグイン使用時の値を代入
-        $deviceType = $app['eccube.repository.master.device_type']->findOneById(10);
+        $deviceType = $app['eccube.repository.master.device_type']->findOneById(DeviceType::DEVICE_TYPE_PC);
         $pageLayout = new PageLayout();
-        $pageLayout->setId(null);
         $pageLayout->setDeviceType($deviceType);
         $pageLayout->setFileName('../../Plugin/Point/Resource/template/default/point_use');
-        $pageLayout->setEditFlg(2);
+        $pageLayout->setEditFlg(PageLayout::EDIT_FLG_DEFAULT);
         $pageLayout->setMetaRobots('noindex');
         $pageLayout->setUrl('point_use');
-        $pageLayout->setName('商品購入確認/利用ポイント');
+        $pageLayout->setName('商品購入/利用ポイント');
         $app['orm.em']->persist($pageLayout);
         $app['orm.em']->flush($pageLayout);
     }
