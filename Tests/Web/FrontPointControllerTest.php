@@ -4,6 +4,7 @@ namespace Eccube\Tests\Web;
 
 use Eccube\Tests\Web\AbstractWebTestCase;
 use Plugin\Point\Tests\Util\PointTestUtil;
+use Plugin\Point\Event\WorkPlace\AdminOrder;
 
 /**
  * @see ShoppingControllerTest
@@ -156,6 +157,122 @@ class FrontPointControllerTest extends AbstractWebTestCase
         $this->assertRegexp('/加算ポイント：1,100 pt/u', $body);
 
         $this->expected = $currentPoint - $usePoint;
+        $this->actual = PointTestUtil::calculateCurrentPoint($Customer, $this->app);
+        $this->verify('保有ポイントの合計は '.$this->expected);
+    }
+
+    /**
+     * ポイント利用のテストケース.
+     *
+     * 長期間利用した際のシナリオ
+     * 1. 50回購入
+     * 2. 1 のうち、25回ポイント確定
+     * 3. 新たに 50回購入し、各100ポイントずつ利用する
+     * 4. 2で確定しなかったポイントを確定
+     */
+    public function testLongUsePointShopping()
+    {
+        $addPoint = 1100;       // 1回の受注で加算されるポイント
+        $purchaseNum = 50;     // 購入回数
+        $usePoint = 100;        // 利用ポイント
+
+        // ポイント確定ステータスを「発送済み」に設定
+        $PointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
+        $PointInfo->setPlgAddPointStatus($this->app['config']['order_deliv']);
+        $this->app['orm.em']->flush();
+
+        $Customer = $this->logIn();
+        $client = $this->client;
+
+        for ($i = 0; $i < $purchaseNum; $i++) {
+            // カート画面
+            $this->scenarioCartIn($client);
+            // 確認画面
+            $crawler = $this->scenarioConfirm($client);
+            // 完了画面
+            $crawler = $this->scenarioComplete($client, $this->app->path('shopping_confirm'));
+        }
+
+        $Orders = $this->app['eccube.repository.order']->findBy(array('Customer' => $Customer));
+        $this->expected = $purchaseNum;
+        $this->actual = count($Orders);
+        $this->verify('購入回数は'.$purchaseNum.'回');
+
+        $this->expected = 0;
+        $this->actual = PointTestUtil::calculateCurrentPoint($Customer, $this->app);
+        $this->verify('保有ポイントの合計は '.$this->expected);
+        $OrderDeliv = $this->app['eccube.repository.order_status']->find($this->app['config']['order_deliv']);
+
+        // 半分だけ受注ステータスを発送済みに更新
+        $i = 0;
+        $deliveryNum = 0;
+        $orderNewIds = array(); // 新規受付の order_id
+        foreach ($Orders as $Order) {
+            if (($i % 2) === 0) {
+                $Order->setOrderStatus($OrderDeliv);
+                $this->app['orm.em']->flush($Order);
+
+                $deliveryNum++;
+
+                // protected なのでリフレクションで AdminOrder::fixPoint をコールする
+                $AdminOrder = new AdminOrder();
+                $Reflect = new \ReflectionClass($AdminOrder);
+                $Method = $Reflect->getMethod('fixPoint');
+                $Method->setAccessible(true);
+                $Method->invoke($AdminOrder, $Order, $Customer);
+            } else {
+                $orderNewIds[] = $Order->getId();
+            }
+            $i++;
+        }
+
+        $this->expected = $addPoint * $deliveryNum;
+        $this->actual = PointTestUtil::calculateCurrentPoint($Customer, $this->app);
+        $this->verify('保有ポイントの合計は '.$this->expected);
+        $currentPoint = $this->actual;
+
+        for ($i = 0; $i < $purchaseNum; $i++) {
+            // カート画面
+            $this->scenarioCartIn($client);
+            // 確認画面
+            $crawler = $this->scenarioConfirm($client);
+            // ポイント利用処理
+            $crawler = $client->request(
+                'POST',
+                $this->app->path('point_use'),
+                array('front_point_use' =>
+                      array(
+                          'plg_use_point' => $usePoint,
+                          '_token' => 'dummy'
+                      )
+                )
+            );
+            // 完了画面
+            $crawler = $this->scenarioComplete($client, $this->app->path('shopping_confirm'));
+        }
+
+        $this->expected = $currentPoint - ($usePoint * $purchaseNum);
+        $this->actual = PointTestUtil::calculateCurrentPoint($Customer, $this->app);
+        $this->verify('保有ポイントの合計は '.$this->expected);
+        $currentPoint = $this->expected;
+
+        $deliveryNum2 = 0;
+        foreach ($orderNewIds as $order_id) {
+            $NewOrder = $this->app['eccube.repository.order']->find($order_id);
+            $NewOrder->setOrderStatus($OrderDeliv);
+            $this->app['orm.em']->flush($NewOrder);
+
+            $deliveryNum2++;
+
+            // protected なのでリフレクションで AdminOrder::fixPoint をコールする
+            $AdminOrder = new AdminOrder();
+            $Reflect = new \ReflectionClass($AdminOrder);
+            $Method = $Reflect->getMethod('fixPoint');
+            $Method->setAccessible(true);
+            $Method->invoke($AdminOrder, $NewOrder, $Customer);
+        }
+
+        $this->expected = $currentPoint + ($addPoint * $deliveryNum2);
         $this->actual = PointTestUtil::calculateCurrentPoint($Customer, $this->app);
         $this->verify('保有ポイントの合計は '.$this->expected);
     }
