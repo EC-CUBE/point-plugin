@@ -30,8 +30,6 @@ class PointCalculateHelper
     /** @var */
     protected $products;
     /** @var */
-    protected $basicRate;
-    /** @var */
     protected $addPoint;
     /** @var */
     protected $productRates;
@@ -51,8 +49,6 @@ class PointCalculateHelper
         if (empty($this->pointInfo)) { // XXX ここのチェックは意味が無い
             return false;
         }
-        // ポイント換算値
-        $this->basicRate = $this->pointInfo->getPlgBasicPointRate();
         $this->entities = array();
         $this->usePoint = 0;
     }
