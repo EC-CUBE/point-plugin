@@ -2,9 +2,12 @@
 
 namespace Eccube\Tests\Web;
 
+use Eccube\Common\Constant;
+use Eccube\Event\EventArgs;
 use Eccube\Tests\Web\AbstractWebTestCase;
-use Plugin\Point\Tests\Util\PointTestUtil;
 use Plugin\Point\Event\WorkPlace\AdminOrder;
+use Plugin\Point\Entity\PointInfo;
+use Plugin\Point\Tests\Util\PointTestUtil;
 
 /**
  * @see ShoppingControllerTest
@@ -149,16 +152,7 @@ class FrontPointControllerTest extends AbstractWebTestCase
         );
 
         // ポイント利用処理
-        $crawler = $client->request(
-            'POST',
-            $this->app->path('point_use'),
-            array('front_point_use' =>
-                  array(
-                      'plg_use_point' => $usePoint,
-                      '_token' => 'dummy'
-                  )
-            )
-        );
+        $crawler = $this->scenarioUsePoint($client, $usePoint);
         $this->assertTrue($client->getResponse()->isRedirect($this->app->url('shopping')));
 
         // 完了画面
@@ -196,6 +190,7 @@ class FrontPointControllerTest extends AbstractWebTestCase
         $addPoint = 1100;       // 1回の受注で加算されるポイント
         $purchaseNum = 50;     // 購入回数
         $usePoint = 100;        // 利用ポイント
+        $discount = 100;        // 値引き額
 
         // ポイント確定ステータスを「発送済み」に設定
         $PointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
@@ -204,6 +199,9 @@ class FrontPointControllerTest extends AbstractWebTestCase
 
         $Customer = $this->logIn();
         $client = $this->client;
+        $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
+        $calculator->addEntity('Customer', $Customer);
+
 
         for ($i = 0; $i < $purchaseNum; $i++) {
             // カート画面
@@ -235,12 +233,8 @@ class FrontPointControllerTest extends AbstractWebTestCase
 
                 $deliveryNum++;
 
-                // protected なのでリフレクションで AdminOrder::fixPoint をコールする
-                $AdminOrder = new AdminOrder();
-                $Reflect = new \ReflectionClass($AdminOrder);
-                $Method = $Reflect->getMethod('fixPoint');
-                $Method->setAccessible(true);
-                $Method->invoke($AdminOrder, $Order, $Customer);
+                // ポイント確定
+                $this->fixPoint($Order, $Customer);
             } else {
                 $orderNewIds[] = $Order->getId();
             }
@@ -252,24 +246,18 @@ class FrontPointControllerTest extends AbstractWebTestCase
         $this->verify('保有ポイントの合計は '.$this->expected);
         $currentPoint = $this->actual;
 
+
+        $provisionalAddPoint = 0; // 仮ポイント確認用
         for ($i = 0; $i < $purchaseNum; $i++) {
             // カート画面
             $this->scenarioCartIn($client);
             // 確認画面
             $crawler = $this->scenarioConfirm($client);
             // ポイント利用処理
-            $crawler = $client->request(
-                'POST',
-                $this->app->path('point_use'),
-                array('front_point_use' =>
-                      array(
-                          'plg_use_point' => $usePoint,
-                          '_token' => 'dummy'
-                      )
-                )
-            );
+            $crawler = $this->scenarioUsePoint($client, $usePoint);
             // 完了画面
             $crawler = $this->scenarioComplete($client, $this->app->path('shopping_confirm'));
+            $provisionalAddPoint += $addPoint;
         }
 
         $this->expected = $currentPoint - ($usePoint * $purchaseNum);
@@ -285,15 +273,187 @@ class FrontPointControllerTest extends AbstractWebTestCase
 
             $deliveryNum2++;
 
-            // protected なのでリフレクションで AdminOrder::fixPoint をコールする
-            $AdminOrder = new AdminOrder();
-            $Reflect = new \ReflectionClass($AdminOrder);
-            $Method = $Reflect->getMethod('fixPoint');
-            $Method->setAccessible(true);
-            $Method->invoke($AdminOrder, $NewOrder, $Customer);
+            // ポイント確定
+            $this->fixPoint($NewOrder, $Customer);
         }
 
         $this->expected = $currentPoint + ($addPoint * $deliveryNum2);
+        $this->actual = PointTestUtil::calculateCurrentPoint($Customer, $this->app);
+        $this->verify('保有ポイントの合計は '.$this->expected);
+
+        $this->expected = $provisionalAddPoint;
+        $this->actual = $calculator->getProvisionalAddPoint();
+        $this->verify('現在の仮ポイント合計は '.$this->expected);
+    }
+
+    /**
+     * ポイント利用(減算方式)のテストケース.
+     *
+     * 長期間利用した際のシナリオ
+     * 1. 50回購入
+     * 2. 1 のうち、25件ポイント確定
+     * 3. 新たに 50回購入し、各100ポイントずつ利用する(減算方式)
+     * 4. 2で確定しなかったポイントを確定
+     * 5. 3の受注のうち25件ポイント確定、25件削除
+     * 6. 3のポイント確定受注の利用・加算ポイントを変更する
+     */
+    public function testLongUsePointShoppingWithSubtraction()
+    {
+        $addPoint = 1100;       // 1回の受注で加算されるポイント
+        $purchaseNum = 50;     // 購入回数
+        $usePoint = 100;        // 利用ポイント
+        $discount = 100;        // 値引き額
+
+        // ポイント確定ステータスを「発送済み」に設定
+        $PointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
+        $PointInfo->setPlgAddPointStatus($this->app['config']['order_deliv']);
+        // ポイント減算方式に設定
+        $PointInfo->setPlgCalculationType(PointInfo::POINT_CALCULATE_SUBTRACTION);
+        $this->app['orm.em']->flush();
+
+        $Customer = $this->logIn();
+        $client = $this->client;
+        $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
+        $calculator->addEntity('Customer', $Customer);
+
+
+        for ($i = 0; $i < $purchaseNum; $i++) {
+            // カート画面
+            $this->scenarioCartIn($client);
+            // 確認画面
+            $crawler = $this->scenarioConfirm($client);
+            // 完了画面
+            $crawler = $this->scenarioComplete($client, $this->app->path('shopping_confirm'));
+        }
+
+        $Orders = $this->app['eccube.repository.order']->findBy(array('Customer' => $Customer));
+        $this->expected = $purchaseNum;
+        $this->actual = count($Orders);
+        $this->verify('購入回数は'.$purchaseNum.'回');
+
+        $this->expected = 0;
+        $this->actual = PointTestUtil::calculateCurrentPoint($Customer, $this->app);
+        $this->verify('保有ポイントの合計は '.$this->expected);
+        $OrderDeliv = $this->app['eccube.repository.order_status']->find($this->app['config']['order_deliv']);
+
+        // 半分だけ受注ステータスを発送済みに更新
+        $i = 0;
+        $deliveryNum = 0;
+        $orderNewIds = array(); // 新規受付の order_id
+        foreach ($Orders as $Order) {
+            if (($i % 2) === 0) {
+                $Order->setOrderStatus($OrderDeliv);
+                $this->app['orm.em']->flush($Order);
+
+                $deliveryNum++;
+
+                // ポイント確定
+                $this->fixPoint($Order, $Customer);
+            } else {
+                $orderNewIds[] = $Order->getId();
+            }
+            $i++;
+        }
+
+        $this->expected = $addPoint * $deliveryNum;
+        $this->actual = PointTestUtil::calculateCurrentPoint($Customer, $this->app);
+        $this->verify('保有ポイントの合計は '.$this->expected);
+        $currentPoint = $this->actual;
+
+
+        $provisionalAddPoint = 0; // 仮ポイント確認用
+        for ($i = 0; $i < $purchaseNum; $i++) {
+            // カート画面
+            $this->scenarioCartIn($client);
+            // 確認画面
+            $crawler = $this->scenarioConfirm($client);
+            // ポイント利用処理
+            $crawler = $this->scenarioUsePoint($client, $usePoint);
+            // 完了画面
+            $crawler = $this->scenarioComplete($client, $this->app->path('shopping_confirm'));
+            $provisionalAddPoint += $addPoint - ($discount * ($PointInfo->getPlgBasicPointRate() / 100));
+
+            // できるだけたくさんのデータでテストするため他の会員の受注を生成する
+            $this->createOrder($this->createCustomer());
+        }
+
+        $this->expected = $currentPoint - ($usePoint * $purchaseNum);
+        $this->actual = PointTestUtil::calculateCurrentPoint($Customer, $this->app);
+        $this->verify('保有ポイントの合計は '.$this->expected);
+        $currentPoint = $this->expected;
+
+        $deliveryNum2 = 0;
+        foreach ($orderNewIds as $order_id) {
+            $NewOrder = $this->app['eccube.repository.order']->find($order_id);
+            $NewOrder->setOrderStatus($OrderDeliv);
+            $this->app['orm.em']->flush($NewOrder);
+
+            $deliveryNum2++;
+
+            // ポイント確定
+            $this->fixPoint($NewOrder, $Customer);
+        }
+
+        $this->expected = $currentPoint + ($addPoint * $deliveryNum2);
+        $this->actual = PointTestUtil::calculateCurrentPoint($Customer, $this->app);
+        $this->verify('保有ポイントの合計は '.$this->expected);
+        $currentPoint = $this->expected;
+
+        $this->expected = $provisionalAddPoint;
+        $this->actual = $calculator->getProvisionalAddPoint();
+        $this->verify('現在の仮ポイント合計は '.$this->expected);
+
+        $OrderNew = $this->app['eccube.repository.order_status']->find($this->app['config']['order_new']);
+        $NewOrders2 = $this->app['eccube.repository.order']->findBy(
+            array(
+                'Customer' => $Customer,
+                'OrderStatus' => $OrderNew
+            )
+        );
+        $i = 0;
+        $deleted = 0;
+        $fixAddPoint = 0;
+        $deleteUsePoint = 0;
+        $usePointOrderIds = array();
+        foreach ($NewOrders2 as $NewOrder) {
+            if (($i % 2) === 0) {
+                $NewOrder->setOrderStatus($OrderDeliv);
+                $this->app['orm.em']->flush($NewOrder);
+
+                // ポイント確定
+                $this->fixPoint($NewOrder, $Customer);
+                $fixAddPoint += $addPoint - ($discount * ($PointInfo->getPlgBasicPointRate() / 100));
+                $usePointOrderIds[] = $NewOrder->getId();
+            } else {
+                // 受注削除
+                $this->deleteOrder($NewOrder);
+                $deleted++;
+                $deleteUsePoint += $usePoint; // 利用したポイントを戻す
+            }
+            $i++;
+        }
+
+        $this->expected = 0;
+        $this->actual = $calculator->getProvisionalAddPoint();
+        $this->verify('現在の仮ポイント合計は '.$this->expected);
+
+        $this->expected = $currentPoint + $fixAddPoint + $deleteUsePoint;
+        $this->actual = PointTestUtil::calculateCurrentPoint($Customer, $this->app);
+        $this->verify('保有ポイントの合計は '.$this->expected);
+        $currentPoint = $this->expected;
+
+        // 受注のポイントを変更する
+        foreach ($usePointOrderIds as $order_id) {
+            $UsePointOrder = $this->app['eccube.repository.order']->find($order_id);
+            // 利用 200pt, 加算 1098pt に変更する
+            $changeUsePoint = 200;
+            $changeAddPoint = 1098;
+            $this->saveOrder($UsePointOrder, $changeUsePoint, $changeAddPoint);
+            $currentPoint -= ($changeUsePoint - $usePoint);
+            $currentPoint += ($changeAddPoint - ($addPoint - ($discount * ($PointInfo->getPlgBasicPointRate() / 100))));
+        }
+
+        $this->expected = $currentPoint;
         $this->actual = PointTestUtil::calculateCurrentPoint($Customer, $this->app);
         $this->verify('保有ポイントの合計は '.$this->expected);
     }
@@ -346,5 +506,88 @@ class FrontPointControllerTest extends AbstractWebTestCase
         );
 
         return $crawler;
+    }
+
+    /**
+     * ポイント利用処理のシナリオ
+     */
+    protected function scenarioUsePoint($client, $usePoint)
+    {
+        $crawler = $client->request(
+            'POST',
+            $this->app->path('point_use'),
+            array('front_point_use' =>
+                  array(
+                      'plg_use_point' => $usePoint,
+                      '_token' => 'dummy'
+                  )
+            )
+        );
+        return $crawler;
+    }
+
+    /**
+     * AdminOrder::fixPoint() を実行する.
+     *
+     * protected なので リフレクションを使用する.
+     */
+    protected function fixPoint($Order, $Customer)
+    {
+        $AdminOrder = new AdminOrder();
+        $Reflect = new \ReflectionClass($AdminOrder);
+        $Method = $Reflect->getMethod('fixPoint');
+        $Method->setAccessible(true);
+        $Method->invoke($AdminOrder, $Order, $Customer);
+    }
+
+    /**
+     * AdminOrder::delete() を実行する.
+     */
+    protected function deleteOrder($Order)
+    {
+        $Order->setDelFlg(Constant::ENABLED);
+        $this->app['orm.em']->flush($Order);
+
+        $AdminOrder = new AdminOrder();
+        $event = new EventArgs(
+            array(
+                'Order' => $Order
+            ),
+            null
+        );
+        $AdminOrder->delete($event);
+    }
+
+    /**
+     * AdminOrder::save() を実行する.
+     */
+    protected function saveOrder($Order, $usePoint = 0, $addPoint = 0)
+    {
+        $form = array(
+            'use_point' => new FormTypeMock($usePoint),
+            'add_point' => new FormTypeMock($addPoint)
+        );
+        $AdminOrder = new AdminOrder();
+        $event = new EventArgs(
+            array(
+                'TargetOrder' => $Order,
+                'form' => $form
+            ),
+            null
+        );
+        $AdminOrder->save($event);
+    }
+}
+
+class FormTypeMock
+{
+    protected $point;
+    public function __construct($point)
+    {
+        $this->point = $point;
+    }
+    public function getData()
+    {
+        return $this->point;
     }
 }
