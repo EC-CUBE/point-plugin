@@ -31,12 +31,6 @@ Plugin\Point\Entity\Point:
             type: string
             length: 255
             nullable: true
-        plg_point_product_rate_id:
-            type: integer
-            nullable: true
-            unsigned: false
-            options:
-                default: null
         plg_point_info_id:
             type: integer
             nullable: false
