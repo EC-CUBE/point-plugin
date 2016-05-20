@@ -47,7 +47,7 @@ class FrontChangeTotal extends AbstractWorkPlace
 
         // 合計金額マイナス確認
         if ($calculator->calculateTotalDiscountOnChangeConditions()) {
-            $this->app->addError('お支払い金額がマイナスになったため、ポイントをキャンセルしました。', 'front.request');
+            $this->app->addError('ポイント利用時の合計金額がマイナスになったため、ポイントの利用をキャンセルしました。', 'front.request');
         }
 
         $this->app['monolog.point']->addInfo('save end');
