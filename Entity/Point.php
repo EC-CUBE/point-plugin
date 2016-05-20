@@ -38,10 +38,6 @@ class Point extends \Eccube\Entity\AbstractEntity
     /**
      * @var integer
      */
-    private $plg_point_product_rate_id;
-    /**
-     * @var integer
-     */
     private $plg_point_info_id;
     /**
      * @var \Eccube\Entity\Order
@@ -143,29 +139,6 @@ class Point extends \Eccube\Entity\AbstractEntity
     public function getCustomerId()
     {
         return $this->customer_id;
-    }
-
-    /**
-     * Set plg_point_product_rate_id
-     *
-     * @param integer $plg_point_product_rate_id
-     * @return Point
-     */
-    public function setPlgPointProductRateId($plg_point_product_rate_id)
-    {
-        $this->plg_point_product_rate_id = $plg_point_product_rate_id;
-
-        return $this;
-    }
-
-    /**
-     * Get plg_point_product_rate_id
-     *
-     * @return integer
-     */
-    public function getPlgPointProductRateId()
-    {
-        return $this->plg_point_product_rate_id;
     }
 
     /**

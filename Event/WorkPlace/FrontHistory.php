@@ -76,12 +76,12 @@ class FrontHistory extends AbstractWorkPlace
         // ポイント情報表示
         // false が返却された際は、利用ポイント値が保有ポイント値を超えている
         $point['use'] = $usePoint;
-        $snippet = $this->app->render(
+        $snippet = $this->app->renderView(
             'Point/Resource/template/default/Event/History/point_summary.twig',
             array(
                 'point' => $point,
             )
-        )->getContent();
+        );
 
 
         $search = '<p id="summary_box__payment_total"';

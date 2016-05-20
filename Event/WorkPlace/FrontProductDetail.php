@@ -38,12 +38,12 @@ class FrontProductDetail extends AbstractWorkPlace
         $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
         $point = $calculator->getAddPointByProduct($Product);
 
-        $snippet = $this->app->render(
+        $snippet = $this->app->renderView(
             'Point/Resource/template/default/Event/ProductDetail/detail_point.twig',
             array(
                 'point' => $point,
             )
-        )->getContent();
+        );
 
         $search = '<p id="detail_description_box__item_range_code"';
         $this->replaceView($event, $snippet, $search);

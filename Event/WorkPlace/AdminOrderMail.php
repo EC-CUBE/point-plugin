@@ -45,7 +45,6 @@ class  AdminOrderMail extends AbstractWorkPlace
             $ids = $args['ids'];
 
             $tmp = explode(',', $ids);
-            dump($tmp);
 
             $Order = $this->app['eccube.repository.order']->find($tmp[0]);
         }

@@ -152,6 +152,11 @@ class  AdminOrder extends AbstractWorkPlace
                 ),
                 'constraints' => array(
                     new Assert\GreaterThanOrEqual(array('value' => 0)),
+                    new Assert\Length(
+                        array(
+                            'max' => $this->app['config']['int_len'],
+                        )
+                    ),
                 ),
             )
         )->add(
@@ -166,6 +171,11 @@ class  AdminOrder extends AbstractWorkPlace
                 ),
                 'constraints' => array(
                     new Assert\GreaterThanOrEqual(array('value' => 0)),
+                    new Assert\Length(
+                        array(
+                            'max' => $this->app['config']['int_len'],
+                        )
+                    ),
                 ),
             )
         );

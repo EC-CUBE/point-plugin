@@ -37,7 +37,22 @@ class PointCustomerRepositoryTest extends EccubeTestCase
         $this->verify();
     }
 
+    public function testGetLastPointByIdNoResults(){
+        $Customer = $this->createCustomer();
+        $point = $this->app['eccube.plugin.point.repository.pointcustomer']->getLastPointById($Customer->getId());
+        $this->expected = 0;
+        $this->actual = $point;
+        $this->verify();
+    }
 
+    public function testGetLastPointByIdException(){
 
+        try {
+            $this->app['eccube.plugin.point.repository.pointcustomer']->getLastPointById(null);
+            $this->fail('Throwable to \InvalidArgumentException');
+        } catch (\InvalidArgumentException $e) {
+            $this->assertEquals('customer_id is empty.', $e->getMessage());
+        }
+    }
 }
 
