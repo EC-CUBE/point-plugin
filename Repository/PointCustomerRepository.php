@@ -68,14 +68,14 @@ class PointCustomerRepository extends EntityRepository
      * 会員IDをもとに一番最後に保存した保有ポイントを取得.
      *
      * @param $customerId 会員ID
-     * @return null|integer
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @return integer
+     * @throws \InvalidArgumentException
      */
     public function getLastPointById($customerId)
     {
         // 引数判定
         if (empty($customerId)) {
-            return null;
+            throw new \InvalidArgumentException('customer_id is empty.');
         }
 
         try {
@@ -90,7 +90,7 @@ class PointCustomerRepository extends EntityRepository
 
             return $PointCustomer->getPlgPointCurrent();
         } catch (NoResultException $e) {
-            return null;
+            return 0;
         }
     }
 }
