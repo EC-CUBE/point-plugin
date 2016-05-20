@@ -229,6 +229,7 @@ class PointHistoryHelper
         }
         $this->entities['SnapShot']->setPlgPointSnapshotId(null);
         $this->entities['SnapShot']->setCustomer($this->entities['Customer']);
+        $this->entities['SnapShot']->setOrder($this->hasEntity('Order') ? $this->entities['Order'] : null);
         $this->entities['SnapShot']->setPlgPointAdd($point['add']);
         $this->entities['SnapShot']->setPlgPointCurrent((integer)$point['current']);
         $this->entities['SnapShot']->setPlgPointUse($point['use']);
