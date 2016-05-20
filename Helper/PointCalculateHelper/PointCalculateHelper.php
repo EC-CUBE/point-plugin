@@ -505,12 +505,12 @@ class PointCalculateHelper
     }
 
     /**
-     * ポイント利用以外で, 支払い金額がマイナスの場合にポイントを打ち消す.
+     * ポイントを利用していたが、お届け先変更・配送業者・支払方法の変更により、
+     * 支払い金額にマイナスが発生した場合に、利用しているポイントを打ち消し、受注の値引きを戻す.
      *
-     * ポイント利用以外の割引が発生し、支払い金額がマイナスになった場合は、
-     * ポイント利用をできないようにする.
+     * ポイントを利用していない場合は打ち消し処理は行わない
      *
-     * @return bool ポイント利用可能な場合 true, 支払い金額がマイナスでポイント利用不可の場合は false を返し、ポイントを打ち消す
+     * @return bool ポイント利用可能な場合 false, 支払い金額がマイナスでポイント利用不可の場合は true を返し、ポイントを打ち消す
      * @throws \LogicException
      */
     public function calculateTotalDiscountOnChangeConditions()
@@ -544,8 +544,14 @@ class PointCalculateHelper
         // 最終保存仮利用ポイント
         $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($order);
 
+        // ポイントを利用していない場合は、打ち消し処理は行わない
+        if ($usePoint == 0) {
+            return false;
+        }
+
         // 最終ポイント利用額を算出
         $pointDiscount = (int)$this->getRoundValue($usePoint * $this->pointInfo->getPlgPointConversionRate());
+
 
         $this->app['monolog.point']->addInfo('discount', array(
             'total' => $totalAmount,

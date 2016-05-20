@@ -399,27 +399,59 @@ class PointCalculateHelperTest extends EccubeTestCase
         }
     }
 
+    /**
+     * ポイントを利用していたが、支払い方法の変更によりマイナスが発生したので、キャンセル処理が行われた
+     */
     public function testCalculateTotalDiscountOnChangeConditions()
     {
         $Customer = $this->createCustomer();
         $Order = $this->createOrder($Customer);
 
-        // ポイント利用以外のプラグインで、お支払い金額がマイナスになった場合
-        $totalAmount = $Order->getTotalPrice();
-        $this->app['eccube.service.shopping']->setDiscount($Order, $totalAmount + 1); // 支払い金額 + 1円を値引きする
+        // 支払い金額が1300円で、1200ptを利用する
+        $Order->setSubtotal(1000);
+        $Order->setCharge(300);
+        $Order->setDiscount(1200);
+        $Order->setDeliveryFeeTotal(0);
         $this->app['orm.em']->flush();
+
+        $PointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
+        $this->createPreUsePoint($PointInfo, $Customer, $Order, -1200); // 1200ptを利用
 
         $calculater = $this->app['eccube.plugin.point.calculate.helper.factory'];
         $calculater->addEntity('Order', $Order);
         $calculater->addEntity('Customer', $Customer);
 
-        $this->expected = true;
+        $this->expected = false;
         $this->actual = $calculater->calculateTotalDiscountOnChangeConditions();
-        $this->verify('ポイント利用以外のプラグインで、お支払い金額がマイナスになった場合は true');
+        $this->verify('支払い金額がプラスの場合は false');
 
-        $this->expected = -1;
+        $this->expected = 100;
         $this->actual = $Order->getTotalPrice();
         $this->verify('お支払い金額は '.$this->actual.' 円');
+
+        // 支払い方法を変更したことで、手数料が300円から0円になり、支払い金額にマイナスが発生した
+        $Order->setCharge(0);
+        $this->app['orm.em']->flush();
+
+        // ポイントの打ち消しと、値引きの戻しが実行されているはず。
+        $this->expected = true;
+        $this->actual = $calculater->calculateTotalDiscountOnChangeConditions();
+        $this->verify('支払い金額がマイナスの場合は true');
+
+        // 支払い金額は手数料とポイント利用の値引きがなくなるので1000円になる
+        $this->expected = 1000;
+        $this->actual = $Order->getTotalPrice();
+        $this->verify('お支払い金額は '.$this->actual.' 円');
+
+        // 値引きはキャンセルされ、0円になる
+        $this->expected = 0;
+        $this->actual = $Order->getDiscount();
+        $this->verify('値引きは '.$this->actual.' 円');
+
+        // 利用ポイントは打ち消され、0ptになる
+        $this->expected = 0;
+        $this->actual = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($Order);
+        $this->verify('利用ポイントは '.$this->actual.' 円');
     }
 
     /**

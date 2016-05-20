@@ -40,6 +40,9 @@ class PointRepositoryJoinTest extends AbstractWebTestCase
     // 購入（すぐに確定ポイント）
     public function testShoppingCompleteWithPointFix()
     {
+        // ポイント設定を変更
+        $this->updatePointSettings($this->app['config']['order_new']);
+
         // 注文する
         $customer = $this->createCustomer();
         $order = $this->DoOrder($customer);
@@ -124,6 +127,9 @@ class PointRepositoryJoinTest extends AbstractWebTestCase
     // 受注削除（確定ポイントを削除）
     public function testDeleteOrderWithFixedPoint()
     {
+        // ポイント設定を変更
+        $this->updatePointSettings($this->app['config']['order_new']);
+
         // 注文する
         $customer = $this->createCustomer();
         $order = $this->DoOrder($customer);
@@ -171,6 +177,9 @@ class PointRepositoryJoinTest extends AbstractWebTestCase
     // 受注登録で受注作成
     public function testCreateOrderByOrderEditWithFixedStatus()
     {
+        // ポイント設定を変更
+        $this->updatePointSettings($this->app['config']['order_new']);
+        
         // 受注情報を登録する
         $customer = $this->createCustomer();
         $order = $this->DoCreateNewOrder($customer);
