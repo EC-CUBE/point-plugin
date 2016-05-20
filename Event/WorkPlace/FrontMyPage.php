@@ -67,12 +67,12 @@ class FrontMyPage extends AbstractWorkPlace
 
         // 使用ポイントボタン付与
         // twigコードにポイント表示欄を追加
-        $snippet = $this->app->render(
+        $snippet = $this->app->renderView(
             'Point/Resource/template/default/Event/MypageTop/point_box.twig',
             array(
                 'point' => $point,
             )
-        )->getContent();
+        );
         $search = '<div id="history_list"';
         $this->replaceView($event, $snippet, $search);
     }
