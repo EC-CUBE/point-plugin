@@ -37,11 +37,10 @@ class PointHistoryHelper
     const HISTORY_MESSAGE_TYPE_USE = '利用';
 
     // 保存内容(ポイント種別)
-    const STATE_CURRENT = 1;
-    const STATE_PRE_ADD = 2;
-    const STATE_ADD = 3;
-    const STATE_USE = 4;
-    const STATE_PRE_USE = 5;
+    const STATE_CURRENT = 1; // 会員編集画面から手動更新される保有ポイント
+    const STATE_ADD = 3;    // 加算ポイント
+    const STATE_USE = 4;    // 利用ポイント
+    const STATE_PRE_USE = 5;    // 仮利用ポイント(購入中に利用ポイントとして登録されるポイント)
 
     protected $app;                 // アプリケーション
     protected $entities;            // 保存時エンティティコレクション
