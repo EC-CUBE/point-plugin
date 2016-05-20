@@ -295,6 +295,7 @@ class FrontPointControllerTest extends AbstractWebTestCase
      * 3. 新たに 50回購入し、各100ポイントずつ利用する(減算方式)
      * 4. 2で確定しなかったポイントを確定
      * 5. 3の受注のうち25件ポイント確定、25件削除
+     * 6. 3のポイント確定受注の利用・加算ポイントを変更する
      */
     public function testLongUsePointShoppingWithSubtraction()
     {
@@ -371,6 +372,9 @@ class FrontPointControllerTest extends AbstractWebTestCase
             // 完了画面
             $crawler = $this->scenarioComplete($client, $this->app->path('shopping_confirm'));
             $provisionalAddPoint += $addPoint - ($discount * ($PointInfo->getPlgBasicPointRate() / 100));
+
+            // できるだけたくさんのデータでテストするため他の会員の受注を生成する
+            $this->createOrder($this->createCustomer());
         }
 
         $this->expected = $currentPoint - ($usePoint * $purchaseNum);
@@ -410,6 +414,7 @@ class FrontPointControllerTest extends AbstractWebTestCase
         $deleted = 0;
         $fixAddPoint = 0;
         $deleteUsePoint = 0;
+        $usePointOrderIds = array();
         foreach ($NewOrders2 as $NewOrder) {
             if (($i % 2) === 0) {
                 $NewOrder->setOrderStatus($OrderDeliv);
@@ -418,6 +423,7 @@ class FrontPointControllerTest extends AbstractWebTestCase
                 // ポイント確定
                 $this->fixPoint($NewOrder, $Customer);
                 $fixAddPoint += $addPoint - ($discount * ($PointInfo->getPlgBasicPointRate() / 100));
+                $usePointOrderIds[] = $NewOrder->getId();
             } else {
                 // 受注削除
                 $this->deleteOrder($NewOrder);
@@ -432,6 +438,22 @@ class FrontPointControllerTest extends AbstractWebTestCase
         $this->verify('現在の仮ポイント合計は '.$this->expected);
 
         $this->expected = $currentPoint + $fixAddPoint + $deleteUsePoint;
+        $this->actual = PointTestUtil::calculateCurrentPoint($Customer, $this->app);
+        $this->verify('保有ポイントの合計は '.$this->expected);
+        $currentPoint = $this->expected;
+
+        // 受注のポイントを変更する
+        foreach ($usePointOrderIds as $order_id) {
+            $UsePointOrder = $this->app['eccube.repository.order']->find($order_id);
+            // 利用 200pt, 加算 1098pt に変更する
+            $changeUsePoint = 200;
+            $changeAddPoint = 1098;
+            $this->saveOrder($UsePointOrder, $changeUsePoint, $changeAddPoint);
+            $currentPoint -= ($changeUsePoint - $usePoint);
+            $currentPoint += ($changeAddPoint - ($addPoint - ($discount * ($PointInfo->getPlgBasicPointRate() / 100))));
+        }
+
+        $this->expected = $currentPoint;
         $this->actual = PointTestUtil::calculateCurrentPoint($Customer, $this->app);
         $this->verify('保有ポイントの合計は '.$this->expected);
     }
@@ -534,5 +556,38 @@ class FrontPointControllerTest extends AbstractWebTestCase
             null
         );
         $AdminOrder->delete($event);
+    }
+
+    /**
+     * AdminOrder::save() を実行する.
+     */
+    protected function saveOrder($Order, $usePoint = 0, $addPoint = 0)
+    {
+        $form = array(
+            'use_point' => new FormTypeMock($usePoint),
+            'add_point' => new FormTypeMock($addPoint)
+        );
+        $AdminOrder = new AdminOrder();
+        $event = new EventArgs(
+            array(
+                'TargetOrder' => $Order,
+                'form' => $form
+            ),
+            null
+        );
+        $AdminOrder->save($event);
+    }
+}
+
+class FormTypeMock
+{
+    protected $point;
+    public function __construct($point)
+    {
+        $this->point = $point;
+    }
+    public function getData()
+    {
+        return $this->point;
     }
 }
