@@ -58,7 +58,7 @@ class  AdminOrderMail extends AbstractWorkPlace
 
         // 利用ポイント取得
         $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($Order);
-        $usePoint = $usePoint * -1;
+        $usePoint = abs($usePoint);
 
         // 加算ポイント取得.
         $addPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder($Order);
@@ -133,7 +133,7 @@ class  AdminOrderMail extends AbstractWorkPlace
 
             // 利用ポイント取得
             $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($Order);
-            $usePoint = $usePoint * -1;
+            $usePoint = abs($usePoint);
 
             // 加算ポイント取得.
             $addPoint = $this->app['eccube.plugin.point.repository.point']->getLatestAddPointByOrder($Order);

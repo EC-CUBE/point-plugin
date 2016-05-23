@@ -654,7 +654,8 @@ class PointCalculateHelperTest extends EccubeTestCase
         $this->app['eccube.plugin.point.history.service']->addEntity($Order->getCustomer());
         $this->app['eccube.plugin.point.history.service']->savePreUsePoint($previousUsePoint * -1); // 前回入力したポイントを履歴に設定
 
-        $lastPreUsePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($Order));
+        $lastPreUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($Order);
+        $lastPreUsePoint = abs($lastPreUsePoint);
 
         $this->expected = $previousUsePoint;
         $this->actual = $lastPreUsePoint;
@@ -693,7 +694,8 @@ class PointCalculateHelperTest extends EccubeTestCase
         $this->app['eccube.plugin.point.history.service']->addEntity($Order->getCustomer());
         $this->app['eccube.plugin.point.history.service']->savePreUsePoint($previousUsePoint * -1); // 前回入力したポイントを履歴に設定
 
-        $lastPreUsePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($Order));
+        $lastPreUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($Order);
+        $lastPreUsePoint = abs($lastPreUsePoint);
 
         $this->expected = $previousUsePoint;
         $this->actual = $lastPreUsePoint;
