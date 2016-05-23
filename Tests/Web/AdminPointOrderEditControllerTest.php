@@ -4,6 +4,7 @@ namespace Eccube\Tests\Web;
 
 use Eccube\Tests\Web\Admin\AbstractAdminWebTestCase;
 use Plugin\Point\Tests\Util\PointTestUtil;
+use Plugin\Point\Entity\PointInfo;
 
 class AdminPointOrderEditControllerTest extends AbstractAdminWebTestCase
 {
@@ -232,6 +233,11 @@ class AdminPointOrderEditControllerTest extends AbstractAdminWebTestCase
 
     public function testRoutingAdminOrderNewPostUseAndAddIsOne()
     {
+        // ポイント確定ステータスを「発送済み」に設定
+        $PointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
+        $PointInfo->setPlgAddPointStatus($this->app['config']['order_deliv']);
+        $this->app['orm.em']->flush();
+
         $currentPoint = 1000;   // 現在の保有ポイント
         $usePoint = 1;        // 使用するポイント
         $addPoint = 1;        // 加算するポイント
