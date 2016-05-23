@@ -258,11 +258,11 @@ class AdminPointOrderEditControllerTest extends AbstractAdminWebTestCase
             $this->app->url('admin_order_edit', array('id' => $order_id))
         );
 
-        $this->expected = number_format($currentPoint + $addPoint - $usePoint).' Pt';
+        $this->expected = number_format($currentPoint - $usePoint).' Pt';
         $this->actual = $crawler->filter('#point_info_box p')->text();
         $this->verify('受注管理画面に表示されるポイントは '.$this->expected);
 
-        $this->expected = $currentPoint + $addPoint - $usePoint;
+        $this->expected = $currentPoint - $usePoint;
         $this->actual = PointTestUtil::calculateCurrentPoint($this->Customer, $this->app);
         $this->verify('現在の保有ポイントは '.$this->expected);
     }
