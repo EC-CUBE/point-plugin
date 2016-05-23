@@ -156,6 +156,117 @@ class AdminPointOrderEditControllerTest extends AbstractAdminWebTestCase
         $this->verify('現在の保有ポイントは '.$this->expected);
     }
 
+    public function testRoutingAdminOrderNewPostUseAndAddIsZero()
+    {
+        $currentPoint = 1000;   // 現在の保有ポイント
+        $usePoint = 0;        // 使用するポイント
+        $addPoint = 0;        // 加算するポイント
+
+        PointTestUtil::saveCustomerPoint($this->Customer, $currentPoint, $this->app);
+
+        $crawler = $this->client->request(
+            'POST',
+            $this->app->url('admin_order_new'),
+            array(
+                'order' => $this->createFormData($this->Customer, $this->Product, $usePoint, $addPoint),
+                'mode' => 'register'
+            )
+        );
+
+        $url = $crawler->filter('a')->text();
+        $this->assertTrue($this->client->getResponse()->isRedirect($url));
+
+        preg_match('/([0-9]+)/', $url, $match);
+        $order_id = $match[0];
+
+        $crawler = $this->client->request(
+            'GET',
+            $this->app->url('admin_order_edit', array('id' => $order_id))
+        );
+
+        $this->expected = number_format($currentPoint - $usePoint).' Pt';
+        $this->actual = $crawler->filter('#point_info_box p')->text();
+        $this->verify('受注管理画面に表示されるポイントは '.$this->expected);
+
+        $this->expected = $currentPoint - $usePoint;
+        $this->actual = PointTestUtil::calculateCurrentPoint($this->Customer, $this->app);
+        $this->verify('現在の保有ポイントは '.$this->expected);
+    }
+
+    public function testRoutingAdminOrderNewPostUseAndAddIsNull()
+    {
+        $currentPoint = 1000;   // 現在の保有ポイント
+        $usePoint = null;        // 使用するポイント
+        $addPoint = null;        // 加算するポイント
+
+        PointTestUtil::saveCustomerPoint($this->Customer, $currentPoint, $this->app);
+
+        $crawler = $this->client->request(
+            'POST',
+            $this->app->url('admin_order_new'),
+            array(
+                'order' => $this->createFormData($this->Customer, $this->Product, $usePoint, $addPoint),
+                'mode' => 'register'
+            )
+        );
+
+        $url = $crawler->filter('a')->text();
+        $this->assertTrue($this->client->getResponse()->isRedirect($url));
+
+        preg_match('/([0-9]+)/', $url, $match);
+        $order_id = $match[0];
+
+        $crawler = $this->client->request(
+            'GET',
+            $this->app->url('admin_order_edit', array('id' => $order_id))
+        );
+
+        $this->expected = number_format($currentPoint - $usePoint).' Pt';
+        $this->actual = $crawler->filter('#point_info_box p')->text();
+        $this->verify('受注管理画面に表示されるポイントは '.$this->expected);
+
+        $this->expected = $currentPoint - $usePoint;
+        $this->actual = PointTestUtil::calculateCurrentPoint($this->Customer, $this->app);
+        $this->verify('現在の保有ポイントは '.$this->expected);
+    }
+
+    public function testRoutingAdminOrderNewPostUseAndAddIsOne()
+    {
+        $currentPoint = 1000;   // 現在の保有ポイント
+        $usePoint = 1;        // 使用するポイント
+        $addPoint = 1;        // 加算するポイント
+
+        PointTestUtil::saveCustomerPoint($this->Customer, $currentPoint, $this->app);
+
+        $crawler = $this->client->request(
+            'POST',
+            $this->app->url('admin_order_new'),
+            array(
+                'order' => $this->createFormData($this->Customer, $this->Product, $usePoint, $addPoint),
+                'mode' => 'register'
+            )
+        );
+
+        $url = $crawler->filter('a')->text();
+        $this->assertTrue($this->client->getResponse()->isRedirect($url));
+
+        preg_match('/([0-9]+)/', $url, $match);
+        $order_id = $match[0];
+
+        $crawler = $this->client->request(
+            'GET',
+            $this->app->url('admin_order_edit', array('id' => $order_id))
+        );
+
+        $this->expected = number_format($currentPoint - $usePoint).' Pt';
+        $this->actual = $crawler->filter('#point_info_box p')->text();
+        $this->verify('受注管理画面に表示されるポイントは '.$this->expected);
+
+        $this->expected = $currentPoint - $usePoint;
+        $this->actual = PointTestUtil::calculateCurrentPoint($this->Customer, $this->app);
+        $this->verify('現在の保有ポイントは '.$this->expected);
+    }
+
     public function testRoutingAdminOrderEdit()
     {
         $currentPoint = 1000;
