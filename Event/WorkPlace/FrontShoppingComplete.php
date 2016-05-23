@@ -124,7 +124,7 @@ class FrontShoppingComplete extends AbstractWorkPlace
         }
 
         // エラーメッセージの挿入
-        $search = '{% block main %}';
+        $search = '{% endblock %}';
         $script = <<<__EOL__
 {% block javascript %}
             <script>
