@@ -37,7 +37,7 @@ class FrontShopping extends AbstractWorkPlace
 
         // ポイント利用画面で入力された利用ポイントを取得
         $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestPreUsePoint($Order);
-        $usePoint = $usePoint * -1;
+        $usePoint = abs($usePoint);
 
         // 加算ポイントの取得
         $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];

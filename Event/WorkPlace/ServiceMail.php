@@ -55,7 +55,8 @@ class ServiceMail extends AbstractWorkPlace
         $calculator = $this->app['eccube.plugin.point.calculate.helper.factory'];
 
         // 利用ポイントの取得と設定
-        $usePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($order));
+        $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($order);
+        $usePoint = abs($usePoint);
 
         $calculator->setUsePoint($usePoint);
         // 計算に必要なエンティティの設定
