@@ -93,9 +93,10 @@ class PointRepository extends EntityRepository
     /**
      * 受注に対して行われた最後の付与ポイントを取得
      * @param $order
+     * @param $default レコードがない時のデフォルト値 nullと0を区別したい際は、この引数を利用する
      * @return int 付与ポイント
      */
-    public function getLatestAddPointByOrder(Order $Order)
+    public function getLatestAddPointByOrder(Order $Order, $default = 0)
     {
         try {
             // 受注をもとにその受注に対して行われた最後の付与ポイントを取得
@@ -114,16 +115,17 @@ class PointRepository extends EntityRepository
             return $Point->getPlgDynamicPoint();
 
         } catch (NoResultException $e) {
-            return 0;
+            return $default;
         }
     }
 
     /**
      * 最終利用ポイントを受注エンティティより取得
      * @param Order $order
+     * @param $default レコードがない時のデフォルト値 nullと0を区別したい際は、この引数を利用する
      * @return int 利用ポイント
      */
-    public function getLatestUsePoint(Order $Order)
+    public function getLatestUsePoint(Order $Order, $default = 0)
     {
         $Customer = $Order->getCustomer();
 
@@ -147,7 +149,7 @@ class PointRepository extends EntityRepository
 
             return $Point->getPlgDynamicPoint();
         } catch (NoResultException $e) {
-            return 0;
+            return $default;
         }
     }
 
