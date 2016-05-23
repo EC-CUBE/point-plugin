@@ -49,7 +49,7 @@ class FrontPointControllerTest extends AbstractWebTestCase
         $this->scenarioCartIn($client);
 
         $crawler = $client->request('GET', '/cart');
-        $this->assertRegExp('/現在の保有ポイントは「'.number_format($currentPoint).'pt」です。/u', $crawler->filter('#cart_item__point_info')->text());
+        $this->assertRegExp('/現在の保有ポイントは「'.number_format($currentPoint).' pt」です。/u', $crawler->filter('#cart_item__point_info')->text());
     }
 
     /**
@@ -541,6 +541,67 @@ class FrontPointControllerTest extends AbstractWebTestCase
         $this->expected = $currentPoint - $usePoint;
         $this->actual = PointTestUtil::calculateCurrentPoint($Customer, $this->app);
         $this->verify('保有ポイントの合計は '.$this->expected);
+    }
+
+    /**
+     * ポイントがマイナスの際の表示テストケース.
+     */
+    public function testMinusPoint()
+    {
+        $currentPoint = -1000;   // 保有ポイント
+        $usePoint = 0;
+
+        $faker = $this->getFaker();
+        $Customer = $this->logIn();
+        $client = $this->client;
+
+        // 保有ポイントを設定する
+        PointTestUtil::saveCustomerPoint($Customer, $currentPoint, $this->app);
+
+        // Myページ
+        $crawler = $client->request('GET', $this->app->path('mypage'));
+        $this->assertRegexp(
+            '/現在の保有ポイントは「0 pt」です。/u',
+            $crawler->filter('.txt_center')->text(),
+            'Myページ'
+        );
+
+        // カート画面
+        $this->scenarioCartIn($client);
+        $crawler = $client->request('GET', $this->app->url('cart'));
+        $this->assertRegexp(
+            '/現在の保有ポイントは「0 pt」です。/u',
+            $crawler->filter('#cart_item__point_info')->text(),
+            'カート画面'
+        );
+
+        // 確認画面
+        $crawler = $this->scenarioConfirm($client);
+        $this->expected = 'ご注文内容のご確認';
+        $this->actual = $crawler->filter('h1.page-heading')->text();
+        $this->verify();
+        $this->assertRegexp(
+            '/現在の保有ポイントは「0 pt」です。/u',
+            $crawler->filter('#point_box__info')->text(),
+            '購入確認画面'
+        );
+
+        // ポイント利用画面
+        $crawler = $client->request('GET', $this->app->path('point_use'));
+        $this->assertRegexp(
+            '/現在の保有ポイントは「0 pt」です。/u',
+            $crawler->filter('#detail_box')->text(),
+            'ポイント利用画面'
+        );
+        $this->assertNotRegexp(
+            '/「'.number_format($currentPoint).' pt」までご利用いただけます。/u',
+            $crawler->filter('#detail_box')->text(),
+            'ポイント利用画面'
+        );
+
+        // 完了画面
+        $crawler = $this->scenarioComplete($client, $this->app->path('shopping_confirm'));
+        $this->assertTrue($client->getResponse()->isRedirect($this->app->url('shopping_complete')));
     }
 
     protected function scenarioCartIn($client, $product_class_id = 1)
