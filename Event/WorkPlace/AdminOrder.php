@@ -76,7 +76,7 @@ class  AdminOrder extends AbstractWorkPlace
 
         $currentPoint = $this->calculateCurrentPoint($Order, $Customer);
         $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($Order);
-        $usePoint = $usePoint * -1;
+        $usePoint = abs($usePoint);
         $addPoint = 0;
 
         // 受注編集時
@@ -436,6 +436,7 @@ class  AdminOrder extends AbstractWorkPlace
     {
         // 更新前の利用ポイントの取得
         $beforeUsePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($Order, null);
+        $beforeUsePoint = abs($beforeUsePoint);
 
         // 更新前の利用ポイントと新しい利用ポイントが同じであれば何も処理を行わない
         if ($usePoint === $beforeUsePoint) {

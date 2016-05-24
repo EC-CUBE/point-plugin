@@ -50,7 +50,8 @@ class FrontHistory extends AbstractWorkPlace
         }
 
         // 利用ポイントの取得と設定
-        $usePoint = -($this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($parameters['Order']));
+        $usePoint = $this->app['eccube.plugin.point.repository.point']->getLatestUsePoint($parameters['Order']);
+        $usePoint = abs($usePoint);
 
         // 計算に必要なエンティティを登録
         $calculator->addEntity('Order', $parameters['Order']);
