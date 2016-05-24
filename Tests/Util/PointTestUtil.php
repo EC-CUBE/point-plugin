@@ -34,6 +34,7 @@ class PointTestUtil {
     public static function saveCustomerPoint($Customer, $currentPoint, $app)
     {
         // 手動設定ポイントを登録
+        $app['eccube.plugin.point.history.service']->refreshEntity();
         $app['eccube.plugin.point.history.service']->addEntity($Customer);
         $app['eccube.plugin.point.history.service']->saveManualpoint($currentPoint);
         $point = array();

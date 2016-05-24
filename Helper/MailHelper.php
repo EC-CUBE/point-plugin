@@ -44,7 +44,7 @@ class MailHelper
         $body = $this->app->renderView('Point/Resource/template/admin/Mail/point_notify.twig', array(
             'Order' => $Order,
             'currentPoint' => $currentPoint,
-            'usePoint' => $usePoint,
+            'usePoint' => abs($usePoint), // DBから取得した利用ポイントはマイナス値なので、絶対値で表示する
         ));
 
         $message = \Swift_Message::newInstance()
