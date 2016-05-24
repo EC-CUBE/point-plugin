@@ -11,11 +11,12 @@
 */
 namespace Plugin\Point\Helper\PointHistoryHelper;
 
-use Doctrine\DBAL\Exception\DatabaseObjectNotFoundException;
+use Eccube\Common\Constant;
 use Eccube\Entity\Order;
 use Plugin\Point\Entity\Point;
 use Plugin\Point\Entity\PointSnapshot;
 use Plugin\Point\Entity\PointStatus;
+use Plugin\Point\Repository\PointStatusRepository;
 
 /**
  * ポイント履歴ヘルパー
@@ -206,13 +207,10 @@ class PointHistoryHelper
         $this->entities['Point']->setPlgDynamicPoint((integer)$point);
         $this->entities['Point']->setPlgPointActionName($this->historyActionType.$this->currentActionName);
         $this->entities['Point']->setPlgPointType($this->historyType);
-        try {
-            $this->app['orm.em']->persist($this->entities['Point']);
-            $this->app['orm.em']->flush($this->entities['Point']);
-            $this->app['orm.em']->clear($this->entities['Point']);
-        } catch (DatabaseObjectNotFoundException $e) {
-            return false;
-        }
+        $this->app['orm.em']->persist($this->entities['Point']);
+        $this->app['orm.em']->flush($this->entities['Point']);
+        $this->app['orm.em']->clear($this->entities['Point']);
+        return true;
     }
 
     /**
@@ -233,12 +231,9 @@ class PointHistoryHelper
         $this->entities['SnapShot']->setPlgPointCurrent((integer)$point['current']);
         $this->entities['SnapShot']->setPlgPointUse($point['use']);
         $this->entities['SnapShot']->setPlgPointSnapActionName($this->currentActionName);
-        try {
-            $this->app['orm.em']->persist($this->entities['SnapShot']);
-            $this->app['orm.em']->flush($this->entities['SnapShot']);
-        } catch (DatabaseObjectNotFoundException $e) {
-            return false;
-        }
+        $this->app['orm.em']->persist($this->entities['SnapShot']);
+        $this->app['orm.em']->flush($this->entities['SnapShot']);
+        return true;
     }
 
     /**
@@ -269,16 +264,13 @@ class PointHistoryHelper
         if (isset($this->entities['Customer'])) {
             $this->entities['PointStatus']->setCustomerId($this->entities['Customer']->getId());
         }
-        $this->entities['PointStatus']->setStatus(0);
-        $this->entities['PointStatus']->setDelFlg(0);
+        $this->entities['PointStatus']->setStatus(PointStatusRepository::POINT_STATUS_UNFIX);
+        $this->entities['PointStatus']->setDelFlg(Constant::DISABLED);
         $this->entities['PointStatus']->setPointFixDate(null);
-        try {
-            $this->app['orm.em']->persist($this->entities['PointStatus']);
-            $this->app['orm.em']->flush($this->entities['PointStatus']);
-            $this->app['orm.em']->clear($this->entities['PointStatus']);
-        } catch (DatabaseObjectNotFoundException $e) {
-            return false;
-        }
+        $this->app['orm.em']->persist($this->entities['PointStatus']);
+        $this->app['orm.em']->flush($this->entities['PointStatus']);
+        $this->app['orm.em']->clear($this->entities['PointStatus']);
+        return true;
     }
 
     /**
@@ -292,7 +284,7 @@ class PointHistoryHelper
         );
         if (!$PointStatus instanceof PointStatus) {
             $PointStatus = new PointStatus();
-            $PointStatus->setDelFlg(0);
+            $PointStatus->setDelFlg(Constant::DISABLED);
             $PointStatus->setOrderId($this->entities['Order']->getId());
             $PointStatus->setCustomerId($this->entities['Customer']->getId());
             $this->app['orm.em']->persist($PointStatus);
@@ -317,7 +309,7 @@ class PointHistoryHelper
             return;
         }
         /** @var PointStatus $pointStatus */
-        $pointStatus->setDelFlg(1);
+        $pointStatus->setDelFlg(Constant::ENABLED);
         $this->app['orm.em']->flush($pointStatus);
     }
 }
