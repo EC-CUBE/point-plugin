@@ -103,10 +103,11 @@ class  AdminOrder extends AbstractWorkPlace
             } else {
                 $builder->addEventListener(
                     FormEvents::POST_SUBMIT,
-                    function (FormEvent $event) use ($currentPoint) {
+                    function (FormEvent $event) use ($currentPoint, $usePoint) {
                         $form = $event->getForm();
                         $inputUsePoint = $form['use_point']->getData();
-                        if ($inputUsePoint > $currentPoint) {
+                        // 現在の保有ポイント + 更新前の利用ポイントが上限値
+                        if ($inputUsePoint > $currentPoint + $usePoint) {
                             $error = new FormError('保有ポイント以内で入力してください');
                             $form['use_point']->addError($error);
                         }
@@ -117,10 +118,11 @@ class  AdminOrder extends AbstractWorkPlace
         } else {
             $builder->addEventListener(
                 FormEvents::POST_SUBMIT,
-                function (FormEvent $event) use ($currentPoint) {
+                function (FormEvent $event) use ($currentPoint, $usePoint) {
                     $form = $event->getForm();
                     $inputUsePoint = $form['use_point']->getData();
-                    if ($inputUsePoint > $currentPoint) {
+                    // 現在の保有ポイント + 更新前の利用ポイントが上限値
+                    if ($inputUsePoint > $currentPoint + $usePoint) {
                         $error = new FormError('保有ポイント以内で入力してください');
                         $form['use_point']->addError($error);
                     }
