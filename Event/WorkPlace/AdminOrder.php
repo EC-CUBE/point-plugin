@@ -452,7 +452,6 @@ class  AdminOrder extends AbstractWorkPlace
         // 履歴保存
         // 以前のレコードがある場合は相殺処理
         if(!is_null($beforeUsePoint)) {
-            $beforeUsePoint = $beforeUsePoint * -1;
             $this->history->addEntity($Order);
             $this->history->addEntity($Customer);
             $this->history->saveUsePointByOrderEdit($beforeUsePoint);
