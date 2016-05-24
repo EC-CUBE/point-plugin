@@ -267,7 +267,7 @@ class PointEvent
     public function onMailOrderComplete(EventArgs $event)
     {
         // ログイン判定
-        if ($this->isAuthRouteFront()) {
+        if ($this->isAuthRouteFront() || $this->app->isGranted('ROLE_ADMIN')) {
             $helper = new ServiceMail();
             $helper->save($event);
         }
