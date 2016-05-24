@@ -212,6 +212,13 @@ class  AdminOrder extends AbstractWorkPlace
         $replace = $snippet.$search;
         $source = str_replace($search, $replace, $source);
 
+        // キャンセル時のポイント動作追記
+        $search = '<div id="number_info_box__order_status_info" class="small text-danger">キャンセルの場合は在庫数を手動で戻してください</div>';
+        $view = 'Point/Resource/template/admin/Event/AdminOrder/order_point_notes.twig';
+        $snippet = $this->app['twig']->getLoader()->getSource($view);
+        $replace = $search.$snippet;
+        $source = str_replace($search, $replace, $source);
+
         $orderIds = $this->app['eccube.plugin.point.repository.pointstatus']->selectOrderIdsWithFixedByCustomer(
             $Customer->getId()
         );
