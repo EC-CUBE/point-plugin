@@ -604,6 +604,82 @@ class FrontPointControllerTest extends AbstractWebTestCase
         $this->assertTrue($client->getResponse()->isRedirect($this->app->url('shopping_complete')));
     }
 
+    /**
+     * 購入中にポイントがマイナスになった場合のテストケース.
+     */
+    public function testUsePointWithMinus()
+    {
+        $currentPoint = 1000;   // 保有ポイント
+        $usePoint = 100;        // 利用ポイント
+        $minusPoint = -2000;    // テスト用のポイント
+
+        // ポイント確定ステータスを「発送済み」に設定
+        $PointInfo = $this->app['eccube.plugin.point.repository.pointinfo']->getLastInsertData();
+        $PointInfo->setPlgAddPointStatus($this->app['config']['order_deliv']);
+        $this->app['orm.em']->flush();
+
+        $faker = $this->getFaker();
+        $Customer = $this->logIn();
+        $client = $this->client;
+
+        // 保有ポイントを設定する
+        PointTestUtil::saveCustomerPoint($Customer, $currentPoint, $this->app);
+
+        // カート画面
+        $this->scenarioCartIn($client);
+
+        // 確認画面
+        $crawler = $this->scenarioConfirm($client);
+        $this->expected = 'ご注文内容のご確認';
+        $this->actual = $crawler->filter('h1.page-heading')->text();
+        $this->verify();
+
+        // ポイント利用画面
+        $crawler = $client->request('GET', $this->app->path('point_use'));
+        $this->assertRegexp(
+            '/現在の保有ポイントは「'.number_format($currentPoint).' pt」です。/u',
+            $crawler->filter('#detail_box')->text()
+        );
+
+        // ポイント利用処理
+        $crawler = $this->scenarioUsePoint($client, $usePoint);
+        $this->assertTrue($client->getResponse()->isRedirect($this->app->url('shopping')));
+
+        // 保有ポイントをマイナスに設定する
+        PointTestUtil::saveCustomerPoint($Customer, $minusPoint, $this->app);
+
+        // 完了画面
+        $crawler = $this->scenarioComplete($client, $this->app->path('shopping_confirm'));
+        $this->assertTrue($client->getResponse()->isRedirect($this->app->url('shopping_complete')));
+
+        $crawler = $client->request(
+            'GET',
+            $this->app->url('shopping_complete'));
+
+        $Order = $this->app['eccube.repository.order']->findOneBy(
+            array('Customer' => $Customer),
+            array('id' => 'DESC')
+        );
+
+        // JavaScript の受注IDの部分のコードをパースしてチェックする
+        $this->assertRegExp('/'.$Order->getId()."\)'\);/", $crawler->html(),
+                            'マイナス警告メッセージが表示されているか');
+
+        $Messages = $this->getMailCatcherMessages();
+        $Message = $this->getMailCatcherMessage($Messages[0]->id);
+
+        $this->expected = '[' . $this->BaseInfo->getShopName() . '] ポイント通知';
+        $this->actual = $Message->subject;
+        $this->verify('マイナス通知メールのチェック');
+
+        $body = $this->parseMailCatcherSource($Message);
+
+        $this->assertRegexp('/会員ID：'.$Customer->getId().'/u', $body);
+        $this->assertRegexp('/注文番号：'.$Order->getId().'/u', $body);
+        $this->assertRegexp('/利用ポイント：'.number_format($usePoint).'/u', $body);
+        $this->assertRegexp('/保有ポイント：'.number_format($minusPoint - $usePoint + $currentPoint).'/u', $body);
+    }
+
     protected function scenarioCartIn($client, $product_class_id = 1)
     {
         $crawler = $client->request('POST', '/cart/add', array('product_class_id' => $product_class_id));
