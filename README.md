@@ -1,6 +1,7 @@
 # point-plugin（ポイントプラグイン）
 
 [![Build Status](https://travis-ci.org/EC-CUBE/point-plugin.svg?branch=master)](https://travis-ci.org/EC-CUBE/point-plugin)
+[![Coverage Status](https://coveralls.io/repos/github/EC-CUBE/point-plugin/badge.svg?branch=master)](https://coveralls.io/github/EC-CUBE/point-plugin?branch=master)
 
 ポイント機能を提供します
 
