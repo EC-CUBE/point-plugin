@@ -14,6 +14,8 @@ namespace Plugin\Point\Event\WorkPlace;
 use Eccube\Event\EventArgs;
 use Symfony\Component\Validator\Constraints as Assert;
 
+const ENCODING = 'UTF-8';
+
 /**
  * フックポイント汎用処理具象クラス
  *  - 拡張元 : 受注メール
@@ -77,6 +79,14 @@ class ServiceMail extends AbstractWorkPlace
         // メールボディ取得
         $body = $message->getBody();
 
+        // エンコード方式取得
+        $charset = $message->getCharset();
+
+        if ($charset != ENCODING) {
+            // 一旦UTF-8に
+            $body = mb_convert_encoding($body, ENCODING, $charset);
+        }
+
         // 情報置換用のキーを取得
         $search = array();
         preg_match_all('/合　計.*\\n/u', $body, $search);
@@ -94,6 +104,11 @@ class ServiceMail extends AbstractWorkPlace
         $replace = $search[0][0].$snippet;
         $body = preg_replace('/'.$search[0][0].'/u', $replace, $body);
 
+        if ($charset != ENCODING) {
+            // エンコーディングを元に戻す
+            $body = mb_convert_encoding($body, $charset, ENCODING);
+        }
+        
         // メッセージにメールボディをセット
         $message->setBody($body);
 
