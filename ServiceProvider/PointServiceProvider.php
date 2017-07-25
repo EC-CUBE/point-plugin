@@ -49,6 +49,17 @@ class PointServiceProvider implements ServiceProviderInterface
         /**
          * ルーティング登録
          * フロント画面 > 商品購入確認画面
+         * ポイント入力画面へ遷移する前に注文設定を一時的に保存
+         * お届け先情報変更処理を参考に実装
+         */
+        $app->match(
+            '/shopping/step_use_point/{id}',
+            'Plugin\Point\Controller\FrontPointController::stepUsePoint'
+        )->assert('id', '\d+')->bind('step_use_point');
+
+        /**
+         * ルーティング登録
+         * フロント画面 > 商品購入確認画面
          */
         $app->match(
             '/shopping/use_point',

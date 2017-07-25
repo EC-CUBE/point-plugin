@@ -83,6 +83,7 @@ class FrontShopping extends AbstractWorkPlace
         $snippet = $this->app->renderView(
             'Point/Resource/template/default/Event/ShoppingConfirm/use_point_button.twig',
             array(
+                'Order' => $Order,
                 'point' => $point,
             )
         );

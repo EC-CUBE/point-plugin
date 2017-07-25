@@ -11,6 +11,7 @@
 namespace Plugin\Point\Controller;
 
 use Eccube\Application;
+use Eccube\Event\EventArgs;
 use Plugin\Point\Form\Type;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception as HttpException;
@@ -24,6 +25,50 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 class FrontPointController
 {
+    /**
+     * ポイント使用がクリックされた場合の処理
+     * お届け先情報変更処理を参考に実装（というかほぼそのまま）
+     */
+    public function stepUsePoint(Application $app, Request $request, $id)
+    {
+        $Order = $app['eccube.service.shopping']->getOrder($app['config']['order_processing']);
+        if (!$Order) {
+            $app->addError('front.shopping.order.error');
+            return $app->redirect($app->url('shopping_error'));
+        }
+
+        if ('POST' !== $request->getMethod()) {
+            return $app->redirect($app->url('shopping'));
+        }
+
+        $builder = $app['eccube.service.shopping']->getShippingFormBuilder($Order);
+
+        $event = new EventArgs(
+            array(
+                'builder' => $builder,
+                'Order' => $Order,
+            ),
+            $request
+        );
+
+        $form = $builder->getForm();
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
+            $message = $data['message'];
+            $Order->setMessage($message);
+            // 受注情報を更新
+            $app['orm.em']->flush();
+
+            // 使用ポイント入力ページへ遷移
+            return $app->redirect($app->url('point_use', array('id' => $id)));
+        }
+
+        return $app->redirect($app->url('shopping'));
+    }
+
     /**
      * 利用ポイント入力画面
      *
