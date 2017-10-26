@@ -12,19 +12,22 @@ php:
   - 5.4
   - 5.5
   - 5.6
-#  - 7.0
+  - 7.0
 
 env:
   # plugin code
   global:
     PLUGIN_CODE=Point
   matrix:
-#    # ec-cube master
-#    - ECCUBE_VERSION=master DB=mysql USER=root DBNAME=myapp_test DBPASS=' ' DBUSER=root
-#    - ECCUBE_VERSION=master DB=pgsql USER=postgres DBNAME=myapp_test DBPASS=password DBUSER=postgres
+    # ec-cube master
+    - ECCUBE_VERSION=master DB=mysql USER=root DBNAME=myapp_test DBPASS=' ' DBUSER=root
+    - ECCUBE_VERSION=master DB=pgsql USER=postgres DBNAME=myapp_test DBPASS=password DBUSER=postgres
     # ec-cube 3.0.10
     - ECCUBE_VERSION=3.0.10 DB=mysql USER=root DBNAME=myapp_test DBPASS=' ' DBUSER=root
     - ECCUBE_VERSION=3.0.10 DB=pgsql USER=postgres DBNAME=myapp_test DBPASS=password DBUSER=postgres
+    # ec-cube 3.0.11
+    - ECCUBE_VERSION=3.0.11 DB=mysql USER=root DBNAME=myapp_test DBPASS=' ' DBUSER=root
+    - ECCUBE_VERSION=3.0.11 DB=pgsql USER=postgres DBNAME=myapp_test DBPASS=password DBUSER=postgres
 
 install:
   - gem install mime-types -v 2.99.1
@@ -32,8 +35,14 @@ install:
 
 matrix:
   fast_finish: true
+  exclude:
+    - php: 7.0
+      env: ECCUBE_VERSION=3.0.10 DB=mysql USER=root DBNAME=myapp_test DBPASS=' ' DBUSER=root
+    - php: 7.0
+      env: ECCUBE_VERSION=3.0.10 DB=pgsql USER=postgres DBNAME=myapp_test DBPASS=password DBUSER=postgres
 
 before_script:
+  - if [[ $TRAVIS_PHP_VERSION =~ ^[5] ]]; then phpenv config-rm xdebug.ini ; fi
   # archive plugin
   - tar cvzf ${HOME}/${PLUGIN_CODE}.tar.gz ./*
   # clone ec-cube
@@ -55,7 +64,8 @@ before_script:
 
 script:
   # exec phpunit on ec-cube
-  - phpunit app/Plugin/${PLUGIN_CODE}/Tests
+  - if [[ $TRAVIS_PHP_VERSION =~ ^[5] ]]; then phpunit -c app/Plugin/${PLUGIN_CODE}/phpunit.xml.dist ; fi
+  - if [[ $TRAVIS_PHP_VERSION =~ ^[7] ]]; then phpunit -c app/Plugin/${PLUGIN_CODE}/phpunit.xml.dist --coverage-clover=coverage.clover ; fi
 
 after_script:
   # disable plugin
@@ -66,3 +76,6 @@ after_script:
   - php app/console plugin:develop install --code=${PLUGIN_CODE}
   # re enable plugin
   - php app/console plugin:develop enable --code=${PLUGIN_CODE}
+
+after_success:
+  - if [[ $TRAVIS_PHP_VERSION =~ ^[7] ]]; then php vendor/bin/coveralls -v -x coverage.clover ; fi
