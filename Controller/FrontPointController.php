@@ -131,6 +131,7 @@ class FrontPointController
 
         $app['monolog.point']->addInfo('usePoint end');
 
+
         return $app->render(
             'Point/Resource/template/default/point_use.twig',
             array(
