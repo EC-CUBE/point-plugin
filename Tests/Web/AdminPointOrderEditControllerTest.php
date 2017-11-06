@@ -73,6 +73,7 @@ class AdminPointOrderEditControllerTest extends AbstractAdminWebTestCase
                 array(
                     'Product' => $Product->getId(),
                     'ProductClass' => $ProductClasses[0]->getId(),
+                    'product_name' => $Product->getName(),
                     'price' => $ProductClasses[0]->getPrice02(),
                     'quantity' => 1,
                     'tax_rate' => 8
