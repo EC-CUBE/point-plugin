@@ -13,7 +13,8 @@ php:
   - 5.5
   - 5.6
   - 7.0
-  
+  - 7.1
+
 dist: precise
 
 env:
@@ -60,8 +61,8 @@ before_script:
 
 script:
   # exec phpunit on ec-cube
-  - if [[ $TRAVIS_PHP_VERSION =~ ^[5] ]]; then phpunit -c app/Plugin/${PLUGIN_CODE}/phpunit.xml.dist ; fi
-  - if [[ $TRAVIS_PHP_VERSION =~ ^[7] ]]; then phpunit -c app/Plugin/${PLUGIN_CODE}/phpunit.xml.dist --coverage-clover=coverage.clover ; fi
+  - phpunit app/Plugin/${PLUGIN_CODE}/Tests
+  - if [[ $PHP_SAPI != 'phpdbg' ]]; then ./vendor/bin/phpunit -c app/Plugin/${PLUGIN_CODE}/phpunit.xml.dist --coverage-clover=coverage.clover ; fi
 
 after_script:
   # disable plugin
