@@ -264,7 +264,6 @@ class ShoppingControllerWithNonmemberTest extends AbstractWebTestCase
         $crawler = $client->request('GET', $shipping_edit_url);
         $this->assertTrue($client->getResponse()->isSuccessful());
 
-//        $this->expected = 'お届け先の追加';
         $this->expected = 'お届け先の変更';
         $this->actual = $crawler->filter('h1.page-heading')->text();
         $this->verify();
