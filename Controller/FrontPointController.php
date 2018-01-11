@@ -37,19 +37,7 @@ class FrontPointController
             return $app->redirect($app->url('shopping_error'));
         }
 
-        if ('POST' !== $request->getMethod()) {
-            return $app->redirect($app->url('shopping'));
-        }
-
         $builder = $app['eccube.service.shopping']->getShippingFormBuilder($Order);
-
-        $event = new EventArgs(
-            array(
-                'builder' => $builder,
-                'Order' => $Order,
-            ),
-            $request
-        );
 
         $form = $builder->getForm();
 
@@ -59,8 +47,10 @@ class FrontPointController
             $data = $form->getData();
             $message = $data['message'];
             $Order->setMessage($message);
-            // 受注情報を更新
-            $app['orm.em']->flush();
+            foreach ($Order->getShippings() as $Shipping) {
+                // 配送情報を更新
+                $app['orm.em']->flush($Shipping);
+            }
 
             // 使用ポイント入力ページへ遷移
             return $app->redirect($app->url('point_use', array('id' => $id)));
