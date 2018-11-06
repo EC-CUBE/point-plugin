@@ -53,6 +53,11 @@ matrix:
 
 before_script:
   - phpenv config-rm xdebug.ini
+  - echo "opcache.enable_cli=1" >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - echo "extension = apcu.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - echo "apc.enabled=1" >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - echo "apc.enable_cli=1" >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - echo "memory_limit=-1" >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
   # archive plugin
   - tar cvzf ${HOME}/${PLUGIN_CODE}.tar.gz ./*
   # clone ec-cube
@@ -74,7 +79,7 @@ before_script:
 
 script:
   # exec phpunit on ec-cube
-  - if [[ $COVERAGE =! 1 ]]; then vendor/bin/phpunit -c app/Plugin/${PLUGIN_CODE}/phpunit.xml.dist ; fi
+  - if [[ ! $COVERAGE = 1 ]]; then vendor/bin/phpunit -c app/Plugin/${PLUGIN_CODE}/phpunit.xml.dist ; fi
   - if [[ $COVERAGE = 1 ]]; then phpdbg -qrr vendor/bin/phpunit -c app/Plugin/${PLUGIN_CODE}/phpunit.xml.dist --coverage-clover=coverage.clover ; fi
 
 after_script:
