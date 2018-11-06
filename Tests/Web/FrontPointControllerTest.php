@@ -717,7 +717,6 @@ class FrontPointControllerTest extends AbstractWebTestCase
                       array(0 =>
                             array(
                                 'delivery' => 1,
-                                'deliveryTime' => 1
                             ),
                       ),
                       'payment' => 1,
