@@ -17,6 +17,8 @@ php:
   - 7.0
   - 7.1
 
+dist: trusty
+
 env:
   # plugin code
   global:
@@ -25,7 +27,6 @@ env:
     # ec-cube 3.1
     - ECCUBE_VERSION=3.1 DB=mysql USER=root DBNAME=myapp_test DBPASS=' ' DBUSER=root
     - ECCUBE_VERSION=3.1 DB=pgsql USER=postgres DBNAME=myapp_test DBPASS=password DBUSER=postgres
-    - ECCUBE_VERSION=3.1 DB=pgsql USER=postgres DBNAME=myapp_test DBPASS=password DBUSER=postgres COVERAGE=1
     # ec-cube 3.0.17
     - ECCUBE_VERSION=3.0.17 DB=mysql USER=root DBNAME=myapp_test DBPASS=' ' DBUSER=root
     - ECCUBE_VERSION=3.0.17 DB=pgsql USER=postgres DBNAME=myapp_test DBPASS=password DBUSER=postgres
@@ -35,9 +36,10 @@ env:
   # ec-cube 3.0.x
     - ECCUBE_VERSION=3.0 DB=mysql USER=root DBNAME=myapp_test DBPASS=' ' DBUSER=root
     - ECCUBE_VERSION=3.0 DB=pgsql USER=postgres DBNAME=myapp_test DBPASS=password DBUSER=postgres
+    - ECCUBE_VERSION=3.0 DB=pgsql USER=postgres DBNAME=myapp_test DBPASS=password DBUSER=postgres COVERAGE=1
 before_install:
-  - docker pull schickling/mailcatcher
-  - docker run -d -p 1080:1080 -p 1025:1025 --name mailcatcher schickling/mailcatcher
+  - if [[ $DIST = 'trusty' ]]; then docker pull schickling/mailcatcher ; fi
+  - if [[ $DIST = 'trusty' ]]; then docker run -d -p 1080:1080 -p 1025:1025 --name mailcatcher schickling/mailcatcher ; fi
 
 install:
   - gem install mime-types -v 2.99.1
