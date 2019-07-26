@@ -2,8 +2,8 @@
 /*
 * This file is part of EC-CUBE
 *
-* Copyright(c) 2000-2016 LOCKON CO.,LTD. All Rights Reserved.
-* http://www.lockon.co.jp/
+* Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+* https://www.ec-cube.co.jp/
 *
 * For the full copyright and license information, please view the LICENSE
 * file that was distributed with this source code.
@@ -149,7 +149,7 @@ class  AdminCustomer extends AbstractWorkPlace
         $this->app['eccube.plugin.point.history.service']->addEntity($customer);
         $this->app['eccube.plugin.point.history.service']->saveManualpoint($calculateCurrentPoint * -1);
         $this->app['eccube.plugin.point.history.service']->refreshEntity();
-        
+
         // 新しいポイントを登録
         $this->app['eccube.plugin.point.history.service']->addEntity($customer);
         $this->app['eccube.plugin.point.history.service']->saveManualpoint($pointCurrent);
